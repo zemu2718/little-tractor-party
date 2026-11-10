@@ -3,8 +3,8 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 import shutil
 ROOT=Path(__file__).resolve().parent.parent
-PAGES=['index.html','styles.css','app.js','audio.js','.nojekyll']
-ASSETS=['little-dragon.png','little-mouse.png','little-rooster.png','red-tractor.png','birthday-title.png','candle-flame.png','party-family-final.png','cake-family.png','play-sky.png','birthday-background-4k.png','birthday-cake-4k.png']
+PAGES=['index.html','styles.css','app.js','audio.js','voice.js','.nojekyll']
+ASSETS=['little-dragon.webp','little-mouse.webp','little-rooster.webp','red-tractor.webp','birthday-title.webp','candle-flame.webp','party-family-final.webp','cake-family.webp','play-sky.webp','birthday-background-4k.png','birthday-cake-4k.png']
 FILES=PAGES+['assets/'+name for name in ASSETS]
 if __name__=='__main__':
  dist=ROOT/'dist'

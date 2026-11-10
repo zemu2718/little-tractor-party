@@ -1,0 +1,26 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../voice.js'),'utf8');
+const voices=[{lang:'zh-CN',localService:false,name:'remote'},{lang:'en-US',localService:true,name:'English'},{lang:'zh-CN',localService:true,name:'local Chinese'}];
+let said=[],cancelled=0;const synth={getVoices:()=>voices,speak:u=>said.push(u),cancel(){cancelled++;},addEventListener(){}};
+const window={speechSynthesis:synth,SpeechSynthesisUtterance:class{constructor(text){this.text=text;}}};
+const document={hidden:false},revoked=[],timers=new Map();let uid=0,tid=0;
+const URL={createObjectURL:()=>`blob:voice-${++uid}`,revokeObjectURL:url=>revoked.push(url)};
+const media={paused:true,removeAttribute(k){delete this[k];},pause(){this.paused=true;},load(){},async play(){this.paused=false;}};
+let notices=[];vm.runInNewContext(source,{window,document,URL,setTimeout:(f,ms)=>{timers.set(++tid,{f,ms});return tid;},clearTimeout:id=>timers.delete(id)});
+const voice=window.PartyVoice;voice.init(media,m=>notices.push(m),()=>{});
+(async()=>{
+ assert.equal(await voice.speak('mouse','齐齐，妈妈爱你！'),false);assert.equal(said.length,0);
+ voice.setEnabled(true);assert(await voice.speak('mouse','齐齐，妈妈爱你！'));assert.equal(said[0].voice.name,'local Chinese');assert.equal(said[0].volume,.45);
+ voice.setEnabled(false);assert(cancelled>0);assert.equal(await voice.speak('mouse','你好'),false);
+ voice.setEnabled(true);assert(voice.setClip('mouse',{size:100}));assert(await voice.speak('mouse','妈妈'));assert.equal(media.src,'blob:voice-1');assert.equal(media.volume,.45);assert([...timers.values()].some(t=>t.ms===12000));
+ assert(!voice.setClip('mouse',{size:11*1024*1024}));assert(voice.status().has('mouse'));
+ assert(voice.setClip('mouse',{size:100}));assert(revoked.includes('blob:voice-1'));
+ assert(voice.setClip('rooster',{size:100}));
+ const resolutions=[];media.play=()=>{media.paused=false;return new Promise(resolve=>resolutions.push(resolve));};
+ const first=voice.speak('mouse','妈妈'),second=voice.speak('rooster','爸爸');resolutions[0]();await first;assert.equal(media.paused,false);resolutions[1]();await second;
+ document.hidden=true;assert.equal(await voice.speak('mouse','妈妈'),false);assert(media.paused);document.hidden=false;
+ voice.clearClips();assert.equal(voice.status().count,0);assert(revoked.includes('blob:voice-2'));assert(revoked.includes('blob:voice-3'));
+ voices.splice(1);assert.equal(await voice.speak('mouse','你好'),false);assert.equal(voice.status().local,false);
+ voice.setSpoken(false);assert.equal(await voice.speak('mouse','你好'),false);
+ console.log('PASS: voice opt-in, local Chinese only, clip limits, URL replacement/cleanup, rapid-tap race, duration cap, mute/background stop');
+})().catch(e=>{console.error(e);process.exitCode=1;});

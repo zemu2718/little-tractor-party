@@ -53,6 +53,9 @@ for name in FILES:
     elif p.suffix=='.js':
         r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
         if r.returncode:errors.append(r.stderr)
+    elif p.suffix=='.webp':
+        data=p.read_bytes()
+        if data[:4]!=b'RIFF' or data[8:12]!=b'WEBP':errors.append(f'{name}: invalid WebP signature')
     elif p.suffix=='.png':
         data=p.read_bytes()
         if data[:8]!=b'\x89PNG\r\n\x1a\n':errors.append(f'{name}: invalid PNG signature')
@@ -63,4 +66,4 @@ for folder in ['party','classic','play']:
 for p in (ROOT/'assets').rglob('*.svg'):errors.append(f'legacy SVG remains: {p.name}')
 if len([name for name in FILES if name.endswith('.html')])!=1:errors.append('expected a single HTML entry')
 if errors:raise SystemExit('\n'.join(errors))
-print(f'PASS: {len(FILES)} publish files, all local links, repository-relative paths, unique HTML IDs, generated PNGs, no legacy variants/SVG, nickname and JS syntax')
+print(f'PASS: {len(FILES)} publish files, all local links, repository-relative paths, unique HTML IDs, generated WebP/PNG, no legacy variants/SVG, nickname and JS syntax')

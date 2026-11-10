@@ -9,8 +9,9 @@ function setup({reduce=false}={}){
  const tabs=['home','album','cake','game'].map(scene=>Object.assign(element(),{dataset:{scene}}));const friends=['dragon','mouse','rooster','tractor'].map(friend=>Object.assign(element(),{dataset:{friend}}));const friendParent=element();friends.forEach(f=>friendParent.append(f));
  const events={},windowEvents={},timers=new Map();let tid=0,uid=0;const objects=new Map(),revoked=[];
  const document={hidden:false,documentElement:{},body:element(),getElementById:id=>els[id],querySelectorAll:selector=>selector==='[data-scene]'?tabs:friends,addEventListener:(k,f)=>events[k]=f,createElement:element};
- const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,10],total:14};},stopSong(){this.stopped++;}};
- const window={PartyAudio:audio,addEventListener:(k,f)=>windowEvents[k]=f};
+ const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,10],total:14};},stopSong(){this.stopped++;},stopEffects(){}};
+ const voice={init(){},setEnabled(){},setSpoken(){},status(){return {count:0,has:()=>false,local:false};},stop(){},async speak(){return false;},setClip(){return true;},clearClips(){}};
+ const window={PartyVoice:voice,PartyAudio:audio,addEventListener:(k,f)=>windowEvents[k]=f};
  class Image{set src(v){if(!v)return;const file=objects.get(v);queueMicrotask(()=>{if(file?.bad)this.onerror?.();else{this.naturalWidth=1200;this.naturalHeight=800;this.onload?.();}});}}
  const URL={createObjectURL(f){const url='blob:'+ ++uid;objects.set(url,f);return url;},revokeObjectURL(url){revoked.push(url);objects.delete(url);}};
  const timeout=(f,ms)=>{timers.set(++tid,{f,ms});return tid;};
@@ -32,7 +33,7 @@ function setup({reduce=false}={}){
  await app.click('album-toggle');assert.equal(app.read('albumPlaying'),false);assert(![...app.timers.values()].some(t=>t.ms===8000));await app.click('album-toggle');assert([...app.timers.values()].some(t=>t.ms===8000));
  app.document.hidden=true;app.events.visibilitychange();assert(![...app.timers.values()].some(t=>t.ms===8000));app.document.hidden=false;app.events.visibilitychange();assert([...app.timers.values()].some(t=>t.ms===8000));
  await app.click('photo');assert(![...app.timers.values()].some(t=>t.ms===8000));await app.click('photo');assert([...app.timers.values()].some(t=>t.ms===8000));
- await app.run("importPhotos([{name:'bad.heic',size:5,bad:true}])");assert.equal(app.read('photos.length'),2);assert.match(els.notice.textContent,/无法显示/);
+ await app.run("importPhotos([{name:'bad.heic',size:5,bad:true}])");assert.equal(app.read('photos.length'),2);assert.match(els.notice.textContent,/无法显示/);assert.equal(app.read('albumPlaying'),true);
  const priorURLs=app.read('JSON.stringify(photos.map(p=>p.url))');await app.click('clear-photos');assert.equal(app.read('photos.length'),0);assert.equal(els['photo-frame'].hidden,true);for(const url of JSON.parse(priorURLs))assert(app.revoked.includes(url));
  await app.run("importPhotos([{name:'01-photo.jpg',size:1}])");assert(els.next.disabled);assert(![...app.timers.values()].some(t=>t.ms===8000));
  await app.run("selectScene('cake')");await app.click('mic-toggle');assert.match(els.notice.textContent,/不支持麦克风/);
@@ -55,6 +56,17 @@ function setup({reduce=false}={}){
  await app.run("selectScene('game')");app.friends[1].onclick();assert.match(app.els.hello.textContent,/鼠妈妈/);
  await app.run('lastGreeting=0');app.friends[2].onclick();assert.match(app.els.hello.textContent,/公鸡爸爸/);
  await app.click('celebrate');assert(app.els.controls.hidden);assert.equal(app.els.confetti.children.length,44);
+ // 亲子模式：空白点击不唤出菜单；长按及 Esc 可恢复。
+ app=setup();await app.click('child-play');assert.equal(app.read('mode'),'game');assert.equal(app.read('childMode'),true);assert(app.els.controls.hidden);
+ app.events.click({target:{closest:()=>null}});assert(app.els.controls.hidden);
+ app.els['parent-exit'].onpointerdown({preventDefault(){}});const held=[...app.timers.values()].find(t=>t.ms===1100);assert(held);held.f();assert(!app.els.controls.hidden);assert(!app.read('childMode'));
+ await app.click('child-play');app.events.keydown({key:'Escape'});assert(!app.read('childMode'));
+ // 导入取消不会替换旧照片，取消后释放本轮临时 URL。
+ await app.run("importPhotos([{name:'01-old.png',size:1}])");const oldPhoto=app.read('photos[0].url');
+ await app.run('decode=url=>new Promise(resolve=>globalThis.finishDecode=resolve)');
+ const importing=app.run("importPhotos([{name:'02-new.png',size:1}])");assert(!app.els['import-status'].hidden);
+ await app.click('cancel-import');app.context.finishDecode({naturalWidth:1200,naturalHeight:800});await importing;
+ assert.equal(app.read('photos[0].url'),oldPhoto);assert(app.els['import-status'].hidden);assert.equal(app.objects.size,1);
  app=setup({reduce:true});await app.run("selectScene('cake')");await app.click('blow');assert.equal(app.els.confetti.children.length,0);
  console.log('PASS: play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
 })().catch(e=>{console.error(e);process.exitCode=1;});
