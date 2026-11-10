@@ -19,6 +19,9 @@ if __name__=='__main__':
     archive=ROOT/'little-tractor-party-offline.zip'
     with ZipFile(archive,'w',ZIP_DEFLATED) as out:
         for name in FILES+['README.md']:
-            out.write(ROOT/name,name)
+            if name=='index.html':
+                offline=(ROOT/name).read_text().replace('<a href="little-tractor-party-offline.zip" download>↓ 完整离线包</a>', '<span class="note">当前为完整离线副本</span>')
+                out.writestr(name,offline)
+            else:out.write(ROOT/name,name)
     shutil.copy2(archive,dist/archive.name)
     print(f'已生成 dist/（{len(FILES)} 个站点文件）与 {archive.name}（{archive.stat().st_size/1024/1024:.1f} MB）')

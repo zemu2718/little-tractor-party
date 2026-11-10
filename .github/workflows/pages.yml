@@ -17,6 +17,7 @@ jobs:
         run: |
           node scripts/check_page.cjs party
           node scripts/check_page.cjs classic
+          node scripts/check_audio.cjs
           node scripts/check_play.cjs
           python3 scripts/check_site.py
       - name: Prepare static site and offline copy

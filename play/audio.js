@@ -1,7 +1,7 @@
 /* 原生合成音：不加载网络音频。所有声音都从用户操作开始。 */
 'use strict';
 window.PartyAudio = (() => {
- let context, bus, songBus, enabled=false;
+ let context, bus, songBus, enabled=false, songId=0;
  const notes={C4:261.63,G4:392,A4:440,B4:493.88,C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,A5:880,C6:1046.5};
  const melody=[['G4',.75],['G4',.25],['A4',1],['G4',1],['C5',1],['B4',2],['G4',.75],['G4',.25],['A4',1],['G4',1],['D5',1],['C5',2],['G4',.75],['G4',.25],['G5',1],['E5',1],['C5',1],['B4',1],['A4',2],['F5',.75],['F5',.25],['E5',1],['C5',1],['D5',1],['C5',3]];
  async function ready(){
@@ -17,9 +17,9 @@ window.PartyAudio = (() => {
   oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};
  }
  function bell(hz,t,d,v,target){tone(hz,t,d,v,'sine',target);tone(hz*2,t,d*.6,v*.18,'sine',target);}
- function stopSong(){if(songBus){songBus.gain.setValueAtTime(0,context.currentTime);songBus.disconnect();songBus=null;}}
+ function stopSong(){songId++;if(songBus){songBus.gain.setValueAtTime(0,context.currentTime);songBus.disconnect();songBus=null;}}
  async function setEnabled(value){enabled=value;if(value){await ready();if(enabled)bus.gain.setValueAtTime(.28,context.currentTime);}else{stopSong();if(bus)bus.gain.setValueAtTime(0,context.currentTime);}}
- async function song(){await ready();stopSong();songBus=context.createGain();songBus.connect(bus);const start=context.currentTime+.12;let time=start;const lines=[];
+ async function song(){stopSong();const run=songId;await ready();if(run!==songId||!enabled||document.hidden)return null;songBus=context.createGain();songBus.connect(bus);const start=context.currentTime+.12;let time=start;const lines=[];
   melody.forEach(([name,duration],i)=>{if([0,6,12,19].includes(i))lines.push(time-start+.12);bell(notes[name],time,Math.max(.65,duration*.8),.27,songBus);time+=duration*.58;});return {lines,total:time-start+.8};
  }
  async function effect(kind){if(!enabled)return;await ready();if(!enabled||document.hidden)return;const t=context.currentTime+.02;
