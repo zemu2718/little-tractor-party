@@ -1,0 +1,13 @@
+{
+  "name": "齐齐的生日派对",
+  "short_name": "齐齐生日",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#fff2db",
+  "theme_color": "#d5ecdf",
+  "icons": [
+    {"src": "assets/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}

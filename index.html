@@ -1,39 +1,49 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#d5ecdf"><meta name="description" content="齐齐的生日派对：挖掘机和家人、成长相册和生日蛋糕，专为手机横屏与大屏展示准备。"><title>齐齐，生日快乐！</title><link rel="icon" href="assets/little-dragon.webp" type="image/webp"><link rel="stylesheet" href="styles.css"><script src="audio.js" defer></script><script src="voice.js" defer></script><script src="app.js" defer></script></head>
-<body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#d5ecdf"><meta name="description" content="齐齐的生日派对：挖掘机和家人、成长相册和生日蛋糕，专为手机横屏与大屏展示准备。"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="齐齐生日"><title>齐齐，生日快乐！</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="assets/little-dragon.webp" type="image/webp"><link rel="apple-touch-icon" href="assets/app-icon.png"><link rel="stylesheet" href="styles.css"><script src="audio.js" defer></script><script src="voice.js" defer></script><script src="app.js" defer></script></head>
+<body data-scene="home">
 <main id="stage" tabindex="-1" aria-label="齐齐的生日派对">
-<section id="scene-home" class="scene" aria-label="挖掘机乐园"><img fetchpriority="high" class="scene-art" src="assets/party-family-final.webp" alt="小龙齐齐驾驶黄色玩具挖掘机，公鸡爸爸与鼠妈妈在旁边庆祝" width="1671" height="941" decoding="async"><h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，生日快乐！" width="2172" height="724"></h1></section>
+<section id="scene-home" class="scene" aria-label="挖掘机乐园">
+<div id="home-art" class="art-wrap"><img fetchpriority="high" class="scene-art" src="assets/party-family-final.webp" alt="小龙齐齐驾驶黄色玩具挖掘机，公鸡爸爸与鼠妈妈在旁边庆祝" width="1671" height="941" decoding="async">
+<div id="home-hots" class="hots"><button class="hot" data-hot="excavator" style="left:5%;top:24%;width:31%;height:54%" aria-label="挖掘机挖一挖"></button><button class="hot" data-hot="excavator" style="left:20%;top:70%;width:44%;height:24%" aria-label="挖掘机开一开"></button><button class="hot" data-hot="dragon" style="left:34%;top:28%;width:22%;height:42%" aria-label="和小龙齐齐打招呼"></button><button class="hot" data-hot="rooster" style="left:56%;top:44%;width:12%;height:47%" aria-label="和公鸡爸爸打招呼"></button><button class="hot" data-hot="two" style="left:65%;top:62%;width:10%;height:31%" aria-label="数字二"></button><button class="hot" data-hot="mouse" style="left:74%;top:46%;width:13%;height:47%" aria-label="和鼠妈妈打招呼"></button></div></div>
+<div class="twinkles" aria-hidden="true"><i style="--x:24%;--y:30%;--d:0s"></i><i style="--x:79%;--y:24%;--d:.7s"></i><i style="--x:62%;--y:37%;--d:1.4s"></i><i style="--x:12%;--y:56%;--d:2.1s"></i><i style="--x:90%;--y:52%;--d:1s"></i><i style="--x:44%;--y:22%;--d:2.6s"></i></div>
+<h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，生日快乐！" width="2172" height="724"></h1></section>
 <section id="scene-album" class="scene" hidden aria-label="成长相册">
-<div class="album-bg"></div><div id="album-empty" class="empty"><img src="assets/little-dragon.webp" alt="小龙等你一起看照片"><h1 class="album-heading"><img class="title-art" src="assets/album-title.webp" alt="齐齐的成长时光" width="2172" height="724"></h1><p class="privacy-note">照片不上传，刷新后需重选。</p><button class="primary" id="empty-pick">选择成长照片</button></div>
-<figure id="photo-frame" hidden><img id="photo-img" alt=""><figcaption id="photo-caption"></figcaption></figure><div id="import-status" class="import-status" hidden role="status" aria-live="polite"><span id="import-label"></span><button id="cancel-import">取消导入</button></div><div id="album-count" class="album-count" hidden></div><div id="album-progress" hidden><i></i></div>
+<div id="album-bg" class="album-bg"></div><div id="album-empty" class="empty"><img src="assets/little-dragon.webp" alt="小龙等你一起看照片"><h1 class="album-heading"><img class="title-art" src="assets/album-title.webp" alt="齐齐的成长时光" width="2172" height="724"></h1><p class="privacy-note">照片不上传，刷新后需重选。</p><button class="primary" id="empty-pick">选择成长照片</button></div>
+<figure id="photo-frame" hidden><img id="photo-img" alt=""><figcaption id="photo-caption"></figcaption></figure><img class="album-sticker sticker-mouse" src="assets/little-mouse.webp" alt="" aria-hidden="true"><img class="album-sticker sticker-dragon" src="assets/little-dragon.webp" alt="" aria-hidden="true"><div id="import-status" class="import-status" hidden role="status" aria-live="polite"><span id="import-label"></span><button id="cancel-import">取消导入</button></div><div id="album-count" class="album-count" hidden></div><div id="album-progress" hidden><i></i></div>
 </section>
 <section id="scene-cake" class="scene generated-scene" hidden aria-label="生日蛋糕">
-<div id="birthday-cake"><img class="scene-art" src="assets/cake-family.webp" alt="小龙齐齐在蛋糕右侧挥手，鼠妈妈和公鸡爸爸在左侧陪伴庆祝" width="1671" height="941" decoding="async"><img  class="flame-layer" src="assets/candle-flame.webp" alt="" aria-hidden="true"></div><h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，生日快乐！" width="2172" height="724"></h1>
+<div id="birthday-cake" class="art-wrap"><img class="scene-art" src="assets/cake-family.webp" alt="小龙齐齐在蛋糕右侧挥手，鼠妈妈和公鸡爸爸在左侧陪伴庆祝" width="1671" height="941" decoding="async"><i class="two-glow" aria-hidden="true"></i><i class="flame-glow" aria-hidden="true"></i><img class="flame-layer" src="assets/candle-flame.webp" alt="" aria-hidden="true"><span class="smoke" aria-hidden="true"><i></i><i></i><i></i></span>
+<div id="cake-hots" class="hots"><button class="hot" data-hot="cake" style="left:33%;top:26%;width:36%;height:68%" aria-label="点蛋糕吹蜡烛"></button><button class="hot" data-hot="mouse" style="left:5%;top:40%;width:17%;height:52%" aria-label="和鼠妈妈打招呼"></button><button class="hot" data-hot="rooster" style="left:20%;top:38%;width:15%;height:54%" aria-label="和公鸡爸爸打招呼"></button><button class="hot" data-hot="dragon" style="left:67%;top:33%;width:23%;height:60%" aria-label="和小龙齐齐打招呼"></button></div></div>
+<div class="twinkles" aria-hidden="true"><i style="--x:30%;--y:30%;--d:.3s"></i><i style="--x:70%;--y:26%;--d:1.2s"></i><i style="--x:50%;--y:20%;--d:2s"></i><i style="--x:18%;--y:22%;--d:2.7s"></i><i style="--x:84%;--y:60%;--d:1.6s"></i></div>
+<h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，生日快乐！" width="2172" height="724"></h1>
 <h2 id="cake-title" class="sr-only" aria-live="polite">齐齐，生日快乐！</h2><p id="lyric" class="scene-note" aria-live="polite">许个愿吧</p>
 </section>
 <section id="scene-game" class="scene" hidden aria-label="和生肖家人玩">
 <div class="scene-heading"><h1><img class="title-art" src="assets/family-title.webp" alt="一家人，一起玩！" width="2172" height="724"></h1><div id="hello" aria-live="polite">点点小伙伴</div></div>
 <div class="friends"><button data-friend="mouse" aria-label="和鼠妈妈打招呼"><img loading="lazy" src="assets/little-mouse.webp" alt=""><span>鼠妈妈</span></button><button data-friend="dragon" aria-label="和小龙打招呼"><img src="assets/little-dragon.webp" alt=""><span>小龙齐齐</span></button><button data-friend="rooster" aria-label="和公鸡爸爸打招呼"><img loading="lazy" src="assets/little-rooster.webp" alt=""><span>公鸡爸爸</span></button><button data-friend="excavator" aria-label="和挖掘机打招呼"><img loading="lazy" src="assets/little-excavator.webp" alt=""><span>挖掘机</span></button></div>
-<div id="bubbles" aria-hidden="true"></div>
-</section><div id="confetti" aria-hidden="true"></div>
+</section>
+<div id="ambient" aria-hidden="true"></div><div id="bubbles" aria-hidden="true"></div><div id="confetti" aria-hidden="true"></div>
+<img id="wipe" src="assets/little-excavator.webp" alt="" aria-hidden="true"><div id="countdown" aria-live="assertive"></div>
 </main>
 <p class="portrait-note">横过手机，画面更好看<br>用屏幕镜像连接电视</p>
+<nav id="kid-nav" hidden aria-label="宝宝换场景"><button id="kid-home" data-kid="home" aria-label="挖掘机乐园"></button><button id="kid-cake" data-kid="cake" aria-label="生日蛋糕"></button><button id="kid-game" data-kid="game" aria-label="一家人一起玩"></button></nav>
 <nav id="controls" aria-label="生日派对控制">
 <div class="row tabs" aria-label="选择场景"><button data-scene="home" aria-pressed="true">挖掘机乐园</button><button data-scene="album" aria-pressed="false">成长相册</button><button data-scene="cake" aria-pressed="false">生日蛋糕</button><button data-scene="game" aria-pressed="false">点点玩</button></div>
 <div class="row" id="album-tools" hidden><button id="pick">选择照片</button><button id="previous" disabled aria-label="上一张照片">← 上一张</button><button id="album-toggle" disabled>播放相册</button><button id="next" disabled aria-label="下一张照片">下一张 →</button></div>
-<div class="row" id="cake-tools" hidden><button id="sing">♫ 一起唱生日歌</button><button id="blow">吹灭蜡烛</button><button id="relight" hidden>重新点亮</button></div>
+<div class="row" id="cake-tools" hidden><button id="sing">♫ 一起唱生日歌</button><button id="countdown-blow">3·2·1 吹蜡烛</button><button id="blow">直接吹灭</button><button id="relight" hidden>重新点亮</button></div>
 <div class="row"><button id="child-play">给齐齐玩</button><button id="fullscreen" class="primary" aria-pressed="false">全屏展示</button><button id="celebrate">撒花庆祝</button><button id="sound" aria-pressed="false">声音：关</button><button id="photo" aria-pressed="false">合影模式</button><button id="hide">隐藏按钮</button></div>
 <details id="settings"><summary>更多设置与备用图</summary>
-<div class="row"><button id="pause" aria-pressed="false">暂停动画</button><button id="awake" aria-pressed="false">保持屏幕常亮</button><a href="assets/birthday-background-4k.png" download="齐齐挖掘机派对-4K.png">派对备用图</a><a href="assets/birthday-cake-4k.png" download="齐齐生日蛋糕-4K.png">蛋糕备用图</a><a href="little-tractor-party-offline.zip" download>完整离线包</a></div>
-<div class="row album-settings" id="album-settings" hidden><label>每张停留 <select id="duration"><option value="5">5 秒</option><option value="8" selected>8 秒</option><option value="12">12 秒</option></select></label><button id="clear-music" disabled>移除音乐</button><button id="pick-music">选择背景音乐</button><button id="music-toggle" disabled>播放音乐</button><button id="clear-photos" disabled>清空照片</button><button id="pick-folder">选择文件夹</button><label><input id="captions" type="checkbox" checked>显示文件名字幕</label></div>
+<div class="row"><button id="pause" aria-pressed="false">暂停动画</button><button id="motion" aria-pressed="false">动效：热闹</button><button id="awake" aria-pressed="false">保持屏幕常亮</button><a href="assets/birthday-background-4k.png" download="齐齐挖掘机派对-4K.png">派对备用图</a><a href="assets/birthday-cake-4k.png" download="齐齐生日蛋糕-4K.png">蛋糕备用图</a><a href="little-tractor-party-offline.zip" download>完整离线包</a></div>
+<p id="motion-note" class="help" hidden>手机开启了“减弱动态效果”；本页默认仍保持派对动画，需要时点“动效”切换为安静。</p>
+<div class="row album-settings" id="album-settings" hidden><label>每张停留 <select id="duration"><option value="5">5 秒</option><option value="8" selected>8 秒</option><option value="12">12 秒</option></select></label><label><input id="builtin-music" type="checkbox" checked>内置轻快音乐</label><button id="clear-music" disabled>移除音乐</button><button id="pick-music">选择背景音乐</button><button id="music-toggle" disabled>播放音乐</button><button id="clear-photos" disabled>清空照片</button><button id="pick-folder">选择文件夹</button><label><input id="captions" type="checkbox" checked>显示文件名字幕</label></div>
 <div class="voice-settings">
 <label><input id="spoken" type="checkbox" checked> 角色说话</label><span id="voice-status"></span>
-<div class="row"><button id="pick-mom">选择妈妈录音</button><button id="pick-dad">选择爸爸录音</button><button id="pick-child">选择齐齐录音</button><button id="clear-voices" disabled>清除家人录音</button></div>
-<p class="help">选择一段家人祝福，点角色就能听见。录音不上传，刷新后需重选；未选择时使用设备离线语音或音效。</p>
+<div class="row"><button id="pick-mom">选择妈妈录音</button><button id="pick-dad">选择爸爸录音</button><button id="pick-child">选择齐齐录音</button><button id="pick-song">选择生日歌录音</button><button id="clear-voices" disabled>清除家人录音</button></div>
+<p class="help">选择一段家人祝福，点角色就能听见；也可以录一段全家唱的《生日快乐》，唱歌时会优先播放。录音不上传，刷新后需重选；未选择时使用设备离线语音或音效。</p>
 </div>
 <div class="row" id="mic-tools" hidden><button id="mic-toggle" aria-pressed="false">开启吹气感应</button><span id="mic-status" role="status"></span></div>
-<p class="help">隐藏后轻点空白处恢复操作；Esc 恢复，1–4 切换场景。<br>照片只在本机展示，刷新后需重选。声音默认关闭。</p>
+<p class="help">隐藏后轻点空白处恢复操作；Esc 恢复，1–4 切换场景。<br>iPhone 无法网页全屏时：Safari「分享 → 添加到主屏幕」，从桌面图标打开即无工具栏。<br>照片只在本机展示，刷新后需重选。</p>
 </details>
 </nav>
 <button id="parent-exit" hidden aria-label="长按一秒恢复家长操作；键盘可按回车">家长 · 长按恢复</button>

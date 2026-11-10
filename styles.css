@@ -1,9 +1,8 @@
-:root{color-scheme:light;--ink:#275c4d;--paper:#fff9e9}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}body{display:grid;place-items:center;background:#d5e4d7;color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",sans-serif}button,a,select,input,summary{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button,a{cursor:pointer}button{color:inherit}button:disabled{opacity:.45;cursor:default}[hidden]{display:none!important}button:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid #df9c31;outline-offset:3px}#stage{position:relative;width:min(100vw,177.7778vh);width:min(100vw,177.7778dvh);aspect-ratio:16/9;overflow:hidden;container-type:inline-size;background:#b2e2e5;outline:none;isolation:isolate}.scene{position:absolute;inset:0;overflow:hidden;background:#d5ecdf}#scene-game{background:url('assets/play-sky.webp') center/100% 100%}@keyframes cloud{to{transform:translateX(45px)}}@keyframes train{from{transform:translateX(-65px)}to{transform:translateX(65px)}}@keyframes spin{to{transform:rotate(360deg)}}.scene-heading{position:absolute;top:5%;left:10%;right:10%;text-align:center;z-index:2;pointer-events:none}.scene-heading p{font-size:1.5cqw;letter-spacing:.2em;margin:0 0 1.3%}.scene-heading h1{font-size:4.8cqw;line-height:1.2;margin:0;color:#28634a;text-shadow:0 .28cqw #fffdf0,0 -.18cqw #fffdf0,.18cqw 0 #fffdf0,-.18cqw 0 #fffdf0}.scene-heading #lyric,.scene-heading #hello{display:table;margin:2% auto 0;padding:.6cqw 2cqw;background:#fff5d4;border-radius:3cqw;font-size:2cqw;min-height:3.4cqw;color:#95682f;max-width:100%}.friends{position:absolute;left:6%;right:6%;top:37%;bottom:11%;display:grid;grid-template-columns:repeat(4,1fr);gap:2%}.friends button{position:relative;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-radius:4cqw}.friends img{width:100%;height:88%;object-fit:contain;filter:drop-shadow(0 1cqw 0 #42674415);pointer-events:none}.friends span{font-size:2cqw;font-weight:800;background:#fff6da;border-radius:3cqw;padding:.5cqw 2cqw;white-space:nowrap}.friends button.greet img{animation:greet .8s ease-in-out}.friends button:active{background:#ffffff25}@keyframes greet{0%,100%{transform:translateY(0)}40%{transform:translateY(-2cqw) rotate(-5deg)}70%{transform:rotate(4deg)}}#bubbles{position:absolute;inset:0;pointer-events:none}.bubble{position:absolute;color:#fff0ac;font-size:4cqw;animation:bubble 1.8s ease-out both;text-shadow:0 3px #d7ad5b}@keyframes bubble{from{transform:translate(-50%,-50%) scale(.4);opacity:0}20%{opacity:1}to{transform:translate(-50%,-160%) scale(1.1);opacity:0}}.album-bg{position:absolute;inset:0;background:#285b48e8}.empty{position:absolute;inset:5%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff4d9;text-align:center}.empty img{height:43%;aspect-ratio:1;object-fit:contain}.empty h1{font-size:3.5cqw;margin:1cqw 0}.empty p{font-size:1.7cqw;margin:.5cqw 0 2cqw}.primary{border:0;border-radius:14px;background:#f4ce76;color:#345b45;font-weight:800;padding:12px 20px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px}.empty .primary{font-size:clamp(12px,1.8cqw,26px);padding:1cqw 2cqw;min-height:36px}#photo-frame{position:absolute;inset:5% 8% 12%;margin:0;display:flex;align-items:center;justify-content:center;flex-direction:column}#photo-img{display:block;max-width:100%;max-height:90%;object-fit:contain;border:1cqw solid #fff9e9;border-radius:.5cqw;box-shadow:0 1cqw 3cqw #15312480;animation:photo-in .6s ease-out}#photo-caption{background:#fff9e9;color:#385943;font-size:2cqw;padding:.7cqw 2cqw;max-width:90%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#photo-caption:empty{display:none}.album-count{position:absolute;right:3%;top:3%;color:#fff9dc;font-size:1.6cqw;background:#153f3280;padding:.5cqw 1cqw;border-radius:2cqw}#album-progress{position:absolute;left:15%;right:15%;bottom:6%;height:.6cqw;background:#ffffff25;border-radius:1cqw;overflow:hidden}#album-progress i{display:block;height:100%;background:#f4ce76;transition:width .4s}@keyframes photo-in{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}#controls{position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:20;max-width:calc(100vw - 20px);width:max-content;max-height:62vh;max-height:62dvh;overflow:auto;background:#fff9eef5;border:1px solid #45654328;box-shadow:0 8px 30px #31554825;padding:7px;border-radius:20px}.row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:center;max-width:760px}.row button,.row a{min-height:44px;padding:10px 13px;background:transparent;border:0;border-radius:12px;color:var(--ink);font-size:13px;text-decoration:none}.row button:hover,.row a:hover,summary:hover{background:#e6efda}.row button[aria-pressed=true]{background:#2f6d52;color:#fff9dc}.tabs{border-bottom:1px solid #dddcc5;padding-bottom:5px;margin-bottom:4px}.tabs button{font-weight:700}#blow,#empty-pick{background:#f6d47f}#sing{background:#e7efcd}summary{font-size:12px;text-align:center;padding:10px;border-radius:10px;cursor:pointer;min-height:38px;color:#66765d}#settings[open]{border-top:1px solid #dedcc5;margin-top:5px}.help{font-size:12px;text-align:center;line-height:1.8;color:#69775e;margin:10px}.album-settings{padding:8px;background:#eff0e2;border-radius:12px}.album-settings label{font-size:12px;padding:6px}.album-settings select{background:#fffaf0;border:1px solid #bec8a5;padding:8px;border-radius:8px}#mic-status{font-size:12px;padding:8px}#notice{position:fixed;z-index:40;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);background:#285642ed;color:#fff9e9;padding:12px 20px;border-radius:14px;max-width:90vw;text-align:center;line-height:1.7;font-size:14px;pointer-events:none}#notice:empty{display:none}.portrait-note{display:none;position:fixed;top:calc(50% + 28.125vw);font-size:13px;line-height:1.8;text-align:center;color:#60745d;margin:14px}.clean .portrait-note{display:none}#confetti{position:absolute;inset:0;pointer-events:none;z-index:10}.confetti-piece{position:absolute;top:-5%;left:var(--x);width:.7%;height:1.8%;border-radius:3px;background:var(--color);animation:fall var(--duration) linear var(--delay) both;opacity:0}.confetti-piece:nth-child(3n){border-radius:50%}@keyframes fall{8%{opacity:.9}90%{opacity:.9}100%{opacity:0;transform:translate(var(--drift),var(--fall)) rotate(240deg)}}.paused *,.background-paused *{animation-play-state:paused!important}dialog{border:0;border-radius:24px;max-width:min(90vw,480px);background:#fff9e9;color:#285c46;padding:28px;box-shadow:0 20px 80px #173c4660}dialog::backdrop{background:#204f4666}dialog h2{font-size:23px;margin:0 0 15px}dialog p{font-size:15px;line-height:1.9}dialog .row .primary{background:#2f6d52;color:#fff9dc}.noscript{position:fixed;bottom:5px;background:#fff9e9;padding:14px;border-radius:14px;font-size:14px;z-index:25}@media(orientation:portrait){.portrait-note{display:block}#controls{width:calc(100vw - 20px);max-height:42dvh}.row button,.row a{padding:9px 11px}.empty img{height:34%}.empty p{font-size:2.7cqw}.empty h1{font-size:4.4cqw}}@media(max-height:460px){#controls{bottom:max(5px,env(safe-area-inset-bottom));padding:4px;max-height:70dvh}.row button{font-size:12px;padding:8px 10px}summary{padding:7px;min-height:32px}.help{margin:5px}.tabs{padding-bottom:2px;margin-bottom:2px}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#confetti,#bubbles{display:none}}
+:root{color-scheme:light;--ink:#275c4d;--paper:#fff9e9}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}body{display:grid;place-items:center;background:#d5e4d7;color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",sans-serif}button,a,select,input,summary{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button,a{cursor:pointer}button{color:inherit}button:disabled{opacity:.45;cursor:default}[hidden]{display:none!important}button:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid #df9c31;outline-offset:3px}#stage{position:relative;width:min(100vw,177.7778vh);width:min(100vw,177.7778dvh);aspect-ratio:16/9;overflow:hidden;container-type:inline-size;background:#b2e2e5;outline:none;isolation:isolate}.scene{position:absolute;inset:0;overflow:hidden;background:#d5ecdf}#scene-game{background:url('assets/play-sky.webp') center/100% 100%}@keyframes cloud{to{transform:translateX(45px)}}@keyframes train{from{transform:translateX(-65px)}to{transform:translateX(65px)}}@keyframes spin{to{transform:rotate(360deg)}}.scene-heading{position:absolute;top:5%;left:10%;right:10%;text-align:center;z-index:2;pointer-events:none}.scene-heading p{font-size:1.5cqw;letter-spacing:.2em;margin:0 0 1.3%}.scene-heading h1{font-size:4.8cqw;line-height:1.2;margin:0;color:#28634a;text-shadow:0 .28cqw #fffdf0,0 -.18cqw #fffdf0,.18cqw 0 #fffdf0,-.18cqw 0 #fffdf0}.scene-heading #lyric,.scene-heading #hello{display:table;margin:2% auto 0;padding:.6cqw 2cqw;background:#fff5d4;border-radius:3cqw;font-size:2cqw;min-height:3.4cqw;color:#95682f;max-width:100%}.friends{position:absolute;left:6%;right:6%;top:37%;bottom:11%;display:grid;grid-template-columns:repeat(4,1fr);gap:2%}.friends button{position:relative;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-radius:4cqw}.friends img{width:100%;height:88%;object-fit:contain;filter:drop-shadow(0 1cqw 0 #42674415);pointer-events:none}.friends span{font-size:2cqw;font-weight:800;background:#fff6da;border-radius:3cqw;padding:.5cqw 2cqw;white-space:nowrap}.friends button.greet img{animation:greet .8s ease-in-out}.friends button:active{background:#ffffff25}@keyframes greet{0%,100%{transform:translateY(0)}40%{transform:translateY(-2cqw) rotate(-5deg)}70%{transform:rotate(4deg)}}#bubbles{position:absolute;inset:0;pointer-events:none}.bubble{position:absolute;color:#fff0ac;font-size:4cqw;animation:bubble 1.8s ease-out both;text-shadow:0 3px #d7ad5b}@keyframes bubble{from{transform:translate(-50%,-50%) scale(.4);opacity:0}20%{opacity:1}to{transform:translate(-50%,-160%) scale(1.1);opacity:0}}.album-bg{position:absolute;inset:0;background:#285b48e8}.empty{position:absolute;inset:5%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff4d9;text-align:center}.empty img{height:43%;aspect-ratio:1;object-fit:contain}.empty h1{font-size:3.5cqw;margin:1cqw 0}.empty p{font-size:1.7cqw;margin:.5cqw 0 2cqw}.primary{border:0;border-radius:14px;background:#f4ce76;color:#345b45;font-weight:800;padding:12px 20px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px}.empty .primary{font-size:clamp(12px,1.8cqw,26px);padding:1cqw 2cqw;min-height:36px}#photo-frame{position:absolute;inset:5% 8% 12%;margin:0;display:flex;align-items:center;justify-content:center;flex-direction:column}#photo-img{display:block;max-width:100%;max-height:90%;object-fit:contain;border:1cqw solid #fff9e9;border-radius:.5cqw;box-shadow:0 1cqw 3cqw #15312480;animation:photo-in .6s ease-out}#photo-caption{background:#fff9e9;color:#385943;font-size:2cqw;padding:.7cqw 2cqw;max-width:90%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#photo-caption:empty{display:none}.album-count{position:absolute;right:3%;top:3%;color:#fff9dc;font-size:1.6cqw;background:#153f3280;padding:.5cqw 1cqw;border-radius:2cqw}#album-progress{position:absolute;left:15%;right:15%;bottom:6%;height:.6cqw;background:#ffffff25;border-radius:1cqw;overflow:hidden}#album-progress i{display:block;height:100%;background:#f4ce76;transition:width .4s}@keyframes photo-in{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}#controls{position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:20;max-width:calc(100vw - 20px);width:max-content;max-height:62vh;max-height:62dvh;overflow:auto;background:#fff9eef5;border:1px solid #45654328;box-shadow:0 8px 30px #31554825;padding:7px;border-radius:20px}.row{display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:center;max-width:760px}.row button,.row a{min-height:44px;padding:10px 13px;background:transparent;border:0;border-radius:12px;color:var(--ink);font-size:13px;text-decoration:none}.row button:hover,.row a:hover,summary:hover{background:#e6efda}.row button[aria-pressed=true]{background:#2f6d52;color:#fff9dc}.tabs{border-bottom:1px solid #dddcc5;padding-bottom:5px;margin-bottom:4px}.tabs button{font-weight:700}#blow,#empty-pick{background:#f6d47f}#sing{background:#e7efcd}summary{font-size:12px;text-align:center;padding:10px;border-radius:10px;cursor:pointer;min-height:38px;color:#66765d}#settings[open]{border-top:1px solid #dedcc5;margin-top:5px}.help{font-size:12px;text-align:center;line-height:1.8;color:#69775e;margin:10px}.album-settings{padding:8px;background:#eff0e2;border-radius:12px}.album-settings label{font-size:12px;padding:6px}.album-settings select{background:#fffaf0;border:1px solid #bec8a5;padding:8px;border-radius:8px}#mic-status{font-size:12px;padding:8px}#notice{position:fixed;z-index:40;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);background:#285642ed;color:#fff9e9;padding:12px 20px;border-radius:14px;max-width:90vw;text-align:center;line-height:1.7;font-size:14px;pointer-events:none}#notice:empty{display:none}.portrait-note{display:none;position:fixed;top:calc(50% + 28.125vw);font-size:13px;line-height:1.8;text-align:center;color:#60745d;margin:14px}.clean .portrait-note{display:none}#confetti{position:absolute;inset:0;pointer-events:none;z-index:10}.confetti-piece{position:absolute;top:-5%;left:var(--x);width:.7%;height:1.8%;border-radius:3px;background:var(--color);animation:fall var(--duration) linear var(--delay) both;opacity:0}.confetti-piece:nth-child(3n){border-radius:50%}@keyframes fall{8%{opacity:.9}90%{opacity:.9}100%{opacity:0;transform:translate(var(--drift),var(--fall)) rotate(240deg)}}.paused *,.background-paused *{animation-play-state:paused!important}dialog{border:0;border-radius:24px;max-width:min(90vw,480px);background:#fff9e9;color:#285c46;padding:28px;box-shadow:0 20px 80px #173c4660}dialog::backdrop{background:#204f4666}dialog h2{font-size:23px;margin:0 0 15px}dialog p{font-size:15px;line-height:1.9}dialog .row .primary{background:#2f6d52;color:#fff9dc}.noscript{position:fixed;bottom:5px;background:#fff9e9;padding:14px;border-radius:14px;font-size:14px;z-index:25}@media(orientation:portrait){.portrait-note{display:block}#controls{width:calc(100vw - 20px);max-height:42dvh}.row button,.row a{padding:9px 11px}.empty img{height:34%}.empty p{font-size:2.7cqw}.empty h1{font-size:4.4cqw}}@media(max-height:460px){#controls{bottom:max(5px,env(safe-area-inset-bottom));padding:4px;max-height:70dvh}.row button{font-size:12px;padding:8px 10px}summary{padding:7px;min-height:32px}.help{margin:5px}.tabs{padding-bottom:2px;margin-bottom:2px}}.calm *{animation:none!important;transition:none!important}.calm #confetti,.calm #bubbles,.calm #ambient,.calm .twinkles,.calm #wipe{display:none}
 
 /* 生图素材与原有相册、游戏保持独立，避免把画面缩放成旧 SVG 蛋糕尺寸。 */
 #scene-home{background:#b4e0ea}
 #birthday-cake{position:absolute;inset:0}
-#birthday-cake.out .flame-layer{display:none}
 #scene-cake{background:#fff2db}
 #scene-game .scene-heading{top:8%}
 .friends img{height:84%;filter:drop-shadow(0 .7cqw .8cqw #31554818)}
@@ -22,7 +21,7 @@
 .paused .title-art,.background-paused .title-art{animation:none!important}
 .paused .flame-layer,.background-paused .flame-layer{animation-play-state:paused!important}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
-@media(prefers-reduced-motion:reduce){.title-art,.flame-layer{animation:none!important}}
+.calm .title-art,.calm .flame-layer{animation:none!important}
 
 #fullscreen.primary{background:#2f6d52;color:#fff9dc;font-weight:700}#celebrate{background:#f6d47f}.portrait-note{max-width:90vw}
 
@@ -41,7 +40,7 @@
 #photo-img.photo-enter{animation:photo-soft-in .7s ease-out}
 @keyframes photo-soft-in{from{opacity:.45}to{opacity:1}}
 .paused #photo-img,.background-paused #photo-img{animation:none!important}
-@media(prefers-reduced-motion:reduce){#photo-img.photo-enter{animation:none!important}}
+.calm #photo-img.photo-enter{animation:none!important}
 
 /* 艺术字轻轻起伏；暂停、合影和减少动态效果时保持静止。 */
 @keyframes title-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-.22cqw)}}
@@ -61,3 +60,144 @@
 .friends button[data-friend="excavator"] img{height:59%}
 .friends button[data-friend="dragon"] span{background:#f6d47f;box-shadow:0 .2cqw .8cqw #c2933020}
 .friends span{font-size:1.8cqw;padding:.5cqw 1.4cqw;flex-shrink:0}
+
+/* ===== 投屏热闹版：背景铺满、镜头推拉、礼花、气球、星星、吹蜡烛仪式、转场 ===== */
+/* 手机比 16:9 更宽时，两侧用同一场景的模糊放大图铺满，投到电视不再出现淡绿色空边。 */
+body::before{content:'';position:fixed;inset:-8vh -8vw;z-index:-1;background:var(--backdrop,#d5e4d7) center/cover no-repeat;filter:blur(24px) saturate(1.15) brightness(.95);pointer-events:none}
+body[data-scene=home]{--backdrop:url('assets/party-family-final.webp')}
+body[data-scene=cake]{--backdrop:url('assets/cake-family.webp')}
+body[data-scene=game]{--backdrop:url('assets/play-sky.webp')}
+body[data-scene=album]{--backdrop:#1f4a3a;background:#1f4a3a}
+
+/* 主插画缓慢推拉，画面始终“活着”；热点按钮跟着插画一起缩放。 */
+#home-art{position:absolute;inset:0}
+.art-wrap{animation:kenburns 24s ease-in-out infinite alternate;transform-origin:50% 55%}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.05)}}
+.rumble .scene-art{animation:rumble .55s linear}
+@keyframes rumble{0%,100%{transform:none}15%{transform:translate(-.4cqw,.2cqw) rotate(-.3deg)}30%{transform:translate(.4cqw,-.2cqw) rotate(.3deg)}45%{transform:translate(-.3cqw,.1cqw)}60%{transform:translate(.3cqw,-.1cqw) rotate(.2deg)}80%{transform:translate(-.15cqw,0)}}
+.hots{position:absolute;inset:0;z-index:3}
+.hot{position:absolute;border:0;padding:0;background:transparent;border-radius:30%;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.hot:active{background:#ffffff1f}
+.hot:focus-visible{outline:3px dashed #df9c31}
+
+/* 艺术字弹跳入场 + 更明显的摇摆起伏。 */
+@keyframes title-arrive{0%{opacity:0;transform:translateY(-30%) scale(.7)}60%{opacity:1;transform:translateY(4%) scale(1.06)}80%{transform:translateY(-1%) scale(.98)}100%{opacity:1;transform:none}}
+@keyframes title-float{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-.7cqw) rotate(-.6deg)}75%{transform:translateY(.3cqw) rotate(.6deg)}}
+.title-art{animation:title-arrive 1.1s ease-out both,title-float 4s ease-in-out 1.1s infinite}
+
+/* 闪烁小星星。 */
+.twinkles{position:absolute;inset:0;pointer-events:none;z-index:2}
+.twinkles i{position:absolute;left:var(--x);top:var(--y);width:2.6cqw;height:2.6cqw;background:#fff8cf;clip-path:polygon(50% 0,58% 42%,100% 50%,58% 58%,50% 100%,42% 58%,0 50%,42% 42%);opacity:0;animation:twinkle 2.8s ease-in-out var(--d) infinite}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+
+/* 场景层次。 */
+#ambient{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+#bubbles{z-index:6}
+#confetti{z-index:10}
+
+/* 飘起的气球：点一下“啵”地爆开。 */
+.balloon{position:absolute;left:var(--x);bottom:-16cqw;width:var(--size);height:calc(var(--size)*1.2);border:0;padding:0;border-radius:50% 50% 47% 47%/55% 55% 45% 45%;background:radial-gradient(circle at 32% 28%,#ffffffd0 0 7%,#ffffff00 22%),radial-gradient(circle at 60% 70%,#0000 45%,#0000002a 100%),var(--color);box-shadow:0 .5cqw 1.2cqw #00000022;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;animation:balloon-rise var(--duration) linear forwards}
+.balloon::before{content:'';position:absolute;left:50%;bottom:-.6cqw;width:1.1cqw;height:.8cqw;transform:translateX(-50%);background:var(--color);clip-path:polygon(50% 0,100% 100%,0 100%);filter:brightness(.85)}
+.balloon::after{content:'';position:absolute;left:50%;top:calc(100% + .2cqw);width:.18cqw;height:7cqw;background:linear-gradient(#ffffffcc,#ffffff00)}
+@keyframes balloon-rise{0%{transform:translate(0,0) rotate(-3deg)}25%{transform:translate(var(--sway),-22cqw) rotate(3deg)}50%{transform:translate(0,-44cqw) rotate(-3deg)}75%{transform:translate(var(--sway),-66cqw) rotate(3deg)}100%{transform:translate(0,-90cqw) rotate(-2deg)}}
+.petal{position:absolute;left:var(--x);top:-4cqw;width:1.5cqw;height:1.1cqw;border-radius:60% 0 60% 0;background:var(--color);opacity:.85;animation:petal-fall var(--duration) linear forwards}
+@keyframes petal-fall{to{transform:translate(var(--sway),64cqw) rotate(540deg)}}
+
+/* 点击爆出的彩色星星、爱心。 */
+.burst{position:absolute;width:0;height:0}
+.burst i{position:absolute;left:0;top:0;font-style:normal;font-size:3.4cqw;line-height:1;color:var(--c);text-shadow:0 0 .35cqw #fff,0 .2cqw .5cqw #0004;opacity:0;animation:burst-bit 1.15s cubic-bezier(.15,.8,.3,1) forwards}
+.burst.big i{font-size:5cqw}
+@keyframes burst-bit{0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) scale(.3)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(-1*var(--d))) scale(1.15)}}
+.say{position:absolute;transform:translate(-50%,-100%);background:#fffaf0;color:#2d6a4f;font-weight:800;font-size:2.7cqw;padding:.8cqw 2.2cqw;border-radius:3cqw;box-shadow:0 .5cqw 1.5cqw #0003;white-space:nowrap;animation:say-pop 2.6s ease-out forwards}
+.say::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:1cqw solid transparent;border-top-color:#fffaf0}
+@keyframes say-pop{0%{opacity:0;transform:translate(-50%,-70%) scale(.5)}12%{opacity:1;transform:translate(-50%,-100%) scale(1.1)}22%{transform:translate(-50%,-100%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-135%)}}
+
+/* 礼花炮：两侧喷出再飘落，加顶部彩纸雨；更大、更鲜艳、多形状。 */
+.confetti-piece{position:absolute;left:0;top:0;width:1.8cqw;height:1.1cqw;border-radius:.15cqw;background:var(--color);opacity:0;will-change:transform;animation:var(--duration) var(--delay) both}
+.confetti-piece.cannon{animation-name:cannon}
+.confetti-piece.rain{animation-name:rain;animation-timing-function:linear}
+.confetti-piece.shape-circle{width:1.5cqw;height:1.5cqw;border-radius:50%}
+.confetti-piece.shape-star{width:2.7cqw;height:2.7cqw;border-radius:0;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.confetti-piece.shape-ribbon{width:.7cqw;height:3.4cqw}
+.confetti-piece.shape-heart{width:2.5cqw;height:2.2cqw;border-radius:0;clip-path:polygon(50% 100%,4% 48%,0 25%,10% 6%,30% 0,50% 16%,70% 0,90% 6%,100% 25%,96% 48%)}
+@keyframes cannon{0%{opacity:1;transform:translate(var(--x0),var(--y0)) rotate(0) rotateX(0);animation-timing-function:cubic-bezier(.15,.75,.35,1)}32%{opacity:1;transform:translate(var(--x1),var(--y1)) rotate(calc(var(--rot)*.35)) rotateX(calc(var(--rot)*.5));animation-timing-function:cubic-bezier(.45,0,.85,.7)}88%{opacity:1}100%{opacity:0;transform:translate(var(--x2),var(--y2)) rotate(var(--rot)) rotateX(calc(var(--rot)*1.4))}}
+@keyframes rain{0%{opacity:1;transform:translate(var(--x0),var(--y0)) rotate(0) rotateX(0)}90%{opacity:1}100%{opacity:0;transform:translate(var(--x2),var(--y2)) rotate(var(--rot)) rotateX(calc(var(--rot)*1.4))}}
+
+/* 蜡烛：真实跳动的火苗与暖光；吹灭时火苗歪倒、冒烟、数字 2 闪金光。 */
+.flame-layer{animation:flame-flicker 1.2s ease-in-out infinite}
+@keyframes flame-flicker{0%,100%{transform:scale(1,1) rotate(0)}20%{transform:scale(.95,1.06) rotate(-2.5deg)}40%{transform:scale(1.04,.96) rotate(1.5deg)}60%{transform:scale(.97,1.05) rotate(-1deg)}80%{transform:scale(1.03,.98) rotate(2.5deg)}}
+.flame-glow{position:absolute;left:44.4%;top:19.2%;width:11.5%;height:20%;border-radius:50%;background:radial-gradient(circle,#ffd36ed0 0,#ffb34760 35%,#ffb34700 70%);pointer-events:none;z-index:1;animation:glow-flicker 1.6s ease-in-out infinite;transition:opacity .5s}
+@keyframes glow-flicker{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.12)}}
+.out .flame-glow{opacity:0}
+.out .flame-layer{opacity:0}
+.out.just-out .flame-layer{animation:flame-out .7s ease-in forwards}
+@keyframes flame-out{0%{opacity:1;transform:none}35%{opacity:1;transform:rotate(-18deg) scale(.9,1.15) translateX(-8%)}70%{opacity:.7;transform:rotate(-30deg) scale(.5,.6) translateX(-15%)}100%{opacity:0;transform:scale(.05)}}
+.relit .flame-layer{animation:flame-in .6s ease-out,flame-flicker 1.2s ease-in-out .6s infinite}
+@keyframes flame-in{from{opacity:0;transform:scale(.1)}to{opacity:1;transform:none}}
+.smoke{position:absolute;left:50.15%;top:31%;width:0;height:0;z-index:1;pointer-events:none}
+.smoke i{position:absolute;left:0;top:0;width:2.4cqw;height:2.4cqw;border-radius:50%;background:radial-gradient(circle,#8d8178b0,#8d817800 70%);opacity:0}
+.just-out .smoke i{animation:smoke 2.4s ease-out .35s forwards}
+.just-out .smoke i:nth-child(2){animation-delay:.7s}
+.just-out .smoke i:nth-child(3){animation-delay:1.05s}
+@keyframes smoke{0%{opacity:.9;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(calc(-50% + 3cqw),-14cqw) scale(2.4)}}
+.two-glow{position:absolute;left:41%;top:28%;width:18.6%;height:28%;border-radius:50%;background:radial-gradient(circle,#fff3b0e0,#ffd54f70 40%,#ffd54f00 70%);opacity:0;pointer-events:none;z-index:1}
+.just-out .two-glow{animation:two-glow 1.2s ease-in-out .3s 2}
+@keyframes two-glow{0%,100%{opacity:0;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+
+/* 生日歌歌词：大字 + 逐字卡拉 OK 高亮。 */
+.scene-note{font-size:3cqw;font-weight:800;padding:.5cqw 2.6cqw;bottom:2.5%;color:#2d6a4f;background:#fffaf0f2;box-shadow:0 .4cqw 1.2cqw #0002;letter-spacing:.12em}
+#lyric.karaoke span{display:inline-block;animation:lyric-char .35s ease-out both}
+@keyframes lyric-char{0%{color:#2d6a4f;transform:none}40%{color:#e85d04;transform:translateY(-25%) scale(1.25)}100%{color:#e85d04;transform:none}}
+#countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:14;pointer-events:none;font-size:20cqw;font-weight:900;color:#ffb703;-webkit-text-stroke:.6cqw #fff;paint-order:stroke fill;text-shadow:0 1cqw 2cqw #0004;opacity:0}
+#countdown.show{animation:count-pop .8s ease-out both}
+@keyframes count-pop{0%{opacity:0;transform:scale(.3)}25%{opacity:1;transform:scale(1.15)}45%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(1.3)}}
+#countdown-blow{background:#f6d47f;font-weight:700}
+#blow{background:#efe9d2}
+
+/* 场景转场：小挖掘机开过去，新场景随之展开。 */
+#wipe{position:absolute;left:0;bottom:4%;height:30%;width:auto;z-index:12;pointer-events:none;opacity:0;transform:translateX(-110%);filter:drop-shadow(0 .8cqw 1cqw #0004)}
+#wipe.go{animation:wipe-drive 1s cubic-bezier(.45,.05,.55,.95) forwards}
+@keyframes wipe-drive{0%{opacity:1;transform:translateX(-110%) rotate(0)}25%{transform:translateX(15cqw) rotate(-1.5deg)}50%{transform:translateX(40cqw) rotate(1.5deg)}75%{transform:translateX(65cqw) rotate(-1.5deg)}100%{opacity:1;transform:translateX(100cqw) rotate(0)}}
+.scene.entering{z-index:2;animation:scene-wipe 1s cubic-bezier(.45,.05,.55,.95) both}
+.scene.leaving{z-index:1}
+@keyframes scene-wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* 点点玩：角色平时轻轻呼吸摇摆；点击时三种动作轮换；“找一找”时目标发光。 */
+.friends button img{animation:idle-bob 2.6s ease-in-out infinite;transform-origin:50% 100%}
+.friends button:nth-child(2) img{animation-delay:-.7s}
+.friends button:nth-child(3) img{animation-delay:-1.4s}
+.friends button:nth-child(4) img{animation-delay:-2s}
+@keyframes idle-bob{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-1cqw) scale(1.02,.98)}}
+.friends button.hint img{animation:hint 1.1s ease-in-out infinite;filter:drop-shadow(0 0 1.2cqw #ffe066) drop-shadow(0 0 .5cqw #fff)}
+@keyframes hint{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.friends button.greet-jump img{animation:greet-jump .9s cubic-bezier(.3,.6,.4,1)}
+.friends button.greet-spin img{animation:greet-spin .9s ease-in-out}
+.friends button.greet-wiggle img{animation:greet-wiggle .9s ease-in-out}
+@keyframes greet-jump{0%{transform:none}15%{transform:scale(1.15,.82)}45%{transform:scale(.92,1.1) translateY(-22%)}70%{transform:scale(1.08,.92)}85%{transform:scale(.97,1.03)}100%{transform:none}}
+@keyframes greet-spin{0%{transform:none}50%{transform:translateY(-14%) rotate(180deg) scale(1.1)}100%{transform:rotate(360deg)}}
+@keyframes greet-wiggle{0%,100%{transform:none}20%{transform:rotate(-12deg) scale(1.08)}40%{transform:rotate(10deg) scale(1.12)}60%{transform:rotate(-8deg) scale(1.06)}80%{transform:rotate(5deg)}}
+.scene-heading #hello{font-size:2.5cqw;font-weight:700;padding:.7cqw 2.4cqw;color:#8a5a1f;box-shadow:0 .3cqw 1cqw #0001}
+
+/* 相册：照片模糊铺底、慢速推拉、角色贴纸陪看。 */
+.album-bg{background:#1f4a3a;overflow:hidden}
+.album-bg::before{content:'';position:absolute;inset:-6%;background:var(--photo,none) center/cover no-repeat;filter:blur(3cqw) brightness(.55) saturate(1.2)}
+.album-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,#0e2a1f00 40%,#0e2a1f99 100%)}
+#photo-frame{inset:4% 15% 10%}
+#photo-img{max-height:88%}
+#photo-img.photo-enter{animation:photo-soft-in .8s ease-out,photo-zoom var(--dur,9s) linear both;transform-origin:var(--origin,50% 50%)}
+@keyframes photo-zoom{from{transform:scale(1)}to{transform:scale(1.07)}}
+#photo-caption{font-size:2.4cqw;font-weight:700;border-radius:0 0 .8cqw .8cqw}
+.album-sticker{position:absolute;bottom:2%;height:30%;width:auto;display:none;z-index:2;pointer-events:none;filter:drop-shadow(0 .6cqw 1cqw #0005);animation:idle-bob 2.8s ease-in-out infinite;transform-origin:50% 100%}
+.has-photos .album-sticker{display:block}
+.sticker-mouse{left:1.5%}
+.sticker-dragon{right:.5%;height:32%;animation-delay:-1.2s}
+.empty>img{animation:idle-bob 2.6s ease-in-out infinite;transform-origin:50% 100%}
+
+/* 亲子模式：左下角三个大圆图标，宝宝自己换场景。 */
+#kid-nav{position:fixed;left:max(8px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:clamp(8px,3vh,18px)}
+#kid-nav button{width:clamp(48px,13vh,110px);aspect-ratio:1;border-radius:50%;border:4px solid #fff8e5;box-shadow:0 4px 14px #0003;background:#fff8e5 center/cover no-repeat;padding:0;transition:transform .2s}
+#kid-nav button:active{transform:scale(.92)}
+#kid-nav button[aria-pressed=true]{border-color:#f6c445;transform:scale(1.1)}
+#kid-home{background-image:url('assets/party-family-final.webp')!important;background-size:420% auto!important;background-position:44% 47%!important}
+#kid-cake{background-image:url('assets/cake-family.webp')!important;background-size:300% auto!important;background-position:50% 62%!important}
+#kid-game{background-image:url('assets/little-dragon.webp')!important;background-size:contain!important}

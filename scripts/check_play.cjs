@@ -9,7 +9,7 @@ function setup({reduce=false}={}){
  const tabs=['home','album','cake','game'].map(scene=>Object.assign(element(),{dataset:{scene}}));const friends=['mouse','dragon','rooster','excavator'].map(friend=>Object.assign(element(),{dataset:{friend}}));const friendParent=element();friends.forEach(f=>friendParent.append(f));
  const events={},windowEvents={},timers=new Map();let tid=0,uid=0;const objects=new Map(),revoked=[];
  const document={hidden:false,documentElement:{},body:element(),getElementById:id=>els[id],querySelectorAll:selector=>selector==='[data-scene]'?tabs:friends,addEventListener:(k,f)=>events[k]=f,createElement:element};
- const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,10],total:14};},stopSong(){this.stopped++;},stopEffects(){}};
+ const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,10],total:14};},stopSong(){this.stopped++;},stopEffects(){},loops:0,async startLoop(){this.loops++;},stopLoop(){}};
  const voice={init(){},setEnabled(){},setSpoken(){},status(){return {count:0,has:()=>false,local:false};},stop(){},async speak(){return false;},setClip(){return true;},clearClips(){}};
  const window={PartyVoice:voice,PartyAudio:audio,addEventListener:(k,f)=>windowEvents[k]=f};
  class Image{set src(v){if(!v)return;const file=objects.get(v);queueMicrotask(()=>{if(file?.bad)this.onerror?.();else{this.naturalWidth=1200;this.naturalHeight=800;this.onload?.();}});}}
@@ -21,7 +21,7 @@ function setup({reduce=false}={}){
 (async()=>{
  let app=setup();const {els}=app;
  assert.equal(app.read('mode'),'home');assert.equal(els.sound.attrs['aria-pressed'],'false');
- await app.run("selectScene('cake')");await app.click('blow');assert.equal(app.read('blown'),true);assert(els.controls.hidden);assert.equal(els.confetti.children.length,44);
+ await app.run("selectScene('cake')");await app.click('blow');assert.equal(app.read('blown'),true);assert(els.controls.hidden);assert(els.confetti.children.length>=100);assert(els['birthday-cake'].classList.contains('just-out'));
  await app.run("selectScene('home');selectScene('cake')");assert(els['birthday-cake'].classList.contains('out'));await app.click('relight');assert(!els['birthday-cake'].classList.contains('out'));assert.equal(els.confetti.children.length,0);
  await app.click('photo');assert(els.controls.hidden);assert(els.stage.classList.contains('paused'));await app.click('blow');assert.equal(els.confetti.children.length,0);await app.click('photo');assert(!els.stage.classList.contains('paused'));
  await app.click('pause');await app.click('photo');await app.click('photo');assert(els.stage.classList.contains('paused'));await app.click('pause');assert(!els.stage.classList.contains('paused'));
@@ -55,7 +55,7 @@ function setup({reduce=false}={}){
  await app.click('fullscreen');assert(app.els.controls.hidden);await app.click('fullscreen');assert(!app.els.controls.hidden);
  await app.run("selectScene('game')");app.friends.find(f=>f.dataset.friend==='mouse').onclick();assert.match(app.els.hello.textContent,/鼠妈妈/);assert.equal(app.els.bubbles.children[0].style.left,'100px');assert.equal(app.els.bubbles.children[0].style.top,'75px');
  await app.run('lastGreeting=0');app.friends[2].onclick();assert.match(app.els.hello.textContent,/公鸡爸爸/);
- await app.click('celebrate');assert(app.els.controls.hidden);assert.equal(app.els.confetti.children.length,44);
+ await app.click('celebrate');assert(app.els.controls.hidden);assert(app.els.confetti.children.length>=100);
  // 亲子模式：空白点击不唤出菜单；长按及 Esc 可恢复。
  app=setup();await app.click('child-play');assert.equal(app.read('mode'),'game');assert.equal(app.read('childMode'),true);assert(app.els.controls.hidden);
  app.events.click({target:{closest:()=>null}});assert(app.els.controls.hidden);
@@ -67,6 +67,13 @@ function setup({reduce=false}={}){
  const importing=app.run("importPhotos([{name:'02-new.png',size:1}])");assert(!app.els['import-status'].hidden);
  await app.click('cancel-import');app.context.finishDecode({naturalWidth:1200,naturalHeight:800});await importing;
  assert.equal(app.read('photos[0].url'),oldPhoto);assert(app.els['import-status'].hidden);assert.equal(app.objects.size,1);
- app=setup({reduce:true});await app.run("selectScene('cake')");await app.click('blow');assert.equal(app.els.confetti.children.length,0);
- console.log('PASS: play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
+ app=setup({reduce:true});assert.equal(app.els['motion-note'].hidden,false);await app.click('motion');assert.equal(app.read('calm'),true);await app.run("selectScene('cake')");await app.click('blow');assert.equal(app.els.confetti.children.length,0);
+ // 倒数吹蜡烛、点蛋糕重新点亮、亲子模式自动开声音、相册内置音乐。
+ app=setup();await app.run("selectScene('cake')");await app.click('countdown-blow');assert.equal(app.read('counting'),true);const finale=[...app.timers.values()].filter(t=>t.ms===3050);assert.equal(finale.length,1);finale[0].f();assert.equal(app.read('blown'),true);assert.equal(app.read('counting'),false);
+ await app.run("cakeTap()");assert.equal(app.read('blown'),false);await app.run("cakeTap()");assert.equal(app.read('counting'),true);await app.run("selectScene('home')");assert.equal(app.read('counting'),false);
+ app=setup();await app.click('child-play');assert.equal(app.read('sound'),true);assert(!app.els['kid-nav'].hidden);await app.run("selectScene('cake')");assert.equal(app.read('mode'),'cake');app.events.keydown({key:'Escape'});assert(app.els['kid-nav'].hidden);
+ await app.run("importPhotos([{name:'01-a.jpg',size:1},{name:'02-b.jpg',size:1}])");assert(app.audio.loops>0);
+ // 找一找：空闲后提问，点对目标会庆祝。
+ await app.run("selectScene('game')");const ask=[...app.timers.values()].find(t=>t.ms===9000);assert(ask);ask.f();const target=app.read('findTarget');assert(target);assert.match(app.els.hello.textContent,/在哪里/);await app.run('lastGreeting=0');app.friends.find(f=>f.dataset.friend===target).onclick();assert.match(app.els.hello.textContent,/找到/);assert.equal(app.read('findTarget'),null);
+ console.log('PASS: countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
 })().catch(e=>{console.error(e);process.exitCode=1;});

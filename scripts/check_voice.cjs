@@ -10,9 +10,9 @@ let notices=[];vm.runInNewContext(source,{window,document,URL,setTimeout:(f,ms)=
 const voice=window.PartyVoice;voice.init(media,m=>notices.push(m),()=>{});
 (async()=>{
  assert.equal(await voice.speak('mouse','齐齐，妈妈爱你！'),false);assert.equal(said.length,0);
- voice.setEnabled(true);assert(await voice.speak('mouse','齐齐，妈妈爱你！'));assert.equal(said[0].voice.name,'local Chinese');assert.equal(said[0].volume,.45);
+ voice.setEnabled(true);assert(await voice.speak('mouse','齐齐，妈妈爱你！'));assert.equal(said[0].voice.name,'local Chinese');assert.equal(said[0].volume,1);
  voice.setEnabled(false);assert(cancelled>0);assert.equal(await voice.speak('mouse','你好'),false);
- voice.setEnabled(true);assert(voice.setClip('mouse',{size:100}));assert(await voice.speak('mouse','妈妈'));assert.equal(media.src,'blob:voice-1');assert.equal(media.volume,.45);assert([...timers.values()].some(t=>t.ms===12000));
+ voice.setEnabled(true);assert(voice.setClip('mouse',{size:100}));assert(await voice.speak('mouse','妈妈'));assert.equal(media.src,'blob:voice-1');assert.equal(media.volume,1);assert([...timers.values()].some(t=>t.ms===12000));
  assert(!voice.setClip('mouse',{size:11*1024*1024}));assert(voice.status().has('mouse'));
  assert(voice.setClip('mouse',{size:100}));assert(revoked.includes('blob:voice-1'));
  assert(voice.setClip('rooster',{size:100}));
