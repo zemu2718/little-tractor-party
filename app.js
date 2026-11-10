@@ -77,12 +77,27 @@ const greetings={dragon:'小龙说：齐齐，生日快乐！',mouse:'鼠妈妈�
 let lastGreeting=0;
 document.querySelectorAll('[data-friend]').forEach(button=>button.onclick=()=>{if(frozen())return;const now=performance.now();if(now-lastGreeting<220)return;lastGreeting=now;const kind=button.dataset.friend;$('hello').textContent=greetings[kind];clearTimeout(helloTimer);helloTimer=setTimeout(()=>$('hello').textContent='轻轻点一下，看看谁来打招呼',4500);button.classList.remove('greet');void button.offsetWidth;button.classList.add('greet');audio.effect(kind).catch(()=>{});if(!reduced.matches){const star=document.createElement('span');star.className='bubble';star.textContent=kind==='dragon'?'♥':'✦';star.style.left=`${18+Array.from(button.parentNode.children).indexOf(button)*22}%`;star.style.top='43%';$('bubbles').append(star);setTimeout(()=>star.remove(),1900);if($('bubbles').children.length>8)$('bubbles').firstElementChild.remove();}});
 // 展示工具：全屏和屏幕常亮均有失败回退。
-$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();showControls(false);}else tell('此浏览器不支持网页全屏，请横屏并收起浏览器工具栏。');}catch{tell('暂时无法进入全屏，仍可使用手机屏幕镜像。');}};
-document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'退出全屏':'全屏展示';if(!document.fullscreenElement)showControls(true);});
+function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement;}
+function updateFullscreen(){const active=Boolean(fullscreenElement());$('fullscreen').textContent=active?'退出全屏':'全屏展示';$('fullscreen').setAttribute('aria-pressed',String(active));showControls(!active);}
+$('fullscreen').onclick=async()=>{
+ try{
+  if(fullscreenElement()){
+   const exit=document.fullscreenElement?document.exitFullscreen:document.webkitExitFullscreen;
+   if(exit)await exit.call(document);
+  }else{
+   const enter=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+   if(!enter){tell('此浏览器不支持网页全屏。请横屏、收起浏览器工具栏，再使用系统屏幕镜像。');return;}
+   await enter.call(document.documentElement);showControls(false);
+  }
+  updateFullscreen();
+ }catch{tell('暂时无法进入全屏，请横屏并使用手机屏幕镜像。');}
+};
+document.addEventListener('fullscreenchange',updateFullscreen);
+document.addEventListener('webkitfullscreenchange',updateFullscreen);
+$('celebrate').onclick=()=>{celebrate();showControls(false);};
 function updateAwake(){ $('awake').textContent=wakeLock?'关闭屏幕常亮':wantsAwake?'常亮已暂停 · 重试':'保持屏幕常亮';$('awake').setAttribute('aria-pressed',String(Boolean(wakeLock))); }
 async function acquireWake(show){if(wakePending||wakeLock||!wantsAwake||document.hidden)return;wakePending=true;$('awake').disabled=true;try{const lock=await navigator.wakeLock.request('screen');if(!wantsAwake||document.hidden){await lock.release();return;}wakeLock=lock;lock.addEventListener('release',()=>{if(wakeLock===lock)wakeLock=null;updateAwake();});if(show)tell('屏幕常亮已开启，请保持网页在前台。');}catch{if(show)tell('暂时无法常亮，请在手机设置中延长自动锁屏时间。');}finally{wakePending=false;$('awake').disabled=false;updateAwake();}}
 $('awake').onclick=async()=>{if(!navigator.wakeLock){tell('当前环境不支持常亮，请在手机设置中延长自动锁屏时间。');return;}if(wakeLock){wantsAwake=false;const lock=wakeLock;wakeLock=null;try{await lock.release();}catch{}updateAwake();}else{wantsAwake=true;await acquireWake(true);}};
-$('choose-version').onclick=()=>{if(photos.length||musicURL){$('leave-dialog').showModal();}else location.href='../index.html';};$('stay').onclick=()=>$('leave-dialog').close();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){showControls(true);return;}if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(/^[1-4]$/.test(e.key)){selectScene(modes[+e.key-1]);return;}if(e.key.toLowerCase()==='h')showControls(controls.hidden);if(mode==='album'){if(e.key==='ArrowRight')stepPhoto(1);if(e.key==='ArrowLeft')stepPhoto(-1);if(e.code==='Space'&&photos.length){e.preventDefault();$('album-toggle').click();}}if(mode==='cake'&&e.code==='Space'){e.preventDefault();blow();}});
 document.addEventListener('visibilitychange',()=>{stage.classList.toggle('background-paused',document.hidden);if(document.hidden){clearTimeout(albumTimer);clearEffects();stopSong();stopMic();$('bgm').pause();audio.suspend().catch(()=>{});}else{schedulePhoto();syncMusic();acquireWake(false);}});
 window.addEventListener('pagehide',()=>{importRun++;clearTimeout(albumTimer);stopSong();stopMic();clearEffects();$('bgm').pause();audio.suspend().catch(()=>{});const lock=wakeLock;wakeLock=null;if(lock)lock.release().catch(()=>{});});

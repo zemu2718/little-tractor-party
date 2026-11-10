@@ -1,11 +1,11 @@
-"""检查发布清单、HTML/CSS 相对路径、SVG 引用及脚本语法（无需第三方依赖）。"""
+"""检查发布清单、HTML/CSS 相对路径、单一生图素材及脚本语法（无需第三方依赖）。"""
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import urlsplit, unquote
 import re
 import subprocess
 import tempfile
-import xml.etree.ElementTree as ET
+import struct
 from package_site import ROOT, FILES
 errors=[]
 class Page(HTMLParser):
@@ -46,22 +46,21 @@ for name in FILES:
             with tempfile.NamedTemporaryFile(suffix='.js',mode='w') as tmp:
                 tmp.write(script);tmp.flush();r=subprocess.run(['node','--check',tmp.name],capture_output=True,text=True)
                 if r.returncode:errors.append(f'{name}: inline script {i}: {r.stderr}')
-        # SVG paint servers must exist in the page.
-        for ref in re.findall(r'url\(#([^\)]+)\)',html):
-            if ref not in page.ids:errors.append(f'{name}: missing SVG paint server {ref}')
+        if '<svg' in html.lower():errors.append(f'{name}: inline SVG is not allowed')
+        if '吴思齐' in html or '思齐' in html:errors.append(f'{name}: outdated display name')
     elif p.suffix=='.css':
         for link in re.findall(r'url\([\'"]?([^\)\'\"]+)',p.read_text()):check_link(name,link)
     elif p.suffix=='.js':
         r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
         if r.returncode:errors.append(r.stderr)
-    elif p.suffix=='.svg':
-        try:
-            root=ET.fromstring(p.read_text());ids={e.get('id') for e in root.iter() if e.get('id')}
-            for e in root.iter():
-                for k,v in e.attrib.items():
-                    if k.endswith('href'):check_link(name,v,ids)
-                    for ref in re.findall(r'url\(#([^\)]+)\)',v):
-                        if ref not in ids:errors.append(f'{name}: missing SVG definition {ref}')
-        except ET.ParseError as e:errors.append(f'{name}: invalid SVG: {e}')
+    elif p.suffix=='.png':
+        data=p.read_bytes()
+        if data[:8]!=b'\x89PNG\r\n\x1a\n':errors.append(f'{name}: invalid PNG signature')
+        if name.endswith('-4k.png') and struct.unpack('>II',data[16:24])!=(3840,2160):errors.append(f'{name}: incorrect export size')
+        if p.name in ['birthday-title.png','little-dragon.png','little-mouse.png','little-rooster.png','red-tractor.png','candle-flame.png'] and data[25] not in [4,6]:errors.append(f'{name}: expected transparent PNG')
+for folder in ['party','classic','play']:
+    if (ROOT/folder).exists():errors.append(f'legacy variant remains: {folder}')
+for p in (ROOT/'assets').rglob('*.svg'):errors.append(f'legacy SVG remains: {p.name}')
+if len([name for name in FILES if name.endswith('.html')])!=1:errors.append('expected a single HTML entry')
 if errors:raise SystemExit('\n'.join(errors))
-print(f'PASS: {len(FILES)} publish files, all local links, repository-relative paths, unique HTML IDs, SVG definitions and JS syntax')
+print(f'PASS: {len(FILES)} publish files, all local links, repository-relative paths, unique HTML IDs, generated PNGs, no legacy variants/SVG, nickname and JS syntax')

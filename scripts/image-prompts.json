@@ -1,0 +1,95 @@
+{
+  "tool": "built-in image_gen",
+  "style": "3D clay and felt birthday farm",
+  "display_name": "齐齐",
+  "family": {
+    "child": "Chinese zodiac dragon",
+    "mother": "mouse",
+    "father": "rooster, driving tractor"
+  },
+  "notes": "Only the final single-version assets are shipped. Prompt history includes intermediate variations used as references.",
+  "prompts": [
+    {
+      "asset": "little-dragon.png",
+      "prompt": "Use case: stylized-concept. Generate one character asset, genuinely transparent background, square composition. A lovable toddler Chinese zodiac dragon mascot, full body visible, facing camera slightly three-quarter, smiling and waving. Premium handcrafted 3D clay and soft felt texture matching a warm children's birthday farm diorama. Sage green plump body, cream yellow segmented belly, small golden branching deer-like horns, little rounded ears, two short delicate whiskers, a softly curling tail, tiny green mane, a small golden crown between the horns. Clearly a friendly Chinese dragon, NOT a dinosaur, not a cow, no wings, no intimidating teeth, no fire. Big expressive dark eyes, apricot cheeks, gentle joyful smile. Rounded safe shapes, warm diffuse studio light, rich tactile materials. Four cute limbs, coherent anatomy. Isolated single character only, no pedestal, no scenery, no text, no numbers, no watermark. Keep 8% margin around the whole character. This will be the consistent mascot for a two-year-old boy born in the Year of the Dragon."
+    },
+    {
+      "asset": "party-farm.png",
+      "prompt": "Create a NEW wide 16:9 birthday farm hero artwork using reference 1 for art direction and reference 2 for the exact Chinese zodiac dragon mascot identity. Premium handcrafted 3D clay/felt diorama. Keep the warm cream sky upper central 32% completely empty for later HTML title, no text. Lower two-thirds: a large rich green toy tractor facing left towing a wooden wagon with an oversized gold numeral 2. The crowned sage green CHINESE DRAGON from reference 2 is the joyful main passenger next to the 2, clearly visible and large, golden branching horns, whiskers, cream belly, crown, friendly smile; it is not a dinosaur. A smaller chick can accompany him; dragon must be main birthday mascot. Abundant green yellow cream apricot balloon clusters frame outer edges, sunflowers, wrapped gifts, tiny barn and soft layered farm hills. Like reference 1 but dragon takes pride of place. Keep all main subjects complete within frame; no overlaid graphic logos, NO letters or Chinese text, ONLY the numeral 2. Rich material detail, gentle warm light, polished children's birthday decoration. Exact wide 16:9 aspect, upper text safe space unobstructed."
+    },
+    {
+      "asset": "classic-farm.png",
+      "prompt": "Use reference 1 for handcrafted 3D clay/felt farm style and reference 2 for exact crowned Chinese baby dragon identity. Generate a NEW warm quiet minimal farm birthday illustration, wide 16:9. Classic version, subdued cream ivory and soft sage green, pale golden light, airy elegant composition. Upper central 34% is empty ivory sky for HTML lettering, no objects there. Lower half: cute small green tractor towing a wooden trailer carrying the friendly crowned sage Chinese dragon (branching golden horns, whiskers, yellow belly, no wings) and a chunky golden number 2. Main group across central lower 65% width, fully visible. A small barn far left, wooden windmill far right, gently rolling fields, a few daisies, restrained small balloon bouquet at far right, no dense birthday arch. Cozy rounded sculptural details, tactile clay, soft shadows. No lettering whatsoever except numeral 2; no watermark. Clear difference from busy party version: calm, spacious, soft. All important subjects remain in lower two-thirds."
+    },
+    {
+      "asset": "play-farm.png",
+      "prompt": "Generate a NEW 16:9 landscape children's farm playground birthday illustration in premium 3D handcrafted clay and felt. Reference is exact mascot identity: sage Chinese baby dragon with small crown, golden branching horns, whiskers, yellow belly, no wings. Upper central 33% entirely calm pale blue sky reserved for HTML title. Main scene in lower 65%: bright rounded RED toy tractor facing right, towing a wooden wagon carrying this smiling dragon and a golden numeral 2, full tractor and wagon visible. Fresh blue sky, a soft pastel rainbow at far upper right corner, fluffy sculpted clouds only at sides, green rolling farm hills, white wooden fence, daisies, little barn. Dragon recognizable, adorable and large. Tactile richly modelled materials, diffuse daylight, warm shadows, gentle childlike delight. Composition not crowded, clear center stage. No text, no letters, no watermark; only number 2. Wide 16:9."
+    },
+    {
+      "asset": "cake-scene.png",
+      "prompt": "Generate a NEW 16:9 wide birthday cake scene for an interactive toddler birthday website. Use reference for exact Chinese dragon identity, premium tactile 3D clay/felt style. Warm ivory background, soft studio sunshine, refined rich detail. Upper central 30% EMPTY for later HTML heading. Large beautiful two-tier sage green and buttery yellow cake, cream piped frosting, tiny sugar sunflowers, miniature green tractor decoration and little gold stars; cake centered in lower two-thirds on a wooden pedestal. On cake, ONE golden numeral 2 candle, centered horizontally; top of candle at around 42% image height, cake bottom at 85%. The candle must be UNLIT, short visible dark wick, absolutely NO flame, NO glowing light, NO smoke. A browser will add a removable flame separately. Friendly crowned Chinese dragon from reference stands beside cake at lower LEFT, yellow chick at lower RIGHT. Green cream gold balloon clusters at outer side edges, a few small gifts and daisies. Keep dragon and cake fully visible, clearly separate from blank top center. No text or words or logos, only numeral 2. Cozy joyful farm-themed birthday diorama."
+    },
+    {
+      "asset": "little-mouse.png",
+      "prompt": "Generate one friendly mother mouse character on a genuinely transparent background, full body centered, 8% clear margins. Premium handcrafted 3D clay/soft felt style matching reference mascot. Warm cream/taupe fur, big round mouse ears with peach interiors, delicate long curved mouse tail, little dark eyes, affectionate smile, tiny peach blush, pastel sage dress and small gingham bow near one ear. Clearly an adorable mouse not a rabbit or bear. A loving mom character for a toddler's birthday farm, rounded tactile toy proportions, gentle studio lighting. Single isolated mouse, no scenery, no text, no logos, no floor, no watermark."
+    },
+    {
+      "asset": "little-rooster.png",
+      "prompt": "Generate one friendly father rooster character on a genuinely transparent background, full body centered with 8% margins. Premium handcrafted 3D clay/soft felt style matching reference mascot. Clearly a ROOSTER: small soft rounded red comb and red wattle, golden cream body, short orange beak, elegant curled sage green tail feathers, tiny green gingham neckerchief. Warm affectionate smile, expressive dark eyes, peach blush, plump harmless toy proportions, orange feet, two short wings, warm soft studio light. A loving dad rooster for a toddler's birthday farm. Not a baby chick, not a hen, not a duck. No scenery, no letters, no words, no logos, no watermark."
+    },
+    {
+      "asset": "birthday-title.png",
+      "transparent_background": true,
+      "prompt": "Create a polished transparent-background Chinese birthday title graphic, very wide horizontal layout, aspect ratio around 3:1. Exact Chinese text, one horizontal line only: \"齐齐，2岁生日快乐！\" Characters must be correct and legible: 齐 齐 ， 2 岁 生 日 快 乐 ！. Handcrafted 3D rounded clay typography with deep forest-green Chinese characters, warm golden numeral 2 and 岁, ivory beveled outlines and subtle soft golden shadow. Cheerful refined premium toddler birthday farm typography, tiny sunflower accents at the left and right outside the text, no other words, no characters or animals. All characters on ONE line, balanced spacing, big easy-to-read strokes. Background genuinely transparent, no rectangle or plaque behind text, no watermark. Generous small safety margin around complete letters."
+    },
+    {
+      "asset": "candle-flame.png",
+      "transparent_background": true,
+      "prompt": "One single tiny candle flame asset on a genuinely transparent background, centered upright teardrop, warm golden orange outer flame, creamy white hot core, gentle restrained glow contained near flame. Stylized premium 3D clay birthday candle aesthetic, soft organic shape, not a flat vector. Only flame, no candle, no wick, no object, no lettering. Portrait-shaped flame filling central 60% width and 80% height of a square transparent canvas, visible tip and base, clean alpha."
+    },
+    {
+      "asset": "red-tractor.png",
+      "transparent_background": true,
+      "prompt": "One isolated adorable red toy farm tractor on genuine transparent background. Full vehicle centered in a wide 4:3 frame with 8% margins, facing right in three-quarter side view. Premium handcrafted 3D matte clay and soft felt, rounded red cab and engine, cream grille, dark brown chunky tires, golden wheel hubs, simple steering wheel visible, tiny warm headlight. Matches a gentle sage green and cream clay farm birthday world. No trailer, no people, no ground, no shadow rectangle, no text, no logos, no watermark. High quality toy model with coherent wheels and cabin."
+    },
+    {
+      "asset": "party-family.png",
+      "target": "party-farm.png",
+      "prompt": "Edit reference 1 birthday farm scene, preserving the entire 16:9 composition, green tractor, golden numeral 2, balloons, warm sky and the central crowned Chinese dragon identity. Make it a family of three: mother is the cream mouse with sage dress and gingham bow from reference 2, father is the golden rooster with red comb and sage tail from reference 3, child is the existing dragon. Replace the little chick to right of number 2 with the rooster dad. Add mouse mom comfortably sitting in the tractor cab, her face and big round ears clearly visible. Exactly these three family characters, no additional chicks/cows. All characters in same tactile clay/felt style. Important keep upper central 24% clear for later text overlay. NO words or text; preserve single numeral 2. Do not change image framing or crop."
+    },
+    {
+      "asset": "cake-family.png",
+      "target": "cake-scene.png",
+      "prompt": "Edit reference 1 cake scene to celebrate a family of three. Preserve full 16:9 composition, blank upper center, cake, golden numeral 2 candle and its UNLIT wick at the exact same location, no flame or glow. Keep child crowned Chinese dragon at lower left unchanged. Replace the little chick at lower right with rooster dad matching reference 3, red comb, golden body, sage green tail and neckerchief, friendly smile. Add mother mouse from reference 2, sage dress, gingham bow, round ears, beside dragon at far left, comfortably visible and not obscuring cake. You may reduce the side characters slightly to fit without crowding. Exactly three characters: dragon son, mouse mother, rooster father. Preserve warm tactile clay/felt style and lighting. No words, letters, watermark, only numeral 2. Keep top central 27% empty for title."
+    },
+    {
+      "asset": "classic-family.png",
+      "target": "classic-farm.png",
+      "prompt": "Edit reference 1 minimal birthday farm illustration. Preserve 16:9 framing, airy warm ivory upper sky, green tractor facing left and wagon, golden 2 and all background. Add mother mouse from reference 2 sitting in tractor cab, smiling, big round ears and gingham bow recognizable. Add father rooster from reference 3, red comb golden body green tail, sitting in wagon to right of golden numeral 2, resize number/dragon very slightly only if needed to comfortably fit. Keep existing crowned Chinese baby dragon as central child. Exactly three characters: mouse mom, dragon son, rooster dad. Keep upper 30% empty for title. Maintain refined muted sage/cream tactile clay and felt aesthetic, no text except 2, no watermark."
+    },
+    {
+      "asset": "play-family.png",
+      "target": "play-farm.png",
+      "prompt": "Edit reference 1 blue-sky red-tractor farm illustration. Preserve 16:9 framing, red tractor facing right, wagon with golden 2 and crowned Chinese baby dragon, rainbow and farm environment. Add mouse mother from reference 2 sitting in the tractor cab, warm smile, big round ears and sage gingham bow visible. Add rooster father from reference 3 standing in wagon to left of dragon near numeral 2, golden body, red comb, green tail and gingham neckerchief. Adjust main group slightly to fit if necessary, keep all characters fully visible. Exactly three family characters: crowned Chinese dragon child, mouse mother, rooster father. Upper central 30% remains empty blue sky for title. No letters or words, only numeral 2. Match same premium clay/felt textures, lighting and friendly expressions."
+    },
+    {
+      "asset": "play-sky.png",
+      "prompt": "Generate a wide 16:9 EMPTY stage background for a toddler interactive farm website, premium handcrafted 3D clay and felt texture. No animals, no people, no vehicles, no cake, no text. Beautiful pale blue sky occupying upper 60%, soft ivory sculpted clouds at far left and far right only, little pastel rainbow in far upper right corner, gentle sage green hills low on horizon, warm cream grassy clearing across entire lower foreground, tiny daisies at extreme bottom corners. Central 80% uncluttered and unobstructed for HTML photo frames and separate character assets. Warm diffuse sunlight, soft depth, rounded handmade style, muted sky blue cream sage palette. Calm and refined, not flat vector art, no watermark."
+    },
+    {
+      "asset": "party-family-final.png",
+      "target": "party-family.png",
+      "prompt": "Edit this birthday farm image ONLY to swap the parents' positions: the golden ROOSTER FATHER with red comb, green tail and gingham neckerchief must now be in the TRACTOR CAB, visibly driving and holding the steering wheel with his wing. The cream MOUSE MOTHER with round ears, sage dress and gingham bow must sit in the WAGON next to the crowned Chinese DRAGON CHILD and golden number 2. The dragon remains the main child and keeps the exact current identity. Exactly one rooster, one mouse, one dragon. Maintain image framing, lighting, style, tractor color, numeral 2, background and upper blank title area completely unchanged. Do not add any text or lettering. All three happy, coherent anatomy, mouse and rooster not duplicated. This is dad driving, mom and child riding together. 16:9 landscape."
+    },
+    {
+      "asset": "classic-family-final.png",
+      "target": "classic-family.png",
+      "prompt": "Edit this birthday farm image ONLY to swap the parents' positions: the golden ROOSTER FATHER with red comb, green tail and gingham neckerchief must now be in the TRACTOR CAB, visibly driving and holding the steering wheel with his wing. The cream MOUSE MOTHER with round ears, sage dress and gingham bow must sit in the WAGON next to the crowned Chinese DRAGON CHILD and golden number 2. The dragon remains the main child and keeps the exact current identity. Exactly one rooster, one mouse, one dragon. Maintain image framing, lighting, style, tractor color, numeral 2, background and upper blank title area completely unchanged. Do not add any text or lettering. All three happy, coherent anatomy, mouse and rooster not duplicated. This is dad driving, mom and child riding together. 16:9 landscape."
+    },
+    {
+      "asset": "play-family-final.png",
+      "target": "play-family.png",
+      "prompt": "Edit this birthday farm image ONLY to swap the parents' positions: the golden ROOSTER FATHER with red comb, green tail and gingham neckerchief must now be in the TRACTOR CAB, visibly driving and holding the steering wheel with his wing. The cream MOUSE MOTHER with round ears, sage dress and gingham bow must sit in the WAGON next to the crowned Chinese DRAGON CHILD and golden number 2. The dragon remains the main child and keeps the exact current identity. Exactly one rooster, one mouse, one dragon. Maintain image framing, lighting, style, tractor color, numeral 2, background and upper blank title area completely unchanged. Do not add any text or lettering. All three happy, coherent anatomy, mouse and rooster not duplicated. This is dad driving, mom and child riding together. 16:9 landscape."
+    }
+  ]
+}

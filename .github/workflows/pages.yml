@@ -15,8 +15,6 @@ jobs:
       - uses: actions/checkout@v6
       - name: Check pages and interactions
         run: |
-          node scripts/check_page.cjs party
-          node scripts/check_page.cjs classic
           node scripts/check_audio.cjs
           node scripts/check_play.cjs
           python3 scripts/check_site.py

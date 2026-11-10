@@ -1,63 +1,38 @@
-"""从主画面导出静态 SVG 和 3840×2160 PNG；需系统安装 librsvg 与 Cairo。"""
+"""将生图背景、透明艺术字和火苗按网页坐标排版导出为 4K 备用 PNG。
+不绘制 SVG；原始生图分辨率保留，4K 指最终排版画布尺寸。
+需要系统 Cairo；普通使用与发布直接使用已导出的 PNG。
+"""
+from pathlib import Path
 import ctypes as C
 import ctypes.util
-from pathlib import Path
-import re
-
-ROOT = Path(__file__).resolve().parent.parent
-exports = []
-for version, dest in [('party','assets'), ('classic','classic/assets')]:
-    source = (ROOT / version / 'index.html').read_text()
-    scenes = re.findall(r'<svg\b[\s\S]*?</svg>', source)
-    assets = ROOT / dest
-    assets.mkdir(exist_ok=True)
-    for svg, name in zip(scenes, ['birthday-background', 'birthday-cake'], strict=True):
-        svg = svg.replace('class="scene"', 'width="3840" height="2160"')
-        svg = svg.replace(' style="display:none"', '')
-        svg = svg.replace('aria-hidden="true"', 'role="img" aria-label="齐齐两岁生日背景"')
-        (assets / f'{name}.svg').write_text(svg)
-        exports.append((svg, assets / name))
-preview = (ROOT / 'assets/play-preview.svg').read_text()
-exports.append((preview, ROOT / 'assets/play-preview'))
-
-def library(name):
-    path = ctypes.util.find_library(name)
-    if not path:
-        raise SystemExit(f'PNG 导出需要系统库 {name}；静态 SVG 已生成。')
-    return C.CDLL(path)
-
-def bind(lib, name, args, result):
-    fn = getattr(lib, name)
-    fn.argtypes, fn.restype = args, result
-    return fn
-
-rsvg, cairo, gobject = library('rsvg-2'), library('cairo'), library('gobject-2.0')
-ptr = C.c_void_p
-load = bind(rsvg, 'rsvg_handle_new_from_data', [C.c_char_p, C.c_size_t, ptr], ptr)
-render = bind(rsvg, 'rsvg_handle_render_document', [ptr, ptr, ptr, ptr], C.c_int)
-create_surface = bind(cairo, 'cairo_image_surface_create', [C.c_int, C.c_int, C.c_int], ptr)
-create_context = bind(cairo, 'cairo_create', [ptr], ptr)
-write_png = bind(cairo, 'cairo_surface_write_to_png', [ptr, C.c_char_p], C.c_int)
-destroy_context = bind(cairo, 'cairo_destroy', [ptr], None)
-destroy_surface = bind(cairo, 'cairo_surface_destroy', [ptr], None)
-unref = bind(gobject, 'g_object_unref', [ptr], None)
-class Rectangle(C.Structure):
-    _fields_ = [(n, C.c_double) for n in ('x', 'y', 'width', 'height')]
-
-for svg, name in exports:
-    data = svg.encode()
-    handle = load(data, len(data), None)
-    if not handle:
-        raise SystemExit('SVG 加载失败')
-    surface = create_surface(0, 3840, 2160)
-    context = create_context(surface)
-    try:
-        if not render(handle, context, C.byref(Rectangle(0, 0, 3840, 2160)), None):
-            raise RuntimeError('SVG 渲染失败')
-        if write_png(surface, str(name.parent / f'{name.name}-4k.png').encode()) != 0:
-            raise RuntimeError('PNG 写入失败')
-    finally:
-        destroy_context(context)
-        destroy_surface(surface)
-        unref(handle)
-    print(f'已导出 {name.relative_to(ROOT)}-4k.png')
+import struct
+ROOT=Path(__file__).resolve().parent.parent
+lib=ctypes.util.find_library('cairo')
+if not lib:raise SystemExit('重新导出备用图需要系统 Cairo；现成图片可直接使用。')
+cairo=C.CDLL(lib)
+def bind(name,args,result):
+ fn=getattr(cairo,name);fn.argtypes=args;fn.restype=result;return fn
+ptr=C.c_void_p;num=C.c_double
+create=bind('cairo_image_surface_create',[C.c_int,C.c_int,C.c_int],ptr)
+load=bind('cairo_image_surface_create_from_png',[C.c_char_p],ptr)
+status=bind('cairo_surface_status',[ptr],C.c_int)
+context=bind('cairo_create',[ptr],ptr)
+save=bind('cairo_save',[ptr],None);restore=bind('cairo_restore',[ptr],None)
+translate=bind('cairo_translate',[ptr,num,num],None);scale=bind('cairo_scale',[ptr,num,num],None)
+source=bind('cairo_set_source_surface',[ptr,ptr,num,num],None);paint=bind('cairo_paint',[ptr],None)
+write=bind('cairo_surface_write_to_png',[ptr,C.c_char_p],C.c_int)
+free=bind('cairo_surface_destroy',[ptr],None);destroy=bind('cairo_destroy',[ptr],None)
+def draw(ctx,name,x,y,w,h):
+ path=ROOT/'assets'/name;data=path.read_bytes();iw,ih=struct.unpack('>II',data[16:24]);img=load(str(path).encode())
+ if status(img):raise RuntimeError(f'无法读取图片：{name}')
+ save(ctx);translate(ctx,x,y);scale(ctx,w/iw,h/ih);source(ctx,img,0,0);paint(ctx);restore(ctx);free(img)
+for background,filename,cake in [('party-family-final.png','birthday-background-4k.png',False),('cake-family.png','birthday-cake-4k.png',True)]:
+ surface=create(0,3840,2160);ctx=context(surface)
+ try:
+  scale(ctx,2.4,2.4)
+  draw(ctx,background,0,0,1600,900)
+  draw(ctx,'birthday-title.png',256,-45,1088,1088/3)
+  if cake:draw(ctx,'candle-flame.png',759.2,219.6,86.4,86.4)
+  if write(surface,str(ROOT/'assets'/filename).encode()):raise RuntimeError('导出失败')
+ finally:destroy(ctx);free(surface)
+ print('已导出 assets/'+filename)
