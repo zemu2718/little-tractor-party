@@ -38,8 +38,8 @@ def header(cake=False):
  return '''<g font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif" text-anchor="middle">
 <rect x="565" y="35" width="470" height="38" rx="19" fill="#fffdf3" stroke="#e8cc8a" stroke-width="2"/>
 <text x="800" y="61" font-size="16" letter-spacing="4" fill="#8d713f">LITTLE FARMER · BIG DAY</text>
-<text x="800" y="177" font-size="74" font-weight="bold" letter-spacing="5" stroke="#e0c58c" stroke-width="10" stroke-linejoin="round" paint-order="stroke" fill="#e0c58c">吴思齐 · 2 岁生日快乐</text>
-<text x="800" y="169" font-size="74" font-weight="bold" letter-spacing="5" stroke="#fffaf0" stroke-width="10" stroke-linejoin="round" paint-order="stroke" fill="#276344">吴思齐 <tspan fill="#d79530">· 2 岁</tspan>生日快乐</text>
+<text x="800" y="177" font-size="74" font-weight="bold" letter-spacing="5" stroke="#e0c58c" stroke-width="10" stroke-linejoin="round" paint-order="stroke" fill="#e0c58c">齐齐 · 2 岁生日快乐</text>
+<text x="800" y="169" font-size="74" font-weight="bold" letter-spacing="5" stroke="#fffaf0" stroke-width="10" stroke-linejoin="round" paint-order="stroke" fill="#276344">齐齐 <tspan fill="#d79530">· 2 岁</tspan>生日快乐</text>
 <path d="M500 207h600l-17 23 17 23H500l17-23Z" fill="#e7b75c"/>
 <rect x="535" y="202" width="530" height="48" rx="7" fill="#f9dc91"/>
 '''+ ('<text id="cake-wish"' if cake else '<text')+''' x="800" y="234" font-size="23" letter-spacing="3" fill="#75603a">'''+('小小的愿望，大大的幸福。' if cake else '两岁，快乐出发！')+'''</text></g>'''

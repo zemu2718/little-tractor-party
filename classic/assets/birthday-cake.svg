@@ -1,4 +1,4 @@
-<svg width="3840" height="2160" id="cake-scene" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="吴思齐两岁生日背景">
+<svg width="3840" height="2160" id="cake-scene" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="齐齐两岁生日背景">
 <defs>
  <pattern id="cake-paper" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="1" cy="2" r=".65" fill="#9c8964" opacity=".09"/><circle cx="5" cy="6" r=".5" fill="#fff" opacity=".5"/></pattern>
  <pattern id="cake-field" width="95" height="70" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)"><path d="M0 0V70" stroke="#f1d186" stroke-width="3" opacity=".55"/></pattern>
@@ -59,7 +59,7 @@
 <path d="M0 0H1600V900H0Z" fill="url(#cake-paper)" pointer-events="none"/>
 <g text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif">
 <text x="800" y="115" font-size="17" font-weight="600" letter-spacing="5.4" fill="#7b8868">A LITTLE WISH · A LOT OF LOVE</text>
-<text x="800" y="209" font-size="66" font-weight="bold" letter-spacing="6" fill="#315548">吴思齐 <tspan fill="#b88038">· 2 岁</tspan>生日快乐</text>
+<text x="800" y="209" font-size="66" font-weight="bold" letter-spacing="6" fill="#315548">齐齐 <tspan fill="#b88038">· 2 岁</tspan>生日快乐</text>
 <text id="cake-wish" x="800" y="260" font-size="23" letter-spacing="5" fill="#788465">小小的愿望，大大的幸福。</text>
 <text x="800" y="858" font-size="18" letter-spacing="4" fill="#788465">愿你眼里有光，每一天都快乐成长。</text>
 </g></svg>

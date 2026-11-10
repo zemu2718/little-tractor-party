@@ -23,8 +23,8 @@ window.PartyAudio = (() => {
   melody.forEach(([name,duration],i)=>{if([0,6,12,19].includes(i))lines.push(time-start+.12);bell(notes[name],time,Math.max(.65,duration*.8),.27,songBus);time+=duration*.58;});return {lines,total:time-start+.8};
  }
  async function effect(kind){if(!enabled)return;await ready();if(!enabled||document.hidden)return;const t=context.currentTime+.02;
-  if(kind==='cow'){tone(160,t,.7,.4,'triangle',bus,110);tone(165,t+.35,.5,.15,'sine',bus,120);}
-  else if(kind==='chick'){tone(1400,t,.15,.18,'sine',bus,1900);tone(1600,t+.22,.15,.15,'sine',bus,2100);}
+  if(kind==='mouse'){bell(notes.E5,t,.5,.18,bus);bell(notes.G5,t+.2,.6,.16,bus);}
+  else if(kind==='rooster'){tone(1400,t,.15,.18,'sine',bus,1900);tone(1600,t+.22,.15,.15,'sine',bus,2100);}
   else if(kind==='tractor'){for(let i=0;i<6;i++)tone(75,t+i*.16,.12,.26,'triangle',bus,58);}
   else {['C5','E5','G5'].forEach((n,i)=>bell(notes[n],t+i*.15,1,.23,bus));}
  }

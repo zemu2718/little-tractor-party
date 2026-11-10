@@ -29,7 +29,7 @@ function selectScene(next){if(!modes.includes(next)||next===mode)return;stopSong
  document.querySelectorAll('[data-scene]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.scene===mode)));
  modes.forEach(name=>$('scene-'+name).hidden=name!==mode);
  $('album-tools').hidden=mode!=='album';$('album-settings').hidden=mode!=='album';$('cake-tools').hidden=mode!=='cake';$('mic-tools').hidden=mode!=='cake';
- stage.setAttribute('aria-label',({home:'思齐的小龙快乐农场',album:'思齐的成长相册',cake:'思齐的生日蛋糕',game:'点一点，和农场伙伴打招呼'})[mode]);
+ stage.setAttribute('aria-label',({home:'齐齐的小龙快乐农场',album:'齐齐的成长相册',cake:'齐齐的生日蛋糕',game:'点一点，和爸爸妈妈打招呼'})[mode]);
  if(mode==='album')renderPhoto();if(mode==='cake')updateCake();syncMusic();
 }
 document.querySelectorAll('[data-scene]').forEach(el=>el.onclick=()=>selectScene(el.dataset.scene));
@@ -49,7 +49,7 @@ async function importPhotos(list){const run=++importRun;const files=Array.from(l
  photoRun++;photos.forEach(p=>URL.revokeObjectURL(p.url));photos=loaded;photoIndex=0;albumPlaying=true;await renderPhoto();tell(`已准备 ${photos.length} 张照片，循环播放。${skipped?'部分文件无法显示或超过数量/大小限制，已跳过。':''}`);
 }
 function updateAlbum(){const has=photos.length>0;$('album-empty').hidden=has;$('photo-frame').hidden=!has;$('album-count').hidden=!has;$('album-progress').hidden=!has;for(const id of ['album-toggle','clear-photos'])$(id).disabled=!has;for(const id of ['previous','next'])$(id).disabled=photos.length<2;$('album-toggle').textContent=albumPlaying?'暂停相册':'播放相册';$('album-count').textContent=`${photoIndex+1} / ${photos.length}`;$('album-progress').firstElementChild.style.width=has?`${(photoIndex+1)/photos.length*100}%`:'0%';}
-async function renderPhoto(){clearTimeout(albumTimer);updateAlbum();if(!photos.length)return;const run=++photoRun,p=photos[photoIndex];try{await decode(p.url);if(run!==photoRun)return;$('photo-img').src=p.url;$('photo-img').alt=p.cap||`思齐的成长照片，第 ${photoIndex+1} 张`;$('photo-caption').textContent=$('captions').checked?p.cap:'';schedulePhoto();}catch{if(run!==photoRun)return;albumPlaying=false;updateAlbum();tell('这张照片加载失败，可以切到下一张或重新选择照片。');}}
+async function renderPhoto(){clearTimeout(albumTimer);updateAlbum();if(!photos.length)return;const run=++photoRun,p=photos[photoIndex];try{await decode(p.url);if(run!==photoRun)return;$('photo-img').src=p.url;$('photo-img').alt=p.cap||`齐齐的成长照片，第 ${photoIndex+1} 张`;$('photo-caption').textContent=$('captions').checked?p.cap:'';schedulePhoto();}catch{if(run!==photoRun)return;albumPlaying=false;updateAlbum();tell('这张照片加载失败，可以切到下一张或重新选择照片。');}}
 function stepPhoto(step){if(!photos.length)return;photoIndex=(photoIndex+step+photos.length)%photos.length;renderPhoto();}
 function pickPhotos(){ $('files').click(); }
 $('empty-pick').onclick=pickPhotos;$('pick').onclick=pickPhotos;$('pick-folder').onclick=()=>$('folder').click();
@@ -60,8 +60,8 @@ $('pick-music').onclick=()=>$('music-file').click();$('music-file').onchange=e=>
 $('music-toggle').onclick=async()=>{if(!musicURL)return;if(wantsMusic){wantsMusic=false;}else{if(!await enableSound(true))return;wantsMusic=true;}syncMusic();};$('bgm').onerror=()=>{wantsMusic=false;updateMusic();tell('这段音乐无法播放，请尝试 MP3 或其他文件。');};
 window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer?.files.length)importPhotos(e.dataTransfer.files);});
 // 蛋糕由大人控制；唱歌可停止，随时可吹灭，不强制等待。
-function updateCake(){ $('birthday-cake').classList.toggle('out',blown);$('cake-title').textContent=blown?'耶！思齐两岁啦！':'思齐，生日快乐！';$('lyric').textContent=blown?'愿所有美好，陪你慢慢长大':'许一个小小的愿望吧';$('blow').hidden=blown;$('relight').hidden=!blown;}
-async function sing(){if(singing){stopSong();return;}if(frozen()){tell('先退出合影或继续动画，再一起唱歌吧。');return;}stopMic();const run=++songRun;singing=true;$('sing').textContent='停止生日歌';if(!await enableSound(true)||run!==songRun||mode!=='cake'||frozen())return;try{const song=await audio.song();if(run!==songRun||mode!=='cake')return;if(!song){stopSong();return;}const lines=['祝你生日快乐','祝你生日快乐','祝思齐生日快乐','祝你生日快乐'];song.lines.forEach((t,i)=>songTimers.push(setTimeout(()=>{if(run===songRun)$('lyric').textContent=lines[i];},t*1000)));songTimers.push(setTimeout(()=>{if(run===songRun){stopSong();$('lyric').textContent=blown?'思齐，生日快乐！':'许个愿，吹蜡烛吧！';}},song.total*1000));}catch{stopSong();tell('暂时无法播放生日歌，可以大家一起唱。');}}
+function updateCake(){ $('birthday-cake').classList.toggle('out',blown);$('cake-title').textContent=blown?'耶！齐齐两岁啦！':'齐齐，生日快乐！';$('lyric').textContent=blown?'愿所有美好，陪你慢慢长大':'许一个小小的愿望吧';$('blow').hidden=blown;$('relight').hidden=!blown;}
+async function sing(){if(singing){stopSong();return;}if(frozen()){tell('先退出合影或继续动画，再一起唱歌吧。');return;}stopMic();const run=++songRun;singing=true;$('sing').textContent='停止生日歌';if(!await enableSound(true)||run!==songRun||mode!=='cake'||frozen())return;try{const song=await audio.song();if(run!==songRun||mode!=='cake')return;if(!song){stopSong();return;}const lines=['祝你生日快乐','祝你生日快乐','祝齐齐生日快乐','祝你生日快乐'];song.lines.forEach((t,i)=>songTimers.push(setTimeout(()=>{if(run===songRun)$('lyric').textContent=lines[i];},t*1000)));songTimers.push(setTimeout(()=>{if(run===songRun){stopSong();$('lyric').textContent=blown?'齐齐，生日快乐！':'许个愿，吹蜡烛吧！';}},song.total*1000));}catch{stopSong();tell('暂时无法播放生日歌，可以大家一起唱。');}}
 function blow(){if(mode!=='cake'||blown)return;stopSong();stopMic();blown=true;updateCake();celebrate();audio.effect('dragon').catch(()=>{});showControls(false);}
 $('sing').onclick=sing;$('blow').onclick=blow;$('relight').onclick=()=>{stopSong();stopMic();blown=false;clearEffects();updateCake();};
 // 麦克风仅通过明确按钮启用；校准环境音，连续响度超阈值触发，键盘/按钮始终可用。
@@ -73,7 +73,7 @@ async function startMic(){if(micStream||micPending){stopMic();return;}if(blown){
 }
 $('mic-toggle').onclick=startMic;
 // 无分数、无失败的因果互动，短音效节流，图形与文字同时回应。
-const greetings={dragon:'小龙说：思齐，生日快乐！',cow:'小牛说：哞～你好呀！',chick:'小鸡说：叽叽！一起玩吧！',tractor:'拖拉机说：嘟嘟，快乐出发！'};
+const greetings={dragon:'小龙说：齐齐，生日快乐！',mouse:'鼠妈妈说：齐齐，妈妈爱你！',rooster:'公鸡爸爸说：嘟嘟，带齐齐出发！',tractor:'拖拉机说：嘟嘟，快乐出发！'};
 let lastGreeting=0;
 document.querySelectorAll('[data-friend]').forEach(button=>button.onclick=()=>{if(frozen())return;const now=performance.now();if(now-lastGreeting<220)return;lastGreeting=now;const kind=button.dataset.friend;$('hello').textContent=greetings[kind];clearTimeout(helloTimer);helloTimer=setTimeout(()=>$('hello').textContent='轻轻点一下，看看谁来打招呼',4500);button.classList.remove('greet');void button.offsetWidth;button.classList.add('greet');audio.effect(kind).catch(()=>{});if(!reduced.matches){const star=document.createElement('span');star.className='bubble';star.textContent=kind==='dragon'?'♥':'✦';star.style.left=`${18+Array.from(button.parentNode.children).indexOf(button)*22}%`;star.style.top='43%';$('bubbles').append(star);setTimeout(()=>star.remove(),1900);if($('bubbles').children.length>8)$('bubbles').firstElementChild.remove();}});
 // 展示工具：全屏和屏幕常亮均有失败回退。

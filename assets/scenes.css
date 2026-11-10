@@ -1,0 +1,14 @@
+/* 生图场景共用布局；所有插画、艺术字和火苗均为生成的 PNG。 */
+.stage,#stage{container-type:inline-size}
+.generated-scene{position:absolute;inset:0;overflow:hidden;background:#fff2d9}
+.scene-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.birthday-heading{position:absolute;left:16%;top:-5%;width:68%;margin:0;z-index:2;line-height:0;pointer-events:none}
+.title-art{display:block;width:100%;height:auto;animation:title-arrive 1.2s ease-out both}
+.scene-note{position:absolute;bottom:2%;left:50%;transform:translateX(-50%);max-width:82%;width:max-content;margin:0;padding:.45cqw 1.6cqw;border-radius:3cqw;background:#fff7e8e8;color:#416545;font-size:1.3cqw;line-height:1.6;text-align:center;letter-spacing:.1em;z-index:3}
+.flame-layer{position:absolute;left:47.45%;top:23.9%;width:5.4%;height:9.6%;object-fit:contain;transform-origin:50% 94%;animation:candle-breathe 2.8s ease-in-out infinite alternate;pointer-events:none;z-index:1}
+@keyframes title-arrive{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes candle-breathe{from{transform:scale(.98,1)}to{transform:scale(1.02,.96)}}
+.paused .title-art,.background-paused .title-art{animation:none!important}
+.paused .flame-layer,.background-paused .flame-layer{animation-play-state:paused!important}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+@media(prefers-reduced-motion:reduce){.title-art,.flame-layer{animation:none!important}}

@@ -14,7 +14,7 @@ for version, dest in [('party','assets'), ('classic','classic/assets')]:
     for svg, name in zip(scenes, ['birthday-background', 'birthday-cake'], strict=True):
         svg = svg.replace('class="scene"', 'width="3840" height="2160"')
         svg = svg.replace(' style="display:none"', '')
-        svg = svg.replace('aria-hidden="true"', 'role="img" aria-label="吴思齐两岁生日背景"')
+        svg = svg.replace('aria-hidden="true"', 'role="img" aria-label="齐齐两岁生日背景"')
         (assets / f'{name}.svg').write_text(svg)
         exports.append((svg, assets / name))
 preview = (ROOT / 'assets/play-preview.svg').read_text()
