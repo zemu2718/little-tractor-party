@@ -6,7 +6,7 @@ function element(){const classes=new Set();return {hidden:false,disabled:false,c
 function setup({reduce=false}={}){
  const els=Object.fromEntries([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>[m[1],element()]));
  els['album-progress'].append(element());const bgm=els.bgm;bgm.paused=true;bgm.play=async()=>{bgm.paused=false;};bgm.pause=()=>{bgm.paused=true;};
- const tabs=['home','album','cake','game'].map(scene=>Object.assign(element(),{dataset:{scene}}));const friends=['dragon','mouse','rooster','tractor'].map(friend=>Object.assign(element(),{dataset:{friend}}));const friendParent=element();friends.forEach(f=>friendParent.append(f));
+ const tabs=['home','album','cake','game'].map(scene=>Object.assign(element(),{dataset:{scene}}));const friends=['dragon','mouse','rooster','excavator'].map(friend=>Object.assign(element(),{dataset:{friend}}));const friendParent=element();friends.forEach(f=>friendParent.append(f));
  const events={},windowEvents={},timers=new Map();let tid=0,uid=0;const objects=new Map(),revoked=[];
  const document={hidden:false,documentElement:{},body:element(),getElementById:id=>els[id],querySelectorAll:selector=>selector==='[data-scene]'?tabs:friends,addEventListener:(k,f)=>events[k]=f,createElement:element};
  const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,10],total:14};},stopSong(){this.stopped++;},stopEffects(){}};
@@ -27,9 +27,9 @@ function setup({reduce=false}={}){
  await app.click('pause');await app.click('photo');await app.click('photo');assert(els.stage.classList.contains('paused'));await app.click('pause');assert(!els.stage.classList.contains('paused'));
  await app.click('relight');await app.click('sing');assert.equal(app.read('singing'),true);assert.equal(app.audio.songCount,1);await app.run("selectScene('game')");assert.equal(app.read('singing'),false);assert.equal(app.read('songTimers.length'),0);
  await app.run("selectScene('cake')");await app.click('sing');await app.click('sound');assert.equal(app.read('singing'),false);assert.equal(app.read('sound'),false);
- await app.run("importPhotos([{name:'02-第一次坐拖拉机.jpg',size:12},{name:'01-刚出生.png',size:12},{name:'03-broken.jpg',size:12,bad:true},{name:'ignore.txt',size:4}])");
+ await app.run("importPhotos([{name:'02-第一次坐挖掘机.jpg',size:12},{name:'01-刚出生.png',size:12},{name:'03-broken.jpg',size:12,bad:true},{name:'ignore.txt',size:4}])");
  assert.equal(app.read('photos.length'),2);assert.equal(app.read('photos[0].cap'),'刚出生');assert.equal(app.read('mode'),'album');assert.equal(els['photo-caption'].textContent,'刚出生');assert.equal(app.read('albumPlaying'),true);assert(app.revoked.length>=1);assert(!els['next'].disabled);
- await app.click('next');assert.equal(els['photo-caption'].textContent,'第一次坐拖拉机');await app.click('next');assert.equal(els['photo-caption'].textContent,'刚出生');await app.click('previous');assert.equal(app.read('photoIndex'),1);
+ await app.click('next');assert.equal(els['photo-caption'].textContent,'第一次坐挖掘机');await app.click('next');assert.equal(els['photo-caption'].textContent,'刚出生');await app.click('previous');assert.equal(app.read('photoIndex'),1);
  await app.click('album-toggle');assert.equal(app.read('albumPlaying'),false);assert(![...app.timers.values()].some(t=>t.ms===8000));await app.click('album-toggle');assert([...app.timers.values()].some(t=>t.ms===8000));
  app.document.hidden=true;app.events.visibilitychange();assert(![...app.timers.values()].some(t=>t.ms===8000));app.document.hidden=false;app.events.visibilitychange();assert([...app.timers.values()].some(t=>t.ms===8000));
  await app.click('photo');assert(![...app.timers.values()].some(t=>t.ms===8000));await app.click('photo');assert([...app.timers.values()].some(t=>t.ms===8000));

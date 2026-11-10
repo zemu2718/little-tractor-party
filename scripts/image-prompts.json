@@ -1,11 +1,11 @@
 {
   "tool": "built-in image_gen",
-  "style": "3D clay and felt birthday farm",
+  "style": "3D clay and felt excavator birthday party",
   "display_name": "齐齐",
   "family": {
-    "child": "Chinese zodiac dragon",
+    "child": "crowned Chinese zodiac dragon, driving yellow toy tracked excavator",
     "mother": "mouse",
-    "father": "rooster, driving tractor"
+    "father": "rooster, celebrating beside mouse mother"
   },
   "notes": "Only the final single-version assets are shipped. Prompt history includes intermediate variations used as references.",
   "prompts": [
@@ -102,6 +102,26 @@
     {
       "asset": "family-title.png",
       "prompt": "Generate a transparent Chinese title graphic matching the supplied clay birthday typography reference. Exact wording ONLY \"一家人，一起玩！\". One horizontal line with accurate Chinese characters, cheerful but readable thick rounded strokes. Premium 3D clay/felt lettering in deep forest green with cream beveled outlines and soft golden shadows, tiny yellow daisy at both ends. Genuine transparent background; no panel, no scenery, no extra words, no numbers, no age. Wide 3:1 composition with small safety margins. A warm toddler family play title."
+    },
+    {
+      "asset": "party-family-final.png",
+      "prompt": "Use case: precise-object-edit. Edit this 16:9 birthday scene to an EXCAVATOR themed birthday. Preserve exact cute clay/felt identities: crowned sage Chinese dragon child, cream mouse mother in green dress, golden rooster father with red comb. Replace green farm tractor and wagon with a large recognizable golden YELLOW tracked EXCAVATOR at lower left, with proper continuous dark rubber caterpillar tracks, articulated boom, stick and digging bucket extending toward the left edge and entirely visible. Rooster father sits in excavator cab holding control levers. Mother and crowned dragon stand smiling together on the ground at lower right beside golden numeral 2 and birthday gifts, NOT in bucket. Remove wagon and tractor entirely. Maintain warm cream/sage/yellow birthday balloons, sunflowers, soft hills, cozy detailed 3D clay textures and upper central 27% empty cream sky for separate title. Change barn to small distant trees, a tiny toy construction cone by gifts. Family is large and readable. No words or lettering, only numeral 2. No flame. Keep wide 16:9 framing."
+    },
+    {
+      "asset": "cake-family.png",
+      "prompt": "Use case: precise-object-edit. Change ONLY the tiny green tractor decoration on the front lower cake tier into a clearly recognizable YELLOW EXCAVATOR sugar decoration with dark continuous caterpillar tracks, cab, articulated digging boom and bucket. Preserve the cake, family of mouse mother, crowned Chinese dragon child, rooster father, balloons, ALL framing, lighting, upper empty sky. CRITICAL preserve golden numeral 2 candle and its unlit dark wick at exact existing position, no flame and no glow. Everything else unchanged. No extra text. Wide 16:9."
+    },
+    {
+      "asset": "little-excavator.png",
+      "prompt": "Use case: stylized-concept. Reference is material style only. Create one isolated adorable GOLDEN YELLOW toy EXCAVATOR, NOT a tractor or front loader. Three-quarter side view facing right, full vehicle with generous 8% margin in 4:3 canvas. Recognizable two continuous dark brown caterpillar tracks, rounded yellow cab with cream roof and sage interior, articulated excavator boom and stick reaching right into a curved digging bucket. Coherent mechanical silhouette. Premium handcrafted 3D matte clay and soft felt matching the reference, warm light, child friendly rounded shapes. Genuine transparent background. No ground, no people, no text, no logo, no scenery. Entire boom, bucket and tracks inside frame."
+    },
+    {
+      "asset": "party-family-final.png",
+      "prompt": "Use case: precise-object-edit. Edit this birthday illustration to make the CHILD the hero driver. Swap ONLY the positions of rooster father and crowned Chinese dragon child. The sage green Chinese baby DRAGON now sits proudly inside the yellow excavator cab, both small hands holding the two black control levers, joyful smile looking toward viewer. His large face, golden branching horns, whiskers and small golden birthday crown are fully visible and unobstructed by cab roof or window frame; subtly enlarge the cab opening if needed to comfortably fit crown and horns without clipping. The golden ROOSTER father now stands on the ground next to mouse mother at the right of the vehicle, smiling and waving one wing toward his son. Mouse mother remains beside father, smiling warmly. Golden numeral 2 remains on ground next to parents. Exactly one dragon, one rooster and one mouse, same identities, clothes and materials as reference. Keep yellow tracked excavator with boom and bucket, warm cream sky with upper central 27% blank for title, balloon frame, gifts, sunflowers, hills, full wide 16:9 framing and premium rounded 3D clay/felt toy aesthetic unchanged. No text, no additional lettering, no age words, only existing numeral 2. Make dragon driver the clear birthday protagonist."
+    },
+    {
+      "asset": "cake-family.png",
+      "prompt": "Use case: precise-object-edit. Fix birthday protagonist hierarchy in this exact 16:9 cake illustration. Swap crowned Chinese dragon CHILD and rooster FATHER positions. RIGHT of cake: the crowned sage Chinese dragon stands ALONE in the spacious prominent position currently occupied by the rooster, full body clearly visible, big joyful face, crown, golden branching horns and whiskers, waving. Make him the largest and most prominent character. LEFT of cake: cream mouse mother and golden rooster father stand TOGETHER as supporting parents, both slightly smaller than dragon, smiling toward their child. Remove dragon from left and rooster from right. Exactly one dragon, one mouse, one rooster. Preserve same identities, clay/felt style, outfits, balloon frame, gifts and warm lighting. CRITICAL do not change cake geometry or its yellow excavator decoration. Preserve numeral 2 candle and UNLIT dark wick at exact existing position (center x50%, wick top y33%); NO flame. Keep upper central 28% blank cream sky for separate birthday title. No added text, no labels, no watermarks. Keep entire image framing and all characters inside frame."
     }
   ]
 }

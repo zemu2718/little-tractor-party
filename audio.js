@@ -26,7 +26,7 @@ window.PartyAudio = (() => {
  async function effect(kind){if(!enabled)return;stopEffects();const run=effectId;await ready();if(run!==effectId||!enabled||document.hidden)return;effectBus=context.createGain();effectBus.connect(bus);const t=context.currentTime+.02;
   if(kind==='mouse'){bell(notes.E5,t,.5,.18,effectBus);bell(notes.G5,t+.2,.6,.16,effectBus);}
   else if(kind==='rooster'){tone(560,t,.16,.16,'sine',effectBus,700);tone(700,t+.22,.25,.14,'sine',effectBus,620);}
-  else if(kind==='tractor'){for(let i=0;i<4;i++)tone(95,t+i*.18,.12,.18,'triangle',effectBus,80);}
+  else if(kind==='excavator'){for(let i=0;i<4;i++)tone(95,t+i*.18,.12,.18,'triangle',effectBus,80);}
   else {['C5','E5','G5'].forEach((n,i)=>bell(notes[n],t+i*.15,.8,.18,effectBus));}
  }
  async function suspend(){stopEffects();if(context&&context.state==='running')await context.suspend();}

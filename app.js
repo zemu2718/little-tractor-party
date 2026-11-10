@@ -38,7 +38,7 @@ function selectScene(next){if(!modes.includes(next)||next===mode)return;stopSong
  document.querySelectorAll('[data-scene]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.scene===mode)));
  modes.forEach(name=>$('scene-'+name).hidden=name!==mode);
  $('album-tools').hidden=mode!=='album';$('album-settings').hidden=mode!=='album';$('cake-tools').hidden=mode!=='cake';$('mic-tools').hidden=mode!=='cake';
- stage.setAttribute('aria-label',({home:'齐齐的小龙快乐农场',album:'齐齐的成长相册',cake:'齐齐的生日蛋糕',game:'点一点，和爸爸妈妈打招呼'})[mode]);
+ stage.setAttribute('aria-label',({home:'齐齐的小龙挖掘机乐园',album:'齐齐的成长相册',cake:'齐齐的生日蛋糕',game:'点一点，和爸爸妈妈打招呼'})[mode]);
  if(mode==='album')renderPhoto();if(mode==='cake')updateCake();syncMusic();
 }
 document.querySelectorAll('[data-scene]').forEach(el=>el.onclick=()=>selectScene(el.dataset.scene));
@@ -102,7 +102,7 @@ for(const [id,kind] of [['pick-mom','mouse'],['pick-dad','rooster'],['pick-child
 $('voice-file').onchange=event=>{const file=event.target.files[0];event.target.value='';if(file&&voice.setClip(voiceTarget,file))tell('录音已准备。开启声音后，点对应角色即可听到；每次最多播放 12 秒。');};
 $('clear-voices').onclick=()=>voice.clearClips();
 // 无分数、无失败的因果互动，短音效节流，图形与文字同时回应。
-const greetings={dragon:'小龙说：齐齐，生日快乐！',mouse:'鼠妈妈说：齐齐，妈妈爱你！',rooster:'公鸡爸爸说：嘟嘟，带齐齐出发！',tractor:'拖拉机说：嘟嘟，快乐出发！'};
+const greetings={dragon:'小龙说：齐齐，生日快乐！',mouse:'鼠妈妈说：齐齐，妈妈爱你！',rooster:'公鸡爸爸说：齐齐，爸爸陪你玩！',excavator:'挖掘机说：嘟嘟，快乐出发！'};
 let lastGreeting=0;
 document.querySelectorAll('[data-friend]').forEach(button=>button.onclick=()=>{if(frozen())return;const now=performance.now();if(now-lastGreeting<450)return;lastGreeting=now;const kind=button.dataset.friend;$('hello').textContent=greetings[kind];clearTimeout(helloTimer);helloTimer=setTimeout(()=>$('hello').textContent='点点小伙伴',4500);button.classList.remove('greet');void button.offsetWidth;button.classList.add('greet');audio.stopEffects();const greeting=++greetingRun;voice.speak(kind,greetings[kind].replace(/^[^：]*：/, '')).then(spoken=>{if(!spoken&&greeting===greetingRun&&mode==='game'&&!frozen())audio.effect(kind).catch(()=>{});});if(!reduced.matches){const star=document.createElement('span');star.className='bubble';star.textContent=kind==='dragon'?'♥':'✦';star.style.left=`${18+Array.from(button.parentNode.children).indexOf(button)*22}%`;star.style.top='43%';$('bubbles').append(star);setTimeout(()=>star.remove(),1900);if($('bubbles').children.length>8)$('bubbles').firstElementChild.remove();}});
 // 展示工具：全屏和屏幕常亮均有失败回退。
