@@ -5,17 +5,20 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parent.parent
-source = (ROOT / 'party/index.html').read_text()
-scenes = re.findall(r'<svg\b[\s\S]*?</svg>', source)
-assets = ROOT / 'assets'
-assets.mkdir(exist_ok=True)
 exports = []
-for svg, name in zip(scenes, ['birthday-background', 'birthday-cake'], strict=True):
-    svg = svg.replace('class="scene"', 'width="3840" height="2160"')
-    svg = svg.replace(' style="display:none"', '')
-    svg = svg.replace('aria-hidden="true"', 'role="img" aria-label="吴思齐两岁生日背景"')
-    (assets / f'{name}.svg').write_text(svg)
-    exports.append((svg, name))
+for version, dest in [('party','assets'), ('classic','classic/assets')]:
+    source = (ROOT / version / 'index.html').read_text()
+    scenes = re.findall(r'<svg\b[\s\S]*?</svg>', source)
+    assets = ROOT / dest
+    assets.mkdir(exist_ok=True)
+    for svg, name in zip(scenes, ['birthday-background', 'birthday-cake'], strict=True):
+        svg = svg.replace('class="scene"', 'width="3840" height="2160"')
+        svg = svg.replace(' style="display:none"', '')
+        svg = svg.replace('aria-hidden="true"', 'role="img" aria-label="吴思齐两岁生日背景"')
+        (assets / f'{name}.svg').write_text(svg)
+        exports.append((svg, assets / name))
+preview = (ROOT / 'assets/play-preview.svg').read_text()
+exports.append((preview, ROOT / 'assets/play-preview'))
 
 def library(name):
     path = ctypes.util.find_library(name)
@@ -51,10 +54,10 @@ for svg, name in exports:
     try:
         if not render(handle, context, C.byref(Rectangle(0, 0, 3840, 2160)), None):
             raise RuntimeError('SVG 渲染失败')
-        if write_png(surface, str(assets / f'{name}-4k.png').encode()) != 0:
+        if write_png(surface, str(name.parent / f'{name.name}-4k.png').encode()) != 0:
             raise RuntimeError('PNG 写入失败')
     finally:
         destroy_context(context)
         destroy_surface(surface)
         unref(handle)
-    print(f'已导出 assets/{name}.svg 与 {name}-4k.png')
+    print(f'已导出 {name.relative_to(ROOT)}-4k.png')

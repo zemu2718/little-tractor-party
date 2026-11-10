@@ -4,13 +4,13 @@ import re
 ROOT=Path(__file__).resolve().parent.parent
 classic=(ROOT/'classic/index.html').read_text()
 farm=re.search(r'<svg\b[\s\S]*?</svg>',classic).group()
-tractor=farm[farm.index('<g><path d="M354'):farm.index('<!-- 前景花草 -->')]
+tractor=farm[farm.index('<g><path d="M354'):farm.index('<!-- 小龙伙伴 -->')]
 tractor=tractor.replace('#64875b','url(#green)').replace('#e1e6c5','url(#glass)').replace('#3c654b','#236743').replace('#3e654c','#236743').replace('#a9bd82','#c2e78d')
 tractor=tractor.replace('<path d="M598 478v100"','<path d="M554 486l38 0-38 45Z" fill="#fff" opacity=".6"/><path d="M598 478v100"')
 number='M890 465C894 361 1082 362 1082 464C1082 510 1048 537 999 570L964 595H1085V643H888V600L973 530C1013 498 1029 485 1029 463C1029 427 950 423 947 468Z'
 
 def defs():
- return '''<defs>
+ return '<defs><g id="dragon" transform="translate(-150 -170)">'+re.sub(r'^<svg[^>]*>|</svg>$', '', (ROOT/'assets/little-dragon.svg').read_text())+'</g>'+'''
 <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#fff1cc"/><stop offset="1" stop-color="#fffdf0"/></linearGradient>
 <linearGradient id="green" x2=".2" y2="1"><stop stop-color="#89ca60"/><stop offset=".45" stop-color="#51a75b"/><stop offset="1" stop-color="#28734a"/></linearGradient>
 <linearGradient id="gold" x2=".7" y2="1"><stop stop-color="#ffe89b"/><stop offset=".45" stop-color="#ffc84e"/><stop offset="1" stop-color="#e8a52b"/></linearGradient>
@@ -83,8 +83,8 @@ def farm_scene():
  art+='''<path d="M963 377l-17-29 29 10 15-31 16 31 30-10-15 29" fill="#edae36" stroke="#fff2bc" stroke-width="4" stroke-linejoin="round"/>
 <path d="M914 450q10-45 65-43" fill="none" stroke="#fff5cb" stroke-width="9" stroke-linecap="round" opacity=".7"/></g>
 <g transform="translate(-79 -113) scale(1.18)">'''+tractor+'''</g>
-<g transform="translate(633 522) scale(.45)"><use href="#chick"/></g>'''
- return art+'</g>'+foreground()+header()
+<g transform="translate(633 510) scale(.29)"><use href="#dragon"/></g>'''
+ return art+'</g><g transform="translate(1450 650) scale(.7)"><use href="#dragon"/></g>'+foreground()+header()
 
 def cake_scene():
  art=background(True)
@@ -110,7 +110,7 @@ def cake_scene():
   art+=f'<circle cx="{x}" cy="710" r="9" fill="#fef1cd"/>'
  for x in [602,674,927,999]:
   art+=f'<g transform="translate({x} 422)"><path d="M-15-13q15-13 30 0 2 17-15 25-17-8-15-25Z" fill="#e49a68"/><path d="M0-13l-12-10 13 4 12-4-10 10" fill="#639151"/><path d="M-6-3v3m13-4v3m-7 3v3" stroke="#ffe6a4" stroke-width="2"/></g>'
- art+='''<g transform="translate(379 670) scale(1.12)"><use href="#cow"/></g><g transform="translate(1230 694) scale(1.12)"><use href="#chick"/></g>
+ art+='''<g transform="translate(379 670) scale(1.12)"><use href="#cow"/></g><g transform="translate(1230 673) scale(.85)"><use href="#dragon"/></g>
 <g transform="translate(610 516) scale(.39)"><use href="#sunflower"/></g><g transform="translate(988 515) scale(.39)"><use href="#sunflower"/></g>'''
  return art+foreground(True)+header(True)
 

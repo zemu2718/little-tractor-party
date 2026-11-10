@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', process.argv[2] || 'party', 'index.html'), 'utf8');
 const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 function element() {
  const classes = new Set();
