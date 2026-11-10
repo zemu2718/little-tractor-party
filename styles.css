@@ -201,3 +201,58 @@ body[data-scene=album]{--backdrop:#1f4a3a;background:#1f4a3a}
 #kid-home{background-image:url('assets/party-family-final.webp')!important;background-size:420% auto!important;background-position:44% 47%!important}
 #kid-cake{background-image:url('assets/cake-family.webp')!important;background-size:300% auto!important;background-position:50% 62%!important}
 #kid-game{background-image:url('assets/little-dragon.webp')!important;background-size:contain!important}
+
+/* ===== 两岁宝宝视角：防误触、点哪里提示、泡泡、巡逻挖掘机、跳舞、躲猫猫、相册视频 ===== */
+/* 防误触：禁止下拉刷新、双击/双指缩放、长按选字与“保存图片”菜单。 */
+html,body{overscroll-behavior:none}
+#stage,#kid-nav,#parent-exit{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#stage{touch-action:none}
+#stage img,#stage video{-webkit-user-drag:none;-webkit-touch-callout:none}
+
+/* 点哪里：热点外一圈金色光环扩散，再加一只上下点动的小手。 */
+.hot.hinting::before{content:'';position:absolute;left:50%;top:50%;width:min(70%,22cqw);aspect-ratio:1;border-radius:50%;border:.8cqw solid #ffd23f;box-shadow:0 0 2cqw #ffd23f,inset 0 0 2cqw #fff3;transform:translate(-50%,-50%);animation:hint-ring 1.2s ease-out 3;pointer-events:none}
+.hot.hinting::after{content:'★';position:absolute;left:50%;top:50%;margin:-3.5cqw 0 0 -3.5cqw;font-size:7cqw;line-height:1;color:#ffd23f;-webkit-text-stroke:.3cqw #fff;paint-order:stroke fill;filter:drop-shadow(0 0 1cqw #ffb703);animation:hint-hand .6s ease-in-out 6 alternate;pointer-events:none}
+@keyframes hint-ring{from{opacity:1;transform:translate(-50%,-50%) scale(.4)}to{opacity:0;transform:translate(-50%,-50%) scale(1.6)}}
+@keyframes hint-hand{from{transform:scale(.8) rotate(-15deg)}to{transform:scale(1.25) rotate(15deg)}}
+
+/* 肥皂泡：彩虹光泽的透明球，慢慢飘上去，一戳就破。 */
+.soap{position:absolute;left:var(--x);bottom:-10cqw;width:var(--size);aspect-ratio:1;border:0;padding:0;border-radius:50%;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:radial-gradient(circle at 30% 28%,#ffffffee 0 8%,#ffffff00 20%),radial-gradient(circle at 70% 75%,#ffffff88 0 5%,#ffffff00 14%),conic-gradient(from 30deg,#ff7ac8cc,#ffd84dcc,#5fe3a8cc,#5cc4ffcc,#b48cffcc,#ff7ac8cc);box-shadow:inset 0 0 1.2cqw #ffffffdd,0 0 1cqw #ffffffaa;outline:.25cqw solid #ffffffcc;outline-offset:-.25cqw;-webkit-mask:radial-gradient(circle,#0007 50%,#000 68%);mask:radial-gradient(circle,#0007 50%,#000 68%);animation:balloon-rise var(--duration) linear forwards}
+
+/* 首页巡逻小挖掘机：沿底部颠簸着开过去，点一下按喇叭跳一跳。 */
+.patrol{position:absolute;left:0;bottom:1%;width:15cqw;border:0;padding:0;background:transparent;pointer-events:auto;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;animation:patrol 12s linear forwards}
+.patrol img{display:block;width:100%;height:auto;pointer-events:none;filter:drop-shadow(0 .6cqw .6cqw #0004);animation:bumpy .3s ease-in-out infinite alternate}
+.patrol.hop img{animation:hop .5s ease-out,bumpy .3s ease-in-out .5s infinite alternate}
+@keyframes patrol{from{transform:translateX(-16cqw)}to{transform:translateX(101cqw)}}
+@keyframes bumpy{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-.4cqw) rotate(1deg)}}
+@keyframes hop{0%{transform:none}40%{transform:translateY(-4cqw) rotate(-6deg) scale(1.1)}100%{transform:none}}
+
+/* 音符：唱歌和跳舞时一串串冒出来。 */
+.note{position:absolute;left:var(--x);bottom:8%;font-style:normal;font-size:4.5cqw;font-weight:900;color:var(--color);text-shadow:0 0 .3cqw #fff,0 .2cqw .5cqw #0003;animation:note-up 2.5s ease-out forwards}
+@keyframes note-up{0%{opacity:0;transform:translateY(0) scale(.5) rotate(-10deg)}15%{opacity:1;transform:translateY(-4cqw) scale(1.1) rotate(8deg)}100%{opacity:0;transform:translateY(-36cqw) scale(1) rotate(-12deg)}}
+
+/* 唱生日歌时，整幅蛋糕画面跟着节拍弹动。 */
+#scene-cake.dancing{animation:beat-bounce var(--beat,.58s) ease-out infinite;transform-origin:50% 100%}
+@keyframes beat-bounce{0%{transform:scale(1.022)}35%{transform:scale(1)}100%{transform:scale(1)}}
+
+/* 跳舞派对：四个角色按节拍左右扭、上下蹦。 */
+#dance-btn{position:absolute;right:4%;top:33%;z-index:3;width:9cqw;aspect-ratio:1;border-radius:50%;border:.5cqw solid #fff;background:radial-gradient(circle at 35% 30%,#ffe27a,#ffb703);color:#fff;font-size:5cqw;font-weight:900;line-height:1;text-shadow:0 .2cqw .4cqw #b46a00;box-shadow:0 .6cqw 1.4cqw #0003;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;animation:dance-btn 1.4s ease-in-out infinite}
+#dance-btn.on{background:radial-gradient(circle at 35% 30%,#ff9ad5,#f72585);animation:dance-btn .54s ease-in-out infinite}
+@keyframes dance-btn{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.12) rotate(-8deg)}}
+#scene-game.dancing .friends button img{animation:dance .54s ease-in-out infinite alternate}
+#scene-game.dancing .friends button:nth-child(even) img{animation-direction:alternate-reverse}
+@keyframes dance{from{transform:translateY(0) rotate(-8deg) scale(1.02,.98)}to{transform:translateY(-8%) rotate(8deg) scale(.98,1.04)}}
+
+/* 躲猫猫：缩进草地里，再“哇”地弹出来。 */
+.friends button.hiding img{animation:hide .5s ease-in forwards}
+.friends button.peek img{animation:peek .75s cubic-bezier(.3,1.6,.5,1)}
+@keyframes hide{to{transform:scale(.05);opacity:0}}
+@keyframes peek{0%{transform:scale(.05);opacity:0}60%{transform:scale(1.25);opacity:1}100%{transform:scale(1)}}
+
+/* 点点玩的挖掘机：轰隆隆开出画面，再从另一边开回来。 */
+.friends button.driving img{animation:drive-away 2.5s ease-in-out}
+@keyframes drive-away{0%{transform:none}10%{transform:translateY(-4%) rotate(-3deg)}45%{transform:translateX(60cqw);opacity:1}46%{transform:translateX(60cqw);opacity:0}47%{transform:translateX(-95cqw);opacity:0}48%{opacity:1}85%{transform:translateX(2cqw) rotate(2deg)}100%{transform:none}}
+
+/* 相册视频与照片同样的相框。 */
+#photo-video{display:block;width:min(70cqw,75cqw);height:auto;max-width:100%;max-height:88%;border:1cqw solid #fff9e9;border-radius:.5cqw;box-shadow:0 1cqw 3cqw #15312480;background:#000}
+.record-row{margin-top:6px}
+.record-label{font-size:12px;color:#69775e;padding:0 4px}

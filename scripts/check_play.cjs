@@ -61,6 +61,14 @@ function setup({reduce=false}={}){
  app.events.click({target:{closest:()=>null}});assert(app.els.controls.hidden);
  app.els['parent-exit'].onpointerdown({preventDefault(){}});const held=[...app.timers.values()].find(t=>t.ms===1100);assert(held);held.f();assert(!app.els.controls.hidden);assert(!app.read('childMode'));
  await app.click('child-play');app.events.keydown({key:'Escape'});assert(!app.read('childMode'));
+ // 连拍：每一下都有星星，只有说话被节流；躲猫猫点到藏起来的角色会立刻弹出；跳舞派对；返回键拦截；视频导入。
+ app=setup();await app.run("selectScene('game')");const mouse=app.friends.find(f=>f.dataset.friend==='mouse');mouse.onclick();const said=app.els.hello.textContent;mouse.onclick();assert.equal(app.els.bubbles.children.length,2);assert.equal(app.els.hello.textContent,said);
+ await app.run('peekaboo()');assert(app.read('peeking'));assert(mouse.classList.contains('hiding'));mouse.onclick();assert(!mouse.classList.contains('hiding'));assert(mouse.classList.contains('peek'));await app.run("selectScene('home')");assert(!app.read('peeking'));
+ await app.run("selectScene('game')");await app.click('dance-btn');assert(app.read('danceOn'));assert(app.audio.loops>0);await app.run("selectScene('cake')");assert(!app.read('danceOn'));
+ const hist={state:null,pushes:0,pushState(st){this.state=st;this.pushes++;},back(){this.state=null;}};app.context.window.history=hist;
+ await app.click('child-play');assert.equal(hist.pushes,1);app.windowEvents.popstate();assert.equal(hist.pushes,2);app.events.keydown({key:'Escape'});assert.equal(hist.state,null);app.windowEvents.popstate();assert.equal(hist.pushes,2);
+ await app.run('probeVideo=async()=>{}');await app.run("importPhotos([{name:'01-第一次走路.mp4',size:5000},{name:'02-a.jpg',size:1}])");assert.equal(app.read('photos.length'),2);assert.equal(app.read('photos[0].video'),true);assert.equal(app.els['photo-video'].hidden,false);assert.equal(app.els['photo-img'].hidden,true);assert(![...app.timers.values()].some(t=>t.ms===8000));
+ await app.click('next');assert.equal(app.els['photo-video'].hidden,true);assert([...app.timers.values()].some(t=>t.ms===8000));
  // 导入取消不会替换旧照片，取消后释放本轮临时 URL。
  await app.run("importPhotos([{name:'01-old.png',size:1}])");const oldPhoto=app.read('photos[0].url');
  await app.run('decode=url=>new Promise(resolve=>globalThis.finishDecode=resolve)');
@@ -75,5 +83,5 @@ function setup({reduce=false}={}){
  await app.run("importPhotos([{name:'01-a.jpg',size:1},{name:'02-b.jpg',size:1}])");assert(app.audio.loops>0);
  // 找一找：空闲后提问，点对目标会庆祝。
  await app.run("selectScene('game')");const ask=[...app.timers.values()].find(t=>t.ms===9000);assert(ask);ask.f();const target=app.read('findTarget');assert(target);assert.match(app.els.hello.textContent,/在哪里/);await app.run('lastGreeting=0');app.friends.find(f=>f.dataset.friend===target).onclick();assert.match(app.els.hello.textContent,/找到/);assert.equal(app.read('findTarget'),null);
- console.log('PASS: countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
+ console.log('PASS: rapid taps, peekaboo, dance party, back-button guard, album video, countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -38,6 +38,15 @@ window.PartyAudio = (() => {
   source.connect(filter).connect(gain).connect(target);source.start(time);source.stop(time+duration+.02);
   source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};
  }
+ // 经滤波的音色，用于动物叫声和喇叭。
+ function voiced(hz,time,duration,volume,target,endHz,type='sawtooth',center=1400){
+  if(!context.createBiquadFilter){tone(hz,time,duration,volume,'sine',target,endHz);return;}
+  const filter=context.createBiquadFilter();filter.type='bandpass';filter.frequency.value=center;filter.Q.value=1.2;filter.connect(target);
+  tone(hz,time,duration,volume,type,filter,endHz);setTimeout(()=>filter.disconnect(),(time-context.currentTime+duration+.3)*1000);
+ }
+ function crow(t,target){[[480,600,.12],[620,700,.12],[700,950,.2],[950,620,.6]].reduce((at,[a,b,d])=>{voiced(a,at,d,.5,target,b);voiced(a*2,at,d,.12,target,b*2);return at+d+.03;},t);}
+ function roar(t,target){voiced(260,t,.22,.45,target,420,'sawtooth',900);voiced(420,t+.22,.35,.4,target,240,'sawtooth',900);}
+ function honk(t,target){voiced(440,t,.16,.35,target,null,'square',1100);voiced(554,t,.16,.25,target,null,'square',1100);voiced(440,t+.22,.24,.35,target,null,'square',1100);voiced(554,t+.22,.24,.25,target,null,'square',1100);}
  function bell(hz,t,d,v,target){tone(hz,t,d,v,'sine',target);tone(hz*2,t,d*.6,v*.22,'sine',target);tone(hz*3,t,d*.25,v*.06,'sine',target);}
  function stopEffects(){effectId++;for(const node of effectBuses){node.gain.setValueAtTime(0,context.currentTime);node.disconnect();}effectBuses.clear();}
  function stopSong(){songId++;if(songBus){songBus.gain.setValueAtTime(0,context.currentTime);songBus.disconnect();songBus=null;}}
@@ -64,9 +73,14 @@ window.PartyAudio = (() => {
   if(!enabled)return;const run=effectId;await ready();if(run!==effectId||!enabled||document.hidden)return;
   const out=context.createGain();out.connect(bus);effectBuses.add(out);setTimeout(()=>{if(effectBuses.delete(out))out.disconnect();},4000);
   const t=context.currentTime+.02;
-  if(kind==='mouse'){bell(notes.E5,t,.5,.26,out);bell(notes.G5,t+.16,.5,.24,out);bell(notes.C6,t+.32,.7,.22,out);}
-  else if(kind==='rooster'){tone(560,t,.16,.24,'sine',out,760);tone(760,t+.2,.16,.22,'sine',out,700);tone(700,t+.4,.38,.2,'sine',out,520);}
-  else if(kind==='excavator'||kind==='drive'){for(let i=0;i<6;i++)tone(92,t+i*.13,.11,.3,'triangle',out,72);tone(520,t+.85,.14,.18,'square',out);tone(520,t+1.05,.2,.18,'square',out);}
+  // 老鼠“吱吱吱”：三声快速上滑的高音。
+  if(kind==='mouse'){for(let i=0;i<3;i++){tone(2300,t+i*.13,.08,.2,'sine',out,3300);tone(4600,t+i*.13,.06,.04,'sine',out,6200);}}
+  // 公鸡“喔喔喔～”：锯齿波经带通滤波，四个音节由低到高再拖长下滑。
+  else if(kind==='rooster'){crow(t,out);}
+  // 小龙“嗷呜～”：带颤音的可爱叫声，后接亮晶晶的铃声。
+  else if(kind==='dragon'){roar(t,out);['C6','E6','G6'].forEach((n,i)=>bell(notes[n],t+.55+i*.1,.5,.12,out));}
+  else if(kind==='excavator'||kind==='drive'){for(let i=0;i<8;i++)tone(92,t+i*.12,.11,.32,'triangle',out,70);noise(t,1,.12,out,'lowpass',400,150);honk(t+1,out);}
+  else if(kind==='honk'){honk(t,out);}
   else if(kind==='pop'){tone(900,t,.09,.3,'sine',out,180);noise(t,.12,.35,out,'highpass',1500);bell(notes.E6,t+.06,.3,.08,out);}
   else if(kind==='twinkle'){const scale=['C6','E6','G6','A5','G5','E5'];bell(notes[scale[Math.floor(Math.random()*scale.length)]],t,.5,.14,out);bell(notes[scale[Math.floor(Math.random()*scale.length)]],t+.09,.4,.1,out);}
   else if(kind==='beep'){bell(notes.A5,t,.35,.28,out);}
