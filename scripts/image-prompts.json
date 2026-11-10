@@ -122,6 +122,22 @@
     {
       "asset": "cake-family.png",
       "prompt": "Use case: precise-object-edit. Fix birthday protagonist hierarchy in this exact 16:9 cake illustration. Swap crowned Chinese dragon CHILD and rooster FATHER positions. RIGHT of cake: the crowned sage Chinese dragon stands ALONE in the spacious prominent position currently occupied by the rooster, full body clearly visible, big joyful face, crown, golden branching horns and whiskers, waving. Make him the largest and most prominent character. LEFT of cake: cream mouse mother and golden rooster father stand TOGETHER as supporting parents, both slightly smaller than dragon, smiling toward their child. Remove dragon from left and rooster from right. Exactly one dragon, one mouse, one rooster. Preserve same identities, clay/felt style, outfits, balloon frame, gifts and warm lighting. CRITICAL do not change cake geometry or its yellow excavator decoration. Preserve numeral 2 candle and UNLIT dark wick at exact existing position (center x50%, wick top y33%); NO flame. Keep upper central 28% blank cream sky for separate birthday title. No added text, no labels, no watermarks. Keep entire image framing and all characters inside frame."
+    },
+    {
+      "asset": "party-family-final.png",
+      "refs": [
+        "party-family-final.png",
+        "little-excavator.png"
+      ],
+      "prompt": "Edit image 1 birthday scene, image 2 is ONLY excavator material reference. Keep Chinese dragon child driving the excavator, crown horns face and both control levers clearly visible. Make excavator visibly soft rounded felt/clay TOY like image 2: matte mustard yellow felt, cream padded roof, sage accents, rounded stitched bucket and chunky simple dark felt tracks; remove shiny metal realism and industrial black stripes. Keep recognizable boom/stick/bucket silhouette and same scale. Bring rooster dad and mouse mom closer together toward the right side of the cab, shift their group about 6% canvas width left, dad wave toward dragon, mom warmly looking toward son. No overlapping faces or vehicle obscuring parents. Dragon driver remains main protagonist. Keep numeral 2 near parents, background balloons, gifts, sunflowers and upper central 27% blank cream sky. Same three identities, exactly one each, 16:9 whole composition preserved, no words, only numeral 2."
+    },
+    {
+      "asset": "cake-family.png",
+      "refs": [
+        "cake-family.png",
+        "little-excavator.png"
+      ],
+      "prompt": "Precise edit of image 1, preserve positions and whole framing. The crowned Chinese dragon on RIGHT is currently too tall. Reduce his overall height about 12%, feet stay on same ground, crown top around y36% canvas; keep large expressive baby face, round toddler body, crown and horns complete, waving, clear separate space right of cake. Keep him slightly more prominent than parents, not a giant. Mouse mother and rooster father stay together LEFT, unchanged size; do not swap anybody. Replace tiny excavator decoration on cake front with a round soft yellow toy sugar excavator matching image 2 style, cream roof sage details and dark tracks. Preserve cake exact position/shape and numeral 2 unlit candle/wick coordinates exactly. NO flame. Preserve upper central 28% empty cream space, balloons, light, full 16:9 framing. No words or age text. Exactly three family characters."
     }
   ]
 }

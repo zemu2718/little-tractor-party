@@ -52,3 +52,12 @@
 .empty .album-heading{width:78%;margin:-2cqw 0 -1cqw;line-height:0}
 .empty .album-heading img{display:block;width:100%;height:auto;aspect-ratio:auto}
 .empty .privacy-note{margin:0 0 .7cqw;font-size:clamp(10px,1.2cqw,18px)!important}
+
+/* 家庭三人以齐齐为中心；挖掘机是较小的互动伙伴。 */
+.friends{left:5%;right:5%;grid-template-columns:1fr 1.4fr 1fr .75fr;gap:1.5%}
+.friends button{min-width:0;min-height:0}
+.friends img{height:72%;flex-shrink:1;min-height:0}
+.friends button[data-friend="dragon"] img{height:88%}
+.friends button[data-friend="excavator"] img{height:59%}
+.friends button[data-friend="dragon"] span{background:#f6d47f;box-shadow:0 .2cqw .8cqw #c2933020}
+.friends span{font-size:1.8cqw;padding:.5cqw 1.4cqw;flex-shrink:0}
