@@ -90,6 +90,18 @@
       "asset": "play-family-final.png",
       "target": "play-family.png",
       "prompt": "Edit this birthday farm image ONLY to swap the parents' positions: the golden ROOSTER FATHER with red comb, green tail and gingham neckerchief must now be in the TRACTOR CAB, visibly driving and holding the steering wheel with his wing. The cream MOUSE MOTHER with round ears, sage dress and gingham bow must sit in the WAGON next to the crowned Chinese DRAGON CHILD and golden number 2. The dragon remains the main child and keeps the exact current identity. Exactly one rooster, one mouse, one dragon. Maintain image framing, lighting, style, tractor color, numeral 2, background and upper blank title area completely unchanged. Do not add any text or lettering. All three happy, coherent anatomy, mouse and rooster not duplicated. This is dad driving, mom and child riding together. 16:9 landscape."
+    },
+    {
+      "asset": "birthday-title.png",
+      "prompt": "Edit this transparent Chinese clay title artwork. Replace its wording with EXACTLY \"齐齐，生日快乐！\". REMOVE the numeral 2 and the character 岁 completely. One single horizontal line: 齐 齐 ， 生 日 快 乐 ！. Preserve rounded dark forest-green clay/felt Chinese typography, cream beveled outline, subtle golden shadow, tiny sunflower at each end. Make character strokes accurate and legible. Genuine transparent background, no plaque, no other words, NO age, NO numerals anywhere. Wide 3:1 canvas, title centered with small margins."
+    },
+    {
+      "asset": "album-title.png",
+      "prompt": "Generate a transparent Chinese title graphic matching the supplied clay birthday typography reference. Exact wording ONLY \"齐齐的成长时光\". One horizontal line, accurate legible Chinese characters. Rounded premium 3D clay and soft felt lettering, deep sage/forest green, creamy beveled edges, very subtle golden shadows. Tiny warm yellow daisy on each side. Genuine transparent background, no rectangle, no scene, no animals, no other text, no numbers or age. Wide 3:1 composition, large title centered, small margins, polished birthday family album aesthetic."
+    },
+    {
+      "asset": "family-title.png",
+      "prompt": "Generate a transparent Chinese title graphic matching the supplied clay birthday typography reference. Exact wording ONLY \"一家人，一起玩！\". One horizontal line with accurate Chinese characters, cheerful but readable thick rounded strokes. Premium 3D clay/felt lettering in deep forest green with cream beveled outlines and soft golden shadows, tiny yellow daisy at both ends. Genuine transparent background; no panel, no scenery, no extra words, no numbers, no age. Wide 3:1 composition with small safety margins. A warm toddler family play title."
     }
   ]
 }

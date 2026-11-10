@@ -1,24 +1,24 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#d5ecdf"><meta name="description" content="齐齐的两岁生日派对：农场伙伴、成长相册和生日蛋糕，专为手机横屏与大屏展示准备。"><title>齐齐，2岁生日快乐！</title><link rel="icon" href="assets/little-dragon.webp" type="image/webp"><link rel="stylesheet" href="styles.css"><script src="audio.js" defer></script><script src="voice.js" defer></script><script src="app.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#d5ecdf"><meta name="description" content="齐齐的生日派对：农场伙伴、成长相册和生日蛋糕，专为手机横屏与大屏展示准备。"><title>齐齐，生日快乐！</title><link rel="icon" href="assets/little-dragon.webp" type="image/webp"><link rel="stylesheet" href="styles.css"><script src="audio.js" defer></script><script src="voice.js" defer></script><script src="app.js" defer></script></head>
 <body>
-<main id="stage" tabindex="-1" aria-label="齐齐的两岁生日派对">
-<section id="scene-home" class="scene" aria-label="快乐农场"><img fetchpriority="high" class="scene-art" src="assets/party-family-final.webp" alt="公鸡爸爸、鼠妈妈和小龙齐齐的生日小世界" width="1671" height="941" decoding="async"><h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，2岁生日快乐！" width="2172" height="724"></h1><p class="scene-note">爸爸开车，妈妈陪伴，齐齐快乐长大。</p></section>
+<main id="stage" tabindex="-1" aria-label="齐齐的生日派对">
+<section id="scene-home" class="scene" aria-label="快乐农场"><img fetchpriority="high" class="scene-art" src="assets/party-family-final.webp" alt="公鸡爸爸、鼠妈妈和小龙齐齐的生日小世界" width="1671" height="941" decoding="async"><h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，生日快乐！" width="2172" height="724"></h1></section>
 <section id="scene-album" class="scene" hidden aria-label="成长相册">
-<div class="album-bg"></div><div id="album-empty" class="empty"><img src="assets/little-dragon.webp" alt="小龙等你一起看照片"><h1>小小的你，大大的快乐</h1><p>选一些照片，一起看看齐齐的成长吧。</p><p class="privacy-note">只在当前浏览器临时使用，不会上传；刷新后需重选。</p><button class="primary" id="empty-pick">选择成长照片</button></div>
+<div class="album-bg"></div><div id="album-empty" class="empty"><img src="assets/little-dragon.webp" alt="小龙等你一起看照片"><h1 class="album-heading"><img class="title-art" src="assets/album-title.webp" alt="齐齐的成长时光" width="2172" height="724"></h1><p class="privacy-note">照片不上传，刷新后需重选。</p><button class="primary" id="empty-pick">选择成长照片</button></div>
 <figure id="photo-frame" hidden><img id="photo-img" alt=""><figcaption id="photo-caption"></figcaption></figure><div id="import-status" class="import-status" hidden role="status" aria-live="polite"><span id="import-label"></span><button id="cancel-import">取消导入</button></div><div id="album-count" class="album-count" hidden></div><div id="album-progress" hidden><i></i></div>
 </section>
 <section id="scene-cake" class="scene generated-scene" hidden aria-label="生日蛋糕">
-<div id="birthday-cake"><img class="scene-art" src="assets/cake-family.webp" alt="公鸡爸爸、鼠妈妈和小龙齐齐的生日小世界" width="1671" height="941" decoding="async"><img  class="flame-layer" src="assets/candle-flame.webp" alt="" aria-hidden="true"></div><h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，2岁生日快乐！" width="2172" height="724"></h1>
-<h2 id="cake-title" class="sr-only" aria-live="polite">齐齐，生日快乐！</h2><p id="lyric" class="scene-note" aria-live="polite">许一个小小的愿望吧</p>
+<div id="birthday-cake"><img class="scene-art" src="assets/cake-family.webp" alt="公鸡爸爸、鼠妈妈和小龙齐齐的生日小世界" width="1671" height="941" decoding="async"><img  class="flame-layer" src="assets/candle-flame.webp" alt="" aria-hidden="true"></div><h1 class="birthday-heading"><img class="title-art" src="assets/birthday-title.webp" alt="齐齐，生日快乐！" width="2172" height="724"></h1>
+<h2 id="cake-title" class="sr-only" aria-live="polite">齐齐，生日快乐！</h2><p id="lyric" class="scene-note" aria-live="polite">许个愿吧</p>
 </section>
 <section id="scene-game" class="scene" hidden aria-label="和生肖家人玩">
-<div class="scene-heading"><p>没有输赢，每一次发现都很棒</p><h1>我们一家，一起玩！</h1><div id="hello" aria-live="polite">轻轻点一下，看看谁来打招呼</div></div>
+<div class="scene-heading"><h1><img class="title-art" src="assets/family-title.webp" alt="一家人，一起玩！" width="2172" height="724"></h1><div id="hello" aria-live="polite">点点小伙伴</div></div>
 <div class="friends"><button data-friend="dragon" aria-label="和小龙打招呼"><img src="assets/little-dragon.webp" alt=""><span>小龙齐齐</span></button><button data-friend="mouse" aria-label="和鼠妈妈打招呼"><img loading="lazy" src="assets/little-mouse.webp" alt=""><span>鼠妈妈</span></button><button data-friend="rooster" aria-label="和公鸡爸爸打招呼"><img loading="lazy" src="assets/little-rooster.webp" alt=""><span>公鸡爸爸</span></button><button data-friend="tractor" aria-label="和拖拉机打招呼"><img loading="lazy" src="assets/red-tractor.webp" alt=""><span>拖拉机</span></button></div>
 <div id="bubbles" aria-hidden="true"></div>
 </section><div id="confetti" aria-hidden="true"></div>
 </main>
-<p class="portrait-note">把手机横过来，和小龙一起出发<br>可使用手机的屏幕镜像连接电视</p>
+<p class="portrait-note">横过手机，画面更好看<br>用屏幕镜像连接电视</p>
 <nav id="controls" aria-label="生日派对控制">
 <div class="row tabs" aria-label="选择场景"><button data-scene="home" aria-pressed="true">快乐农场</button><button data-scene="album" aria-pressed="false">成长相册</button><button data-scene="cake" aria-pressed="false">生日蛋糕</button><button data-scene="game" aria-pressed="false">点点玩</button></div>
 <div class="row" id="album-tools" hidden><button id="pick">选择照片</button><button id="previous" disabled aria-label="上一张照片">← 上一张</button><button id="album-toggle" disabled>播放相册</button><button id="next" disabled aria-label="下一张照片">下一张 →</button></div>
@@ -30,7 +30,7 @@
 <div class="voice-settings">
 <label><input id="spoken" type="checkbox" checked> 角色说话</label><span id="voice-status"></span>
 <div class="row"><button id="pick-mom">选择妈妈录音</button><button id="pick-dad">选择爸爸录音</button><button id="pick-child">选择齐齐录音</button><button id="clear-voices" disabled>清除家人录音</button></div>
-<p class="help">可以提前用手机录一句“齐齐，妈妈爱你”等短祝福，再选择音频文件。录音只在本页临时播放，不上传。未选录音时使用设备已有的离线中文语音或轻柔音效。</p>
+<p class="help">选择一段家人祝福，点角色就能听见。录音不上传，刷新后需重选；未选择时使用设备离线语音或音效。</p>
 </div>
 <div class="row" id="mic-tools" hidden><button id="mic-toggle" aria-pressed="false">开启吹气感应</button><span id="mic-status" role="status"></span></div>
 <p class="help">隐藏后轻点空白处恢复操作；Esc 恢复，1–4 切换场景。<br>照片只在本机展示，刷新后需重选。声音默认关闭。</p>
