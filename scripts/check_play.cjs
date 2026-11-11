@@ -53,8 +53,8 @@ function setup({reduce=false}={}){
  app.document.documentElement.webkitRequestFullscreen=()=>{app.document.webkitFullscreenElement={};app.events.webkitfullscreenchange();};
  app.document.webkitExitFullscreen=()=>{app.document.webkitFullscreenElement=null;app.events.webkitfullscreenchange();};
  await app.click('fullscreen');assert(app.els.controls.hidden);await app.click('fullscreen');assert(!app.els.controls.hidden);
- await app.run("selectScene('game')");app.friends.find(f=>f.dataset.friend==='mouse').onclick();assert.match(app.els.hello.textContent,/鼠妈妈/);assert.equal(app.els.bubbles.children[0].style.left,'100px');assert.equal(app.els.bubbles.children[0].style.top,'75px');
- await app.run('lastGreeting=0');app.friends[2].onclick();assert.match(app.els.hello.textContent,/公鸡爸爸/);
+ await app.run("selectScene('game')");app.friends.find(f=>f.dataset.friend==='mouse').onclick();assert.match(app.els.hello.textContent,/妈妈说/);assert.equal(app.els.bubbles.children[0].style.left,'100px');assert.equal(app.els.bubbles.children[0].style.top,'75px');
+ await app.run('lastGreeting=0');app.friends[2].onclick();assert.match(app.els.hello.textContent,/爸爸说/);
  await app.click('celebrate');assert(app.els.controls.hidden);assert(app.els.confetti.children.length>=100);
  // 亲子模式：空白点击不唤出菜单；长按及 Esc 可恢复。
  app=setup();await app.click('child-play');assert.equal(app.read('mode'),'game');assert.equal(app.read('childMode'),true);assert(app.els.controls.hidden);

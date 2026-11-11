@@ -62,7 +62,7 @@ function sparkle(event){
  const p=stagePoint(event.clientX,event.clientY);burst(p.x,p.y,7);audio.effect('twinkle').catch(()=>{});
 }
 
-// 场景背景氛围：首页和蛋糕页有飘起的气球，点点玩有肥皂泡（都能戳破），相册有花瓣；首页还有小挖掘机来回巡逻。
+// 场景背景氛围：首页和蛋糕页有飘起的气球，一起玩有肥皂泡（都能戳破），相册有花瓣；首页还有小挖掘机来回巡逻。
 function popAt(el,count=12,kind='pop'){suppressClick=performance.now()+450;const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();burst(r.left+r.width/2-s.left,r.top+r.height*(el.classList.contains('balloon')?.33:.45)-s.top,count);audio.effect(kind).catch(()=>{});el.remove();idleTouch();}
 function spawnFloater(className,x,size,dur){
  const b=document.createElement('button');b.type='button';b.className=className;b.tabIndex=-1;b.setAttribute('aria-label',className==='soap'?'泡泡':'气球');
@@ -113,7 +113,7 @@ const lines={
  excavator:['轰隆隆，嘟嘟嘟！','挖呀挖，挖呀挖！','嘟嘟，挖掘机来啦！'],
  two:['齐齐两岁啦！','一、二，两岁啦！']
 };
-const speakers={dragon:'小龙说',mouse:'鼠妈妈说',rooster:'公鸡爸爸说',excavator:'挖掘机说',two:'数字二说'};
+const speakers={dragon:'齐齐说',mouse:'妈妈说',rooster:'爸爸说',excavator:'挖掘机说',two:'数字二说'};
 const ANIMALS=new Set(['dragon','mouse','rooster','excavator']);
 const lineIndex={};
 function nextLine(kind){const list=lines[kind];const i=lineIndex[kind]||0;lineIndex[kind]=i+1;return list[i%list.length];}
@@ -128,20 +128,19 @@ function speakFor(kind,text,always){
 }
 // 宝宝连拍时每一下都有星星和动作，只有说话做节流，避免声音叠在一起。
 function canTalk(){const now=performance.now();if(now-lastGreeting<450)return false;lastGreeting=now;return true;}
-// 点到谁，谁的独立立绘就从画面里“跳出来”打个招呼。
+// 一起玩页使用独立角色立绘；首页和蛋糕页直接让背景原画回应。
 const SPRITES={dragon:'assets/little-dragon.webp',mouse:'assets/little-mouse.webp',rooster:'assets/little-rooster.webp',excavator:'assets/little-excavator.webp'};
-function popOut(kind,x,y){
- if(frozen()||calm||!SPRITES[kind])return;const w=stage.clientWidth||1600,h=stage.clientHeight||900;
- $('bubbles').querySelector?.(`.popout[data-kind="${kind}"]`)?.remove();
- const img=document.createElement('img');img.className=kind==='excavator'?'popout wide':'popout';img.src=SPRITES[kind];img.alt='';img.dataset&&(img.dataset.kind=kind);
- img.style.left=`${Math.min(w*.84,Math.max(w*.16,x))}px`;img.style.top=`${Math.min(h*.97,Math.max(h*.55,y))}px`;
- $('bubbles').append(img);setTimeout(()=>img.remove(),2000);
+// 首页和蛋糕页的背景已经画好了家人，点击时让原画里的角色回应，避免再叠一只重复立绘。
+function highlightHot(button){
+ if(!button)return;
+ restart(button,'reacting');
+ setTimeout(()=>button.classList.remove('reacting'),950);
 }
 function hotRect(button){const s=stage.getBoundingClientRect(),r=button.getBoundingClientRect();return {x:r.left+r.width/2-s.left,y:r.top+r.height/2-s.top,bottom:r.top+r.height-s.top};}
 function hotTap(kind,event,button){
  if(frozen())return;idleTouch();if(kind==='cake'){cakeTap();return;}
  const p=stagePoint(event.clientX,event.clientY);burst(p.x,p.y,10);
- if(button&&SPRITES[kind]){const r=hotRect(button);popOut(kind,r.x,r.bottom);}
+ if(button&&SPRITES[kind]){const r=hotRect(button);highlightHot(button);}
  if(kind==='excavator')restart(mode==='home'?$('home-art'):$('birthday-cake'),'rumble');
  if(singing||counting||ceremonyOn||!canTalk()){audio.effect('twinkle').catch(()=>{});return;}
  const text=nextLine(kind);say(text,p.x,p.y-(stage.clientHeight||900)*.12);
@@ -150,7 +149,7 @@ function hotTap(kind,event,button){
 for(const id of ['home-hots','cake-hots'])$(id).onclick=event=>{const b=event.target.closest?.('[data-hot]');if(b)hotTap(b.dataset.hot,event,b);};
 
 // 空闲提示：首页和蛋糕页过几秒，轮流在能点的地方闪光并出现小手，偶尔用语音邀请。
-const HINTS={home:[['excavator','齐齐，点点挖掘机！'],['dragon','点点小龙齐齐！'],['rooster','点点公鸡爸爸呀！'],['mouse','点点鼠妈妈！'],['two','点点数字二！']],cake:[['cake','齐齐，点点蛋糕，吹蜡烛！'],['dragon','点点小龙齐齐！'],['mouse','点点鼠妈妈！'],['rooster','点点公鸡爸爸呀！']]};
+const HINTS={home:[['excavator','挖掘机在这里！'],['dragon','齐齐在这里！'],['rooster','爸爸在这里！'],['mouse','妈妈在这里！'],['two','看看数字二！']],cake:[['cake','点蛋糕，吹蜡烛吧！'],['dragon','齐齐在这里！'],['mouse','妈妈在这里！'],['rooster','爸爸在这里！']]};
 let hintTimers=[],hintCount=0,idleRound=0;
 function clearHint(){hintTimers.forEach(clearTimeout);hintTimers=[];for(const id of ['home-hots','cake-hots'])for(const b of Array.from($(id).children||[]))b.classList.remove('hinting');}
 function showHint(){
@@ -170,7 +169,7 @@ function armIdle(){
  else if(mode==='game'&&!danceOn)armFind();
 }
 
-// 派对展示：自动轮播「挖掘机乐园 → 成长相册（放完一轮）→ 点点玩 → 生日蛋糕」，角色每隔几秒自己出来表演，
+// 派对展示：自动轮播「挖掘机乐园 → 成长相册（放完一轮）→ 一起玩 → 生日蛋糕」，角色每隔几秒自己出来表演，
 // 不再反复喊宝宝来点；宝宝点了照样有反应，点得多时会多停留一会儿。生日仪式由家长按一次按钮开始。
 const SHOW_ORDER=['home','album','game','cake'],SHOW_TIME={home:45000,game:36000,cake:30000},PERFORM_GAP=8000;
 const PERFORM={home:['dragon','rooster','mouse','excavator','two'],cake:['dragon','mouse','rooster','cake']};
@@ -195,7 +194,7 @@ function perform(){
  const list=PERFORM[mode].filter(k=>!(k==='cake'&&blown)),kind=list[n%list.length],button=hotButton(kind);if(!button)return;
  const r=hotRect(button);burst(r.x,r.y,12,true);
  if(kind==='cake'){const p=stagePoint();burst(p.x,p.y*.5,14,true);audio.effect('twinkle').catch(()=>{});return;}
- popOut(kind,r.x,r.bottom);if(kind==='excavator')restart(mode==='home'?$('home-art'):$('birthday-cake'),'rumble');
+ highlightHot(button);if(kind==='excavator')restart(mode==='home'?$('home-art'):$('birthday-cake'),'rumble');
  if(talk){const text=nextLine(kind);say(text,r.x,r.y-(stage.clientHeight||900)*.12);speakFor(kind==='two'?'narrator':kind,text,kind==='two'?'found':null);}
  else audio.effect(kind==='two'?'found':'twinkle').catch(()=>{});
 }
@@ -300,7 +299,7 @@ function selectScene(next){
  }
  document.body.setAttribute('data-scene',mode);
  $('album-tools').hidden=mode!=='album';$('album-settings').hidden=mode!=='album';$('cake-tools').hidden=mode!=='cake';$('mic-tools').hidden=mode!=='cake';
- stage.setAttribute('aria-label',({home:'齐齐的小龙挖掘机乐园',album:'齐齐的成长相册',cake:'齐齐的生日蛋糕',game:'点一点，和爸爸妈妈打招呼'})[mode]);
+ stage.setAttribute('aria-label',({home:'齐齐的挖掘机乐园',album:'齐齐的成长相册',cake:'齐齐的生日蛋糕',game:'和爸爸妈妈一起玩'})[mode]);
  if(mode==='album')renderPhoto();if(mode==='cake')updateCake();armIdle();syncMusic();
 }
 document.querySelectorAll('[data-scene]').forEach(el=>el.onclick=()=>selectScene(el.dataset.scene));
@@ -371,7 +370,7 @@ function ghostCard(card){
  $('photo-frame').append(ghost);setTimeout(()=>ghost.remove(),1000);
 }
 function albumParty(){
- // 每 5 张：公鸡爸爸和挖掘机从底下探头，相框四周爆出毛毡星星和爱心，配一声欢呼。
+ // 每 5 张：爸爸和挖掘机从底下探头，相框四周爆出毛毡星星和爱心，配一声欢呼。
  if(calm||frozen())return;const card=$('photo-card'),s=stage.getBoundingClientRect(),r=card.getBoundingClientRect();
  for(const [fx,fy] of [[0,0],[1,0],[0,1],[1,1]])burst(r.left-s.left+r.width*fx,r.top-s.top+r.height*fy,10,true);
  for(const id of ['peek-rooster','peek-excavator']){const el=$(id);restart(el,'up');setTimeout(()=>el.classList.remove('up'),3200);}
@@ -501,12 +500,12 @@ for(const [id,kind] of [['pick-mom','mouse'],['pick-dad','rooster'],['pick-child
 $('voice-file').onchange=event=>{const file=event.target.files[0];event.target.value='';if(file&&voice.setClip(voiceTarget,file)){rememberClip(voiceTarget,file,false);tell(voiceTarget==='song'?'生日歌录音已准备，点“一起唱生日歌”就会播放。':'录音已准备。开启声音后，点对应角色即可听到；每次最多播放 12 秒。');}};
 $('clear-voices').onclick=()=>{voice.clearClips();savedClips={};store.drop('clips');};
 
-// 点点玩：无分数、无失败。每一下都有动作和星星；挖掘机会开走再开回来；空闲时轮流玩“找一找”和“躲猫猫”；♫ 按钮开跳舞派对。
+// 一起玩：无分数、无失败。每一下都有动作和星星；挖掘机会开走再开回来；空闲时轮流玩“找一找”和“躲猫猫”；♫ 按钮开跳舞派对。
 const friendButtons=[...document.querySelectorAll('[data-friend]')];
 const friendOf=kind=>friendButtons.find(b=>b.dataset.friend===kind);
 const greetStyles=['greet-jump','greet-spin','greet-wiggle'];
-const FIND={mouse:['齐齐，妈妈在哪里呀？','找到妈妈啦！真棒！'],rooster:['齐齐，爸爸在哪里呀？','找到爸爸啦！真棒！'],excavator:['挖掘机在哪里呀？','找到挖掘机啦！嘟嘟！'],dragon:['小龙齐齐在哪里呀？','找到小龙齐齐啦！']};
-function helloDefault(){return findTarget?FIND[findTarget][0]:'点点小伙伴';}
+const FIND={mouse:['齐齐，妈妈在哪里呀？','找到妈妈啦！真棒！'],rooster:['齐齐，爸爸在哪里呀？','找到爸爸啦！真棒！'],excavator:['挖掘机在哪里呀？','找到挖掘机啦！嘟嘟！'],dragon:['齐齐在哪里呀？','找到齐齐啦！']};
+function helloDefault(){return findTarget?FIND[findTarget][0]:'点一个家人';}
 function friendCenter(button){const s=stage.getBoundingClientRect(),r=button.getBoundingClientRect();return {x:r.left+r.width/2-s.left,y:r.top+r.height*.25-s.top};}
 function clearFind(){findTimers.forEach(clearTimeout);findTimers=[];if(findTarget)friendOf(findTarget)?.classList.remove('hint');findTarget=null;peeking=false;friendButtons.forEach(b=>{b.classList.remove('hiding');b.classList.remove('peek');});}
 function armFind(){clearFind();if(mode!=='game'||frozen()||danceOn||showMode)return;findTimers.push(setTimeout(()=>idleRound++%2===0?askFind():peekaboo(),FIND_IDLE));}
@@ -558,7 +557,7 @@ async function startDance(){
 $('dance-btn').onclick=startDance;
 
 // 页面内录音：点一下开始、再点结束；录好立即回放。不上传，刷新后需重录。
-const REC={mouse:['rec-mom','录妈妈'],rooster:['rec-dad','录爸爸'],dragon:['rec-child','录齐齐/小龙'],song:['rec-song','录全家唱生日歌']};
+const REC={mouse:['rec-mom','录妈妈'],rooster:['rec-dad','录爸爸'],dragon:['rec-child','录齐齐'],song:['rec-song','录全家唱生日歌']};
 let recorder=null,recStream=null,recTimer,recKind=null;
 function recLabels(){const state=voice.status();for(const [kind,[id,label]] of Object.entries(REC)){const n=state.clipsOf?.(kind)||0;$(id).textContent=n&&kind!=='song'?`${label}（已录 ${n} 段）`:n?`${label}（已录好）`:label;$(id).setAttribute('aria-pressed','false');}}
 function stopRecord(save=true){clearTimeout(recTimer);const r=recorder;recorder=null;recKind=null;if(r){if(!save)r.onstop=null;if(r.state!=='inactive')r.stop();}recStream?.getTracks().forEach(t=>t.stop());recStream=null;recLabels();}
