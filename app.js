@@ -24,34 +24,38 @@ function tell(message){clearTimeout(noticeTimer);$('notice').textContent=message
 function clearEffects(){clearTimeout(confettiTimer);$('confetti').replaceChildren();$('bubbles').replaceChildren();$('finale').replaceChildren();}
 function clearAmbient(){$('ambient').replaceChildren();}
 function frozen(){return paused||photoMode||document.hidden;}
-function showControls(visible){controls.hidden=!visible;document.body.classList.toggle('clean',!visible||photoMode);if(visible&&!photoBoothPanelHidden)setMenuRestore(false);else if(!visible&&!childMode&&!photoBoothPanelHidden)setMenuRestore(true);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
+function showControls(visible){controls.hidden=!visible;if(visible)armMenuIdle();else clearTimeout(menuIdleTimer);document.body.classList.toggle('clean',!visible||photoMode);if(visible&&!photoBoothPanelHidden)setMenuRestore(false);else if(!visible&&!childMode&&!photoBoothPanelHidden)setMenuRestore(true);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
 // 独立的电视全屏拍照背景：不改变相册数据，也不上传用户图片。
-// 背景由 scripts/make_photo_backgrounds.mjs 生成，齐齐的每个动作只出现一次，轮播时不会看到重复的站姿。
+// 背景都是生图工具生成的完整插画，由 scripts/make_photo_backgrounds.mjs 转成 WebP 和缩略图；齐齐的每个动作只出现一次。
 const PHOTO_BACKGROUNDS=[
- ['草地派对·开挖掘机','assets/photo-backgrounds/meadow-ride.webp'],
- ['生日快乐·波普','assets/photo-backgrounds/popart.webp'],
- ['黄昏·捧蛋糕','assets/photo-backgrounds/sunset-cake.webp'],
- ['挖掘机大厅·夜间灯光','assets/photo-backgrounds/hall-night.webp'],
- ['星空·小挖掘机','assets/photo-backgrounds/starry-excavator.webp'],
- ['生日快乐·梦幻拼贴','assets/photo-backgrounds/dreamscape.webp'],
- ['一家人·安全帽','assets/photo-backgrounds/family-helmet.webp']
-];
+ ['生日快乐·波普','popart'],
+ ['毛毡农场派对','felt-farm'],
+ ['挖掘机大厅·夜间灯光','hall-night'],
+ ['毛毡生日蛋糕','felt-cake'],
+ ['梦幻拼贴','dreamscape']
+].map(([label,name])=>[label,`assets/photo-backgrounds/${name}.webp`,`assets/photo-backgrounds/${name}.thumb.webp`]);
 let photoBoothItems=[],photoBoothIndex=0,photoBoothTimer=0,photoBoothPlaying=false,photoBoothPanelHidden=false,photoBoothMusicOn=false,photoBoothPreviousMusic=false;
 let photoBoothRun=0,photoBoothRemoved=[],photoBoothFullscreen=false;
 let menuRestoreTimer;
 const menuRestore=$('menu-restore');
 function boothOpen(){return !$('photo-booth').hidden;}
-function setMenuRestore(visible){menuRestore.hidden=!visible;}
-function showPhotoBoothPanel(visible=true){photoBoothPanelHidden=!visible;$('photo-booth').classList.toggle('menu-hidden',!visible);if(visible)showControls(false);setMenuRestore(!visible);}
-function setPhotoBoothBackground(src,label=''){const surface=$('photo-booth-surface');if(!surface)return;surface.classList.remove('photo-booth-fade');void surface.offsetWidth;surface.style.backgroundImage=`url("${src}")`;surface.dataset.label=label;surface.classList.add('photo-booth-fade');Array.from($('photo-booth-presets').children||[]).forEach((b,i)=>b.classList.toggle('selected',i===photoBoothIndex));}
+// 「长按恢复」提示只出现一小会儿就自动消失：看过一次就知道怎么叫回菜单，电视上不再留着它。
+let menuHintTimer,menuIdleTimer;
+function setMenuRestore(visible){clearTimeout(menuHintTimer);menuRestore.hidden=!visible;if(visible)menuHintTimer=setTimeout(()=>{menuRestore.hidden=true;},4500);}
+// 菜单不操作 14 秒自动收起（打开「更多」、换背景抽屉、导入或录音时不收）；轻点画面空白处、H 或 Esc 叫回来。
+function armMenuIdle(){clearTimeout(menuIdleTimer);if(document.hidden)return;if(boothOpen()?!photoBoothPanelHidden:!controls.hidden&&!childMode)menuIdleTimer=setTimeout(autoHideMenus,14000);}
+function autoHideMenus(){if(boothOpen()){if(photoBoothPanelHidden)return;if($('photo-booth-drawer').hidden)showPhotoBoothPanel(false);else armMenuIdle();return;}if(controls.hidden||childMode)return;if($('settings').open||importing||recorder)armMenuIdle();else showControls(false);}
+function showPhotoBoothPanel(visible=true){photoBoothPanelHidden=!visible;$('photo-booth').classList.toggle('menu-hidden',!visible);if(visible)showControls(false);setMenuRestore(!visible);armMenuIdle();}
+function setPhotoBoothDrawer(open){$('photo-booth-drawer').hidden=!open;$('photo-booth-pick').setAttribute('aria-pressed',String(open));armMenuIdle();}
+function setPhotoBoothBackground(src,label=''){const surface=$('photo-booth-surface');if(!surface)return;surface.classList.remove('photo-booth-fade');void surface.offsetWidth;surface.style.backgroundImage=`url("${src}")`;surface.dataset.label=label;$('photo-booth-name').textContent=label;surface.classList.add('photo-booth-fade');Array.from($('photo-booth-presets').children||[]).forEach((b,i)=>b.classList.toggle('selected',i===photoBoothIndex));}
 function showPhotoBoothItem(i){if(!photoBoothItems.length)return;photoBoothIndex=(i+photoBoothItems.length)%photoBoothItems.length;const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);}
 function renderPhotoBoothItems(){
  const list=$('photo-booth-presets');list.replaceChildren();
- photoBoothItems.forEach((item,i)=>{const b=document.createElement('button'),img=document.createElement('img'),span=document.createElement('span');b.type='button';b.title=item.label;img.src=item.src;img.alt='';span.textContent=item.label;b.append(img);b.append(span);b.onclick=()=>{showPhotoBoothItem(i);schedulePhotoBoothCarousel();};list.append(b);});
+ photoBoothItems.forEach((item,i)=>{const b=document.createElement('button'),img=document.createElement('img'),span=document.createElement('span');b.type='button';b.title=item.label;img.src=item.thumb||item.src;img.alt='';img.loading='lazy';span.textContent=item.label;b.append(img);b.append(span);b.onclick=()=>{showPhotoBoothItem(i);schedulePhotoBoothCarousel();};list.append(b);});
  if(photoBoothItems.length){photoBoothIndex=Math.min(photoBoothIndex,photoBoothItems.length-1);showPhotoBoothItem(photoBoothIndex);}
  $('photo-booth-delete').disabled=photoBoothItems.length<2;$('photo-booth-reset').hidden=!photoBoothRemoved.length;
 }
-function presetBackgrounds(){return PHOTO_BACKGROUNDS.filter(([,src])=>!photoBoothRemoved.includes(src)).map(([label,src])=>({label,src,custom:false}));}
+function presetBackgrounds(){return PHOTO_BACKGROUNDS.filter(([,src])=>!photoBoothRemoved.includes(src)).map(([label,src,thumb])=>({label,src,thumb,custom:false}));}
 function savePhotoBooth(){const files=photoBoothItems.filter(i=>i.custom&&i.file).map(i=>({file:i.file,label:i.label}));store.put('photo-booth-backgrounds',files).catch(()=>{});store.put('photo-booth-removed',photoBoothRemoved).catch(()=>{});}
 // 恢复本机保存的背景；打开后又马上关闭时直接丢弃，避免给已关闭的界面创建 blob URL。
 async function restorePhotoBooth(run){
@@ -70,7 +74,7 @@ function quietStage(){stopCeremony();clearHint();clearEffects();clearAmbient();c
 function openPhotoBooth(){
  if(boothOpen())return;
  const run=++photoBoothRun;photoBoothPreviousMusic=wantsMusic;photoBoothMusicOn=sound;photoBoothFullscreen=false;
- $('photo-booth').hidden=false;document.body.classList.add('photo-booth-active');stage.classList.add('background-paused');quietStage();stopPhotoBoothCarousel();showPhotoBoothPanel(true);updatePhotoBoothMusic();updatePhotoBoothFullscreen();
+ $('photo-booth').hidden=false;document.body.classList.add('photo-booth-active');stage.classList.add('background-paused');quietStage();stopPhotoBoothCarousel();setPhotoBoothDrawer(false);showPhotoBoothPanel(true);updatePhotoBoothMusic();updatePhotoBoothFullscreen();
  photoBoothItems=presetBackgrounds();photoBoothIndex=0;renderPhotoBoothItems();syncMusic();restorePhotoBooth(run);
 }
 function closePhotoBooth(){
@@ -79,13 +83,16 @@ function closePhotoBooth(){
  const leaveFullscreen=photoBoothFullscreen&&fullscreenElement();photoBoothFullscreen=false;
  $('photo-booth').hidden=true;document.body.classList.remove('photo-booth-active');stage.classList.toggle('background-paused',document.hidden);
  photoBoothItems.filter(i=>i.custom&&i.src.startsWith('blob:')).forEach(i=>URL.revokeObjectURL(i.src));photoBoothItems=[];$('photo-booth-presets').replaceChildren();
- showPhotoBoothPanel(true);showControls(true);syncMusic();schedulePhoto();resumeVideo();armIdle();
+ setPhotoBoothDrawer(false);showPhotoBoothPanel(true);showControls(true);syncMusic();schedulePhoto();resumeVideo();armIdle();
  if(leaveFullscreen)exitFullscreen();
 }
-function updatePhotoBoothFullscreen(){const active=Boolean(fullscreenElement());$('photo-booth-fullscreen').textContent=active?'退出全屏':'进入全屏';$('photo-booth-fullscreen').setAttribute('aria-pressed',String(active));}
+function updatePhotoBoothFullscreen(){const active=Boolean(fullscreenElement());$('photo-booth-fullscreen').textContent=active?'退出全屏':'全屏';$('photo-booth-fullscreen').setAttribute('aria-pressed',String(active));}
 $('photo-booth-open').onclick=openPhotoBooth;
 $('photo-booth-close').onclick=closePhotoBooth;
 $('photo-booth-hide').onclick=()=>showPhotoBoothPanel(false);
+$('photo-booth-prev').onclick=()=>{showPhotoBoothItem(photoBoothIndex-1);schedulePhotoBoothCarousel();};
+$('photo-booth-next').onclick=()=>{showPhotoBoothItem(photoBoothIndex+1);schedulePhotoBoothCarousel();};
+$('photo-booth-pick').onclick=()=>setPhotoBoothDrawer($('photo-booth-drawer').hidden);
 $('photo-booth-music').onclick=async()=>{if(!sound&&!await enableSound(true))return;photoBoothMusicOn=!photoBoothMusicOn;updatePhotoBoothMusic();syncMusic();if(photoBoothMusicOn&&!musicURL&&!$('builtin-music').checked)tell('还没有背景音乐：请在设置里选择音乐，或勾选内置轻音乐。');};
 $('photo-background-file').onchange=event=>{const files=[...event.target.files||[]].filter(f=>!f.type||f.type.startsWith('image/'));event.target.value='';if(!files.length)return;for(const file of files)photoBoothItems.push({label:file.name.replace(/\.[^.]+$/,'')||'自定义背景',src:URL.createObjectURL(file),file,custom:true});photoBoothIndex=photoBoothItems.length-files.length;renderPhotoBoothItems();savePhotoBooth();};
 $('photo-booth-toggle').onclick=()=>{if(photoBoothPlaying){stopPhotoBoothCarousel();return;}photoBoothPlaying=true;$('photo-booth-toggle').textContent='暂停轮播';$('photo-booth-toggle').setAttribute('aria-pressed','true');schedulePhotoBoothCarousel();};
@@ -313,7 +320,7 @@ function updateSound(){ $('sound').textContent=`声音：${sound?'开':'关'}`;$
 async function enableSound(value){const run=++soundRun;sound=value;updateSound();try{await audio.setEnabled(value);}catch{if(run!==soundRun)return sound;sound=false;updateSound();tell('此浏览器暂时无法播放声音，仍可继续玩。');}if(run!==soundRun)return sound;if(!sound){stopSong();wantsMusic=false;musicRun++;$('bgm').pause();updateMusic();}return sound;}
 $('sound').onclick=async()=>{await enableSound(!sound);syncMusic();};
 function updateMusic(){ $('music-toggle').textContent=$('bgm').paused?'播放音乐':'暂停音乐';$('music-toggle').disabled=!musicURL;$('clear-music').disabled=!musicURL; }
-function updatePhotoBoothMusic(){$('photo-booth-music').textContent=`背景音乐：${photoBoothMusicOn?'开':'关'}`;$('photo-booth-music').setAttribute('aria-pressed',String(photoBoothMusicOn));}
+function updatePhotoBoothMusic(){$('photo-booth-music').textContent=`音乐：${photoBoothMusicOn?'开':'关'}`;$('photo-booth-music').setAttribute('aria-pressed',String(photoBoothMusicOn));}
 function syncMusic(){
  const bgm=$('bgm'),run=++musicRun;
  const video=Boolean(photos[photoIndex]?.video);
@@ -667,7 +674,7 @@ recLabels();
 // 展示工具：全屏、屏幕常亮均有失败回退；进入全屏或亲子模式时自动尝试常亮。
 function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement;}
 function exitFullscreen(){try{const exit=document.fullscreenElement?document.exitFullscreen:document.webkitExitFullscreen;return Promise.resolve(exit?.call(document)).catch(()=>{});}catch{return Promise.resolve();}}
-function updateFullscreen(){const active=Boolean(fullscreenElement());$('fullscreen').textContent=active?'退出全屏':'全屏展示';$('fullscreen').setAttribute('aria-pressed',String(active));updatePhotoBoothFullscreen();if(!active)photoBoothFullscreen=false;if(boothOpen())return;if(childMode){if(!active&&!showMode)exitChildMode();return;}showControls(!active);}
+function updateFullscreen(){const active=Boolean(fullscreenElement());$('fullscreen').textContent=active?'退出全屏':'全屏';$('fullscreen').setAttribute('aria-pressed',String(active));updatePhotoBoothFullscreen();if(!active)photoBoothFullscreen=false;if(boothOpen())return;if(childMode){if(!active&&!showMode)exitChildMode();return;}showControls(!active);}
 $('fullscreen').onclick=async()=>{
  try{
   if(fullscreenElement()){
@@ -688,7 +695,9 @@ function updateAwake(){ $('awake').textContent=wakeLock?'关闭屏幕常亮':wan
 async function acquireWake(show){if(!navigator.wakeLock||wakePending||wakeLock||!wantsAwake||document.hidden)return;wakePending=true;$('awake').disabled=true;try{const lock=await navigator.wakeLock.request('screen');if(!wantsAwake||document.hidden){await lock.release();return;}wakeLock=lock;lock.addEventListener('release',()=>{if(wakeLock===lock)wakeLock=null;updateAwake();});if(show)tell('屏幕常亮已开启，请保持网页在前台。');}catch{if(show)tell('暂时无法常亮，请在手机设置中延长自动锁屏时间。');}finally{wakePending=false;$('awake').disabled=false;updateAwake();}}
 function requestAwake(){if(!navigator.wakeLock)return;wantsAwake=true;acquireWake(false);}
 $('awake').onclick=async()=>{if(!navigator.wakeLock){tell('当前环境不支持常亮，请在手机设置中延长自动锁屏时间。');return;}if(wakeLock){wantsAwake=false;const lock=wakeLock;wakeLock=null;try{await lock.release();}catch{}updateAwake();}else{wantsAwake=true;await acquireWake(true);}};
-document.addEventListener('keydown',e=>{if(boothOpen()){if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(e.key==='Escape'||e.key.toLowerCase()==='h')restoreMenus();else if(e.key==='ArrowRight'||e.key==='ArrowLeft'){showPhotoBoothItem(photoBoothIndex+(e.key==='ArrowRight'?1:-1));schedulePhotoBoothCarousel();}return;}if(e.key==='Escape'){exitChildMode();return;}if(childMode)return;if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(/^[1-4]$/.test(e.key)){selectScene(modes[+e.key-1]);return;}if(e.key.toLowerCase()==='h'){restoreMenus();return;}if(mode==='album'){if(e.key==='ArrowRight')stepPhoto(1);if(e.key==='ArrowLeft')stepPhoto(-1);if(e.code==='Space'&&photos.length){e.preventDefault();$('album-toggle').click();}}if(mode==='cake'&&e.code==='Space'){e.preventDefault();blow();}});
+document.addEventListener('pointerdown',()=>armMenuIdle(),true);
+$('settings').addEventListener('toggle',()=>armMenuIdle());
+document.addEventListener('keydown',e=>{armMenuIdle();if(boothOpen()){if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(e.key==='Escape'||e.key.toLowerCase()==='h')restoreMenus();else if(e.key==='ArrowRight'||e.key==='ArrowLeft'){showPhotoBoothItem(photoBoothIndex+(e.key==='ArrowRight'?1:-1));schedulePhotoBoothCarousel();}return;}if(e.key==='Escape'){exitChildMode();return;}if(childMode)return;if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(/^[1-4]$/.test(e.key)){selectScene(modes[+e.key-1]);return;}if(e.key.toLowerCase()==='h'){restoreMenus();return;}if(mode==='album'){if(e.key==='ArrowRight')stepPhoto(1);if(e.key==='ArrowLeft')stepPhoto(-1);if(e.code==='Space'&&photos.length){e.preventDefault();$('album-toggle').click();}}if(mode==='cake'&&e.code==='Space'){e.preventDefault();blow();}});
 document.addEventListener('visibilitychange',()=>{stage.classList.toggle('background-paused',document.hidden||boothOpen());if(document.hidden){stopCeremony();musicRun++;clearTimeout(albumTimer);clearTimeout(photoBoothTimer);clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();pauseVideo();stopRecord(true);stopSong();stopMic();$('bgm').pause();audio.suspend().catch(()=>{});}else{schedulePhoto();schedulePhotoBoothCarousel();syncMusic();acquireWake(false);armIdle();resumeVideo();}});
 window.addEventListener('pagehide',()=>{stopCeremony();clearTimeout(photoBoothTimer);musicRun++;importRun++;finishImport();clearTimeout(albumTimer);stopSong();stopMic();stopRecord(false);clearHint();stopDance();pauseVideo();clearEffects();clearAmbient();cancelCountdown();clearFind();$('bgm').pause();audio.suspend().catch(()=>{});const lock=wakeLock;wakeLock=null;if(lock)lock.release().catch(()=>{});});
 window.addEventListener('pageshow',()=>{schedulePhoto();acquireWake(false);});window.addEventListener('resize',()=>{clearEffects();clearAmbient();});

@@ -19,7 +19,7 @@ python3 scripts/package_site.py  # 生成 dist/ 和 little-tractor-party-offline
 python3 -m http.server 8080 --bind 127.0.0.1   # 本地预览
 node scripts/make_voice.mjs [--only 关键字] [--force]   # 重新生成台词配音（见下文）
 node scripts/make_felt_sprites.mjs   # 重新生成 assets/deco/ 毛毡贴纸（需要 Chrome；macOS 下 OrbStack 会挂载 /Applications，脚本按平台选 Chrome）
-node scripts/make_photo_backgrounds.mjs   # 重新生成 assets/photo-backgrounds/*.webp 全屏拍照背景（需要 Chrome）
+node scripts/make_photo_backgrounds.mjs   # 把拍照背景的 AI 原图转成 WebP 和缩略图（需要 Chrome）
 ```
 
 每个检查都是一个独立文件，「只跑一个测试」就是单独运行对应的那个文件。CI（`.github/workflows/pages.yml`）会依次跑完四项检查，然后打包，并把 `dist/` 发布到 GitHub Pages。
@@ -36,6 +36,7 @@ node scripts/make_photo_backgrounds.mjs   # 重新生成 assets/photo-background
   - 新加的定时类功能必须接入这几处。
 - **派对展示与生日仪式。** `showMode` 时 `armIdle()` 改走 `armShow()`：在 `hintTimers` 里排角色自动表演（`perform`）和切场景（`nextShow`），所以 `clearHint()` 会一并清掉；相册放完最后一张由 `schedulePhoto`/视频 `onended` 调 `nextShow`。`ceremonyOn` 期间不排轮播，`stopCeremony()` 已接入 `selectScene`、`syncPause`、`visibilitychange`、`pagehide`、`exitChildMode`。
 - **本机保存。** `store`（IndexedDB `qiqi-party`）保存照片/视频 Blob、家人录音（`savedClips`）和背景音乐，启动时 `restoreSaved()` 恢复；`vm` 测试里没有 `indexedDB`，所有调用都必须吞掉失败。
+- **菜单。** 主菜单是底部一条 `.dock`，次要功能在 `#settings`（「更多」）向上弹出的 `.sheet` 里；拍照层是 `.booth-bar` 加按需拉出的缩略图抽屉。`armMenuIdle()` 让菜单 14 秒不操作自动收起（「更多」或抽屉开着时不收），`setMenuRestore()` 显示的「长按恢复」提示 4.5 秒后自动隐藏；轻点画面、H、Esc 都能叫回菜单。
 - **压低音乐。** `voice.onSpeaking(on)` → `audio.duck(on)` 与 `#bgm` 音量；`audio.setLoopLevel()` 控制展示模式下的循环音量。
 - **声音分层。**
   - **音效**：`audio.effect(kind)` 返回音效时长（秒）。`PARTY_SFX` 里登记了真实录音就播放录音：http(s) 下先 fetch 再解码；`file://` 下用 `<audio>` 加 `#t=start,end` 截取。没登记或加载失败时用合成音。清单条目支持 `start`、`end`、`gain`、`mix` 四个字段。
@@ -72,6 +73,6 @@ node scripts/make_photo_backgrounds.mjs   # 重新生成 assets/photo-background
 
 - 插画是 AI 生成的 PNG，转换成保留透明度的 WebP（`scripts/optimize_assets.c`）。提示词保存在 `scripts/image-prompts.json`，不发布。
 - `assets/deco/` 的毛毡贴纸不是 AI 生图，由 `scripts/make_felt_sprites.mjs` 程序化绘制；`package_site.py` 自动收录该目录下的 WebP。
-- 全屏拍照背景（`#photo-booth`，「全屏拍照背景」按钮）：`scripts/make_photo_backgrounds.mjs` 把 `assets/photo-backgrounds/qiqi-action-*.png` 四张动作抠图排版到 `play-sky` 草地上，并把几张原图转成 WebP；`package_site.py` 只发布该目录下的 WebP，源 PNG 不发布。齐齐的每个动作只出现一次，换背景时不要让同一个姿势重复出现。拍照层打开时 `boothOpen()` 为真：`armIdle`/`schedulePhoto`/`resumeVideo` 都不再启动，音乐只听拍照层自己的开关。
+- 全屏拍照背景（`#photo-booth`，菜单里的「拍照」）：背景只用生图工具生成的完整插画，不用脚本拼贴或绘制。提示词在 `scripts/photo-background-prompts.md`（同时记入 `image-prompts.json`）；生成的 PNG 放进 `assets/photo-backgrounds/`，在 `scripts/make_photo_backgrounds.mjs` 的 `BACKGROUNDS` 和 `app.js` 的 `PHOTO_BACKGROUNDS` 登记，脚本只负责转成 `<名>.webp` 和 `<名>.thumb.webp`。是投到电视上的拍照背景墙：主次清楚、中间偏下给真人留位置，齐齐的每个动作只出现一次。`package_site.py` 只发布该目录下的 WebP。拍照层打开时 `boothOpen()` 为真：`armIdle`/`schedulePhoto`/`resumeVideo` 都不再启动，音乐只听拍照层自己的开关。
 - 两张 4K 备用图由 `scripts/export_background.py` 导出。修改标题或火苗位置时，这个脚本里的排版坐标要和 `styles.css` 保持一致。
 - 真实音效及其公有领域/CC0 来源记录在 `assets/sfx/README.md`。新增音效时，要在那里写明来源和许可。

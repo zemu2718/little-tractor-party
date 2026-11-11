@@ -32,10 +32,15 @@
 .photo-booth-surface{position:absolute;inset:0;background:center/cover no-repeat;transition:background-image .25s ease}
 .photo-booth-surface.photo-booth-fade{animation:photo-booth-fade .55s ease-out}
 @keyframes photo-booth-fade{from{opacity:.55}to{opacity:1}}
-.photo-booth-panel{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:min(94vw,920px);padding:12px 16px;border-radius:20px;background:#173b35dd;box-shadow:0 10px 40px #0005;backdrop-filter:blur(8px)}
+.photo-booth-panel{position:absolute;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;width:max-content;max-width:calc(100vw - 20px);padding:6px;border-radius:24px;background:#173b35e6;box-shadow:0 10px 40px #0005;backdrop-filter:blur(8px)}
 #photo-booth.menu-hidden .photo-booth-panel{display:none}
-.photo-booth-panel strong{font-size:clamp(18px,2.4cqw,34px)}.photo-booth-panel>span{font-size:clamp(11px,1.2cqw,17px);opacity:.88}
-.photo-booth-presets{display:flex;gap:7px;width:100%;overflow:auto;padding:3px 0}.photo-booth-presets button{position:relative;flex:0 0 clamp(86px,12cqw,150px);border:2px solid #fff8e588;border-radius:12px;background:#fff2d9;padding:0;overflow:hidden;color:#234f42}.photo-booth-presets button.selected{border-color:#f6ca60;box-shadow:0 0 0 3px #f6ca6044}.photo-booth-presets img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.photo-booth-presets span{display:block;padding:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.photo-booth-upload,.photo-booth-panel>button{min-height:40px;border:0;border-radius:12px;padding:9px 14px;background:#f3d27d;color:#315548;font-weight:700;cursor:pointer;font-size:13px}.photo-booth-panel>button:last-child{background:#e6efda}.photo-booth-panel>button[aria-pressed=true]{background:#2f6d52;color:#fff9dc}
+.booth-bar{display:flex;align-items:center;gap:3px;overflow-x:auto;scrollbar-width:none}.booth-bar::-webkit-scrollbar{display:none}
+.booth-bar button{flex:none;min-height:40px;padding:8px 12px;border:0;border-radius:999px;background:transparent;color:#fff9e9;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer}.booth-bar button:hover{background:#ffffff1f}.booth-bar button[aria-pressed=true]{background:#f3d27d;color:#315548}
+#photo-booth-prev,#photo-booth-next{font-size:24px;line-height:1;padding:4px 15px;background:#ffffff1a}.booth-name{flex:none;font-size:13px;opacity:.9;width:9.5em;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#photo-booth-close{background:#e6efda;color:#315548}.booth-bar .dock-hide{background:#ffffff26;color:#fff9e9}
+.photo-booth-drawer{width:min(880px,calc(100vw - 32px));padding:2px 2px 0}
+.booth-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 2px 2px}.booth-row button,.photo-booth-upload{min-height:36px;border:0;border-radius:999px;padding:7px 14px;background:#f3d27d;color:#315548;font-weight:700;font-size:13px;cursor:pointer}.booth-tip{font-size:12px;opacity:.75}
+.photo-booth-presets{display:flex;gap:7px;width:100%;overflow:auto;padding:3px 0}.photo-booth-presets button{position:relative;flex:0 0 clamp(96px,13vw,150px);border:2px solid #fff8e588;border-radius:12px;background:#fff2d9;padding:0;overflow:hidden;color:#234f42}.photo-booth-presets button.selected{border-color:#f6ca60;box-shadow:0 0 0 3px #f6ca6044}.photo-booth-presets img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.photo-booth-presets span{display:block;padding:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #parent-exit{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:30;border:1px solid #c7d0ae;border-radius:24px;background:#fff8e5e8;color:#63745c;padding:12px 18px;min-height:44px;font-size:12px;touch-action:none;user-select:none;-webkit-user-select:none}
 #menu-restore{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:35;border:1px solid #c7d0ae;border-radius:24px;background:#fff8e5e8;color:#63745c;padding:12px 18px;min-height:44px;font-size:12px;touch-action:none;user-select:none;-webkit-user-select:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px #31554822}
 #menu-restore.holding{background:#dbe8c4;box-shadow:0 0 0 4px #a6c58a66}
@@ -435,3 +440,17 @@ to{transform:translateX(-50%) translateY(-10%) rotate(7deg) scale(.97,1.04)}}
 /* 两侧飘落的毛毡星星、爱心。 */
 .petal.felt{width:2.8cqw;height:2.8cqw;border-radius:0;background:var(--img) center/contain no-repeat;opacity:1;filter:drop-shadow(0 .2cqw .3cqw #0002)}
 .calm .album-glow,.calm .album-peek{display:none}
+/* 精简菜单：底部一条工具栏，「更多」向上弹出；不操作一会儿自动收起，电视上只剩画面。 */
+#controls{overflow:visible;max-height:none;width:max-content;max-width:calc(100vw - 20px);padding:5px;border-radius:26px;display:flex;flex-direction:column;align-items:center;gap:4px;bottom:max(10px,env(safe-area-inset-bottom))}
+.dock{display:flex;align-items:center;gap:3px;flex-wrap:nowrap;overflow-x:auto;max-width:calc(100vw - 32px);scrollbar-width:none}.dock::-webkit-scrollbar{display:none}
+.dock button,.dock summary{flex:none;min-height:40px;padding:8px 11px;border:0;border-radius:999px;background:transparent;color:var(--ink);font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center}
+.dock button:hover,.dock summary:hover{background:#e6efda}.dock button[aria-pressed=true]{background:#2f6d52;color:#fff9dc}
+.dock .tabs{display:flex;gap:2px;flex:none;padding:2px;margin:0;border:0;border-radius:999px;background:#eef1e2}.dock .tabs button{font-weight:700;min-height:36px}
+.dock .primary{background:#f4ce76;color:#345b45;font-weight:800;padding:8px 14px}
+.dock-gap{flex:none;width:1px;height:24px;margin:0 4px;background:#d8d6bf}
+.dock .dock-hide{background:#e6efda}
+#settings,#settings[open]{margin:0;border:0;flex:none}#settings summary{list-style:none;color:var(--ink);cursor:pointer}#settings summary::-webkit-details-marker{display:none}#settings[open] summary{background:#2f6d52;color:#fff9dc}
+.sheet{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);width:min(680px,calc(100vw - 20px));max-height:min(68vh,560px);max-height:min(68dvh,560px);overflow:auto;padding:8px;background:#fff9eef8;border:1px solid #45654328;border-radius:20px;box-shadow:0 12px 40px #31554833}
+.context-row{flex-wrap:nowrap;overflow-x:auto;max-width:calc(100vw - 32px)}.context-row button{min-height:36px;padding:7px 12px}
+#menu-restore{animation:menu-hint 4.5s ease both}@keyframes menu-hint{0%{opacity:0}8%{opacity:1}82%{opacity:1}100%{opacity:0}}
+@media(max-height:460px){.dock button,.dock summary{min-height:36px;padding:6px 9px;font-size:12px}.sheet{max-height:72dvh}}

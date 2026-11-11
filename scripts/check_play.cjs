@@ -120,24 +120,36 @@ function setup({reduce=false}={}){
   await app.run("selectScene('home');armIdle()");assert(app.read('hintTimers.length')>0);
   await app.click('photo-booth-open');assert.equal(e['photo-booth'].hidden,false);assert(e.controls.hidden);assert.equal(app.read('hintTimers.length'),0);assert(e.stage.classList.contains('background-paused'));
   await app.run('armIdle()');assert.equal(app.read('hintTimers.length'),0);
-  assert.equal(list.children.length,7);assert.match(e['photo-booth-surface'].style.backgroundImage,/meadow-ride\.webp/);assert.equal(list.children[0].children[1].textContent,'草地派对·开挖掘机');
+  assert.equal(list.children.length,5);assert.match(e['photo-booth-surface'].style.backgroundImage,/popart\.webp/);assert.equal(list.children[0].children[1].textContent,'生日快乐·波普');assert.match(list.children[0].children[0].src,/popart\.thumb\.webp/);assert.equal(e['photo-booth-name'].textContent,'生日快乐·波普');assert(e['photo-booth-drawer'].hidden);
+  await app.click('photo-booth-pick');assert.equal(e['photo-booth-drawer'].hidden,false);await app.click('photo-booth-next');assert.equal(e['photo-booth-name'].textContent,'毛毡农场派对');await app.click('photo-booth-prev');await app.click('photo-booth-prev');assert.equal(e['photo-booth-name'].textContent,'梦幻拼贴');
   e['photo-background-file'].onchange({target:Object.assign(e['photo-background-file'],{files:[{name:'<b>x</b>.jpg',size:3,type:'image/jpeg'},{name:'notes.txt',size:3,type:'text/plain'}]})});
-  assert.equal(list.children.length,8);assert.equal(list.children[7].children[1].textContent,'<b>x</b>');const blob=app.read('photoBoothItems[7].src');
+  assert.equal(list.children.length,6);assert.equal(list.children[5].children[1].textContent,'<b>x</b>');const blob=app.read('photoBoothItems[5].src');
   await app.click('photo-booth-hide');assert(e['photo-booth'].classList.contains('menu-hidden'));assert.equal(e['menu-restore'].hidden,false);
   key('1');assert.equal(app.read('mode'),'home');key('h');assert(!e['photo-booth'].classList.contains('menu-hidden'));assert.equal(e['menu-restore'].hidden,true);assert(e.controls.hidden);
-  await app.run('showPhotoBoothItem(0)');await app.click('photo-booth-delete');assert.equal(list.children.length,7);assert.deepEqual(JSON.parse(app.read('JSON.stringify(photoBoothRemoved)')),['assets/photo-backgrounds/meadow-ride.webp']);assert.equal(e['photo-booth-reset'].hidden,false);
-  await app.click('photo-booth-reset');assert.equal(list.children.length,8);assert.equal(e['photo-booth-reset'].hidden,true);
+  await app.run('showPhotoBoothItem(0)');await app.click('photo-booth-delete');assert.equal(list.children.length,5);assert.deepEqual(JSON.parse(app.read('JSON.stringify(photoBoothRemoved)')),['assets/photo-backgrounds/popart.webp']);assert.equal(e['photo-booth-reset'].hidden,false);
+  await app.click('photo-booth-reset');assert.equal(list.children.length,6);assert.equal(e['photo-booth-reset'].hidden,true);
   await app.click('photo-booth-toggle');assert.equal(e['photo-booth-toggle'].textContent,'暂停轮播');assert.equal(carousel().length,1);
   app.document.hidden=true;app.events.visibilitychange();assert.equal(carousel().length,0);app.document.hidden=false;app.events.visibilitychange();assert.equal(carousel().length,1);
   const before=app.read('photoBoothIndex');carousel()[0].f();assert.equal(app.read('photoBoothIndex'),before+1);key('ArrowLeft');assert.equal(app.read('photoBoothIndex'),before);
   app.document.documentElement.requestFullscreen=async()=>{app.document.fullscreenElement={};app.events.fullscreenchange();};app.document.exitFullscreen=async()=>{app.document.fullscreenElement=null;app.events.fullscreenchange();};
   await app.click('photo-booth-fullscreen');assert.equal(e['photo-booth-fullscreen'].textContent,'退出全屏');assert(e.controls.hidden);assert.equal(e['photo-booth'].hidden,false);
+  // 菜单不操作会自动收起：抽屉开着时不收；关上后到点收起，「长按恢复」提示一会儿后也自动消失。
+  const idle=()=>[...app.timers.values()].filter(t=>t.ms===14000),hint=()=>[...app.timers.values()].filter(t=>t.ms===4500);
+  assert.equal(idle().length,1);idle()[0].f();assert(!e['photo-booth'].classList.contains('menu-hidden'));assert.equal(idle().length,1);
+  await app.click('photo-booth-pick');assert(e['photo-booth-drawer'].hidden);idle().at(-1).f();assert(e['photo-booth'].classList.contains('menu-hidden'));assert.equal(e['menu-restore'].hidden,false);
+  hint().at(-1).f();assert(e['menu-restore'].hidden);key('h');assert(!e['photo-booth'].classList.contains('menu-hidden'));
   await app.click('photo-booth-close');await new Promise(setImmediate);assert.equal(e['photo-booth'].hidden,true);assert.equal(app.document.fullscreenElement,null);assert(!e.controls.hidden);assert(app.revoked.includes(blob));
   assert.equal(carousel().length,0);assert(app.read('hintTimers.length')>0);assert(!e.stage.classList.contains('background-paused'));
   await app.run('openPhotoBooth();closePhotoBooth()');assert.equal(app.read('photoBoothItems.length'),0);
   delete app.document.documentElement.requestFullscreen;app.context.navigator.userAgent='iPhone';await app.click('photo-booth-open');await app.click('photo-booth-fullscreen');assert.match(e.notice.textContent,/添加到主屏幕/);
  }
- console.log('PASS: photo booth backgrounds, stage silenced, safe labels, hide/restore, delete/reset presets, carousel + background pause, arrow keys, page fullscreen, close cleanup + restore race');
+ // 主菜单：显示后 14 秒不操作自动收起；打开「更多」时不收；收起后的提示 4.5 秒后消失。
+ app=setup();{const e=app.els,idle=()=>[...app.timers.values()].filter(t=>t.ms===14000);
+  await app.click('hide');assert(e.controls.hidden);app.document.hidden=false;app.read('showControls(true)');assert(!e.controls.hidden);assert(idle().length>=1);
+  e.settings.open=true;idle().at(-1).f();assert(!e.controls.hidden);e.settings.open=false;idle().at(-1).f();assert(e.controls.hidden);assert.equal(e['menu-restore'].hidden,false);
+  [...app.timers.values()].filter(t=>t.ms===4500).at(-1).f();assert(e['menu-restore'].hidden);
+ }
+ console.log('PASS: photo booth backgrounds + thumbs, toolbar prev/next/drawer, auto-hide menus + fading restore hint, stage silenced, safe labels, hide/restore, delete/reset presets, carousel + background pause, arrow keys, page fullscreen, close cleanup + restore race');
  console.log('PASS: no speech over the song, cheer line waits for the countdown');
  console.log('PASS: party show carousel/auto perform/album round/exit, birthday ceremony (song → wish → voiced countdown → blow → resume)');
  console.log('PASS: rapid taps, peekaboo, dance party, back-button guard, album video, countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
