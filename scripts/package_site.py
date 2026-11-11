@@ -5,7 +5,13 @@ import shutil
 ROOT=Path(__file__).resolve().parent.parent
 PAGES=['index.html','styles.css','app.js','audio.js','voice.js','manifest.webmanifest','.nojekyll']
 ASSETS=['little-dragon.webp','little-mouse.webp','little-rooster.webp','little-excavator.webp','birthday-title.webp','album-title.webp','family-title.webp','candle-flame.webp','party-family-final.webp','cake-family.webp','play-sky.webp','birthday-background-4k.png','birthday-cake-4k.png','app-icon.png']
-FILES=PAGES+['assets/'+name for name in ASSETS]
+# 真实音效：assets/sfx/ 下的清单、说明与音频全部打包，家长自己加的文件也会带上。
+SFX=sorted('assets/sfx/'+p.name for p in (ROOT/'assets/sfx').glob('*') if p.is_file() and not p.name.startswith('.') and p.suffix.lower() in {'.js','.md','.mp3','.m4a','.ogg','.wav','.webm'})
+# 预生成台词配音：只打包清单里用到的 MP3。
+VOICE=['assets/voice/voice.js']+sorted('assets/voice/'+p.name for p in (ROOT/'assets/voice').glob('*.mp3') if p.is_file() and p.stat().st_size>0)
+# 毛毡装饰贴纸（scripts/make_felt_sprites.mjs 生成）。
+DECO=sorted('assets/deco/'+p.name for p in (ROOT/'assets/deco').glob('*.webp') if p.is_file())
+FILES=PAGES+['assets/'+name for name in ASSETS]+DECO+SFX+VOICE
 if __name__=='__main__':
  dist=ROOT/'dist'
  if dist.is_symlink():raise SystemExit('dist 不应是符号链接')

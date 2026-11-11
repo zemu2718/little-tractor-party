@@ -21,7 +21,20 @@ const voice=window.PartyVoice;voice.init(media,m=>notices.push(m),()=>{});
  document.hidden=true;assert.equal(await voice.speak('mouse','妈妈'),false);assert(media.paused);document.hidden=false;
  voice.clearClips();assert.equal(voice.status().count,0);assert(revoked.includes('blob:voice-2'));assert(revoked.includes('blob:voice-3'));
  voice.addClip('dragon',{size:5});voice.addClip('dragon',{size:5});assert.equal(voice.status().clipsOf('dragon'),2);media.play=async()=>{media.paused=false;};await voice.speak('dragon','');const latest=media.src;await voice.speak('dragon','');assert.notEqual(media.src,latest);assert(!voice.addClip('dragon',{size:0}));for(let i=0;i<4;i++)voice.addClip('dragon',{size:5});assert.equal(voice.status().clipsOf('dragon'),4);voice.clearClips();
+ // 预生成配音：按「角色|台词」查找；家人录音优先；文件名不合法或播放失败时改用设备语音。
+ window.PARTY_VOICE={'narrator|找到啦！':'narrator-abc.mp3','mouse|坏':'../x.mp3','dragon|嗷呜':'dragon-1.mp3'};media.play=async()=>{media.paused=false;};
+ let before=said.length;assert(await voice.speak('narrator','找到啦！'));assert.equal(media.src,'assets/voice/narrator-abc.mp3');assert.equal(said.length,before);assert.equal(voice.status().voiced,3);
+ assert(await voice.speak('mouse','坏'));assert.equal(said.length,before+1,'非法文件名不播放');
+ voice.addClip('dragon',{size:5});assert(await voice.speak('dragon','嗷呜'));assert.notEqual(media.src,'assets/voice/dragon-1.mp3','家人录音优先于预生成配音');
+ media.play=async()=>{throw Error('404');};before=said.length;assert(await voice.speak('narrator','找到啦！'));assert.equal(said.length,before+1,'配音播放失败时改用设备语音');assert.equal(notices.filter(n=>n.includes('暂时无法播放')).length,0);
+ media.play=async()=>{media.paused=false;};window.PARTY_VOICE={};
+ voices.push({lang:'zh-CN',localService:true,name:'Tingting (Enhanced)'});await voice.speak('mouse','你好');assert.equal(said.at(-1).voice.name,'Tingting (Enhanced)','优先增强版语音');voices.pop();
  voices.splice(1);assert.equal(await voice.speak('mouse','你好'),false);assert.equal(voice.status().local,false);
  voice.setSpoken(false);assert.equal(await voice.speak('mouse','你好'),false);
- console.log('PASS: recorded clip rotation/cap, voice opt-in, local Chinese only, clip limits, URL replacement/cleanup, rapid-tap race, duration cap, mute/background stop');
+ // 说话状态：开始播放时通知 true（页面据此压低背景音乐），停止或播完通知 false。
+ const states=[];voice.onSpeaking(on=>states.push(on));voice.setEnabled(true);voice.setSpoken(true);window.PARTY_VOICE={'narrator|派对开始啦！':'narrator-x.mp3'};
+ assert.equal(await voice.speak('narrator','派对开始啦！'),true);assert.equal(voice.busy(),true);voice.stop();assert.equal(voice.busy(),false);assert.deepEqual(states.slice(-2),[true,false]);
+ await voice.speak('narrator','派对开始啦！');media.onended();assert.equal(voice.busy(),false);
+ console.log('PASS: speaking state for music ducking');
+ console.log('PASS: prerecorded voice lines + fallback, enhanced voice preference, recorded clip rotation/cap, voice opt-in, local Chinese only, clip limits, URL replacement/cleanup, rapid-tap race, duration cap, mute/background stop');
 })().catch(e=>{console.error(e);process.exitCode=1;});
