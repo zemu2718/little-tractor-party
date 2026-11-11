@@ -18,6 +18,7 @@ python3 scripts/check_site.py    # 发布清单、相对路径、无外部依赖
 python3 scripts/package_site.py  # 生成 dist/ 和 little-tractor-party-offline.zip
 python3 -m http.server 8080 --bind 127.0.0.1   # 本地预览
 node scripts/make_voice.mjs [--only 关键字] [--force]   # 重新生成台词配音（见下文）
+node scripts/make_felt_sprites.mjs   # 重新生成 assets/deco/ 毛毡贴纸（需要 Chrome；macOS 下 OrbStack 会挂载 /Applications，脚本按平台选 Chrome）
 ```
 
 每个检查都是一个独立文件，「只跑一个测试」就是单独运行对应的那个文件。CI（`.github/workflows/pages.yml`）会依次跑完四项检查，然后打包，并把 `dist/` 发布到 GitHub Pages。
@@ -32,6 +33,9 @@ node scripts/make_voice.mjs [--only 关键字] [--force]   # 重新生成台词�
   - `app.js` 里的 `selectScene()` 是切换中枢。
   - `selectScene`、`syncPause`、`visibilitychange`、`pagehide` 都要负责清理当前场景的活动：提示、跳舞、视频、录音、生日歌和各种定时器。
   - 新加的定时类功能必须接入这几处。
+- **派对展示与生日仪式。** `showMode` 时 `armIdle()` 改走 `armShow()`：在 `hintTimers` 里排角色自动表演（`perform`）和切场景（`nextShow`），所以 `clearHint()` 会一并清掉；相册放完最后一张由 `schedulePhoto`/视频 `onended` 调 `nextShow`。`ceremonyOn` 期间不排轮播，`stopCeremony()` 已接入 `selectScene`、`syncPause`、`visibilitychange`、`pagehide`、`exitChildMode`。
+- **本机保存。** `store`（IndexedDB `qiqi-party`）保存照片/视频 Blob、家人录音（`savedClips`）和背景音乐，启动时 `restoreSaved()` 恢复；`vm` 测试里没有 `indexedDB`，所有调用都必须吞掉失败。
+- **压低音乐。** `voice.onSpeaking(on)` → `audio.duck(on)` 与 `#bgm` 音量；`audio.setLoopLevel()` 控制展示模式下的循环音量。
 - **声音分层。**
   - **音效**：`audio.effect(kind)` 返回音效时长（秒）。`PARTY_SFX` 里登记了真实录音就播放录音：http(s) 下先 fetch 再解码；`file://` 下用 `<audio>` 加 `#t=start,end` 截取。没登记或加载失败时用合成音。清单条目支持 `start`、`end`、`gain`、`mix` 四个字段。
   - **叫声接台词**：`app.js` 的 `speakFor()` 先播放动物叫声，等叫声播完再调用 `voice.speak`。
@@ -41,11 +45,11 @@ node scripts/make_voice.mjs [--only 关键字] [--force]   # 重新生成台词�
     3. 设备的本地中文 `speechSynthesis`，优先增强版语音；
     4. 以上都没有时返回 `false`，由调用方改放短音效。
 - **台词配音由 `app.js` 生成。**
-  - `scripts/make_voice.mjs` 会解析 `lines`、`HINTS`、`FIND`、`ALBUM_LINES`、`PHOTO_TAP` 这几个字面量，以及 `voice.speak('kind','…')`、`speakFor('kind','…')` 里的字符串字面量。
+  - `scripts/make_voice.mjs` 会解析 `lines`、`HINTS`、`FIND`、`ALBUM_LINES`、`PHOTO_TAP`、`COUNTDOWN` 这几个字面量，以及 `voice.speak('kind','…')`、`speakFor('kind','…')` 里的字符串字面量。
   - 要说出来的台词必须保持这几种写法，否则不会生成配音文件。
   - **重新生成**：文件名由「角色 + 台词 + `VOICES` 配置」哈希而来，所以改了台词或音色设置都要重新运行脚本。
   - **增量与清理**：脚本会沿用已有文件，删掉不再使用的旧文件；清单只登记真正生成成功的文件。
-  - **在哪里生成**：必须在用户的 Mac 上运行。需要安装 `edge-tts`（`pip3 install -U edge-tts`，旧版本会被拒绝、返回 403）；或者设置 `AZURE_SPEECH_KEY` 和 `AZURE_SPEECH_REGION`，改用 Azure 语音服务。
+  - **在哪里生成**：需要 `edge-tts`（`pip3 install -U edge-tts` 或 `pipx install edge-tts`，可用 `EDGE_TTS=路径` 指定；旧版本会被拒绝、返回 403），或者设置 `AZURE_SPEECH_KEY` 和 `AZURE_SPEECH_REGION` 改用 Azure。需要 `ffmpeg` 做后期（切静音、统一峰值）；`POLISH` 常量参与文件名哈希，改后期参数要同时改它。
 - **隐私与离线约束。**
   - 运行时不加载任何网络资源，`check_site.py` 发现外部 URL 就会报错。
   - 照片、视频和录音只以本地 blob URL 存在，从不上传。
@@ -66,5 +70,6 @@ node scripts/make_voice.mjs [--only 关键字] [--force]   # 重新生成台词�
 ## 素材
 
 - 插画是 AI 生成的 PNG，转换成保留透明度的 WebP（`scripts/optimize_assets.c`）。提示词保存在 `scripts/image-prompts.json`，不发布。
+- `assets/deco/` 的毛毡贴纸不是 AI 生图，由 `scripts/make_felt_sprites.mjs` 程序化绘制；`package_site.py` 自动收录该目录下的 WebP。
 - 两张 4K 备用图由 `scripts/export_background.py` 导出。修改标题或火苗位置时，这个脚本里的排版坐标要和 `styles.css` 保持一致。
 - 真实音效及其公有领域/CC0 来源记录在 `assets/sfx/README.md`。新增音效时，要在那里写明来源和许可。
