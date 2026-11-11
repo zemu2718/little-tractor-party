@@ -19,6 +19,7 @@ python3 scripts/package_site.py  # 生成 dist/ 和 little-tractor-party-offline
 python3 -m http.server 8080 --bind 127.0.0.1   # 本地预览
 node scripts/make_voice.mjs [--only 关键字] [--force]   # 重新生成台词配音（见下文）
 node scripts/make_felt_sprites.mjs   # 重新生成 assets/deco/ 毛毡贴纸（需要 Chrome；macOS 下 OrbStack 会挂载 /Applications，脚本按平台选 Chrome）
+node scripts/make_photo_backgrounds.mjs   # 重新生成 assets/photo-backgrounds/*.webp 全屏拍照背景（需要 Chrome）
 ```
 
 每个检查都是一个独立文件，「只跑一个测试」就是单独运行对应的那个文件。CI（`.github/workflows/pages.yml`）会依次跑完四项检查，然后打包，并把 `dist/` 发布到 GitHub Pages。
@@ -71,5 +72,6 @@ node scripts/make_felt_sprites.mjs   # 重新生成 assets/deco/ 毛毡贴纸（
 
 - 插画是 AI 生成的 PNG，转换成保留透明度的 WebP（`scripts/optimize_assets.c`）。提示词保存在 `scripts/image-prompts.json`，不发布。
 - `assets/deco/` 的毛毡贴纸不是 AI 生图，由 `scripts/make_felt_sprites.mjs` 程序化绘制；`package_site.py` 自动收录该目录下的 WebP。
+- 全屏拍照背景（`#photo-booth`，「全屏拍照背景」按钮）：`scripts/make_photo_backgrounds.mjs` 把 `assets/photo-backgrounds/qiqi-action-*.png` 四张动作抠图排版到 `play-sky` 草地上，并把几张原图转成 WebP；`package_site.py` 只发布该目录下的 WebP，源 PNG 不发布。齐齐的每个动作只出现一次，换背景时不要让同一个姿势重复出现。拍照层打开时 `boothOpen()` 为真：`armIdle`/`schedulePhoto`/`resumeVideo` 都不再启动，音乐只听拍照层自己的开关。
 - 两张 4K 备用图由 `scripts/export_background.py` 导出。修改标题或火苗位置时，这个脚本里的排版坐标要和 `styles.css` 保持一致。
 - 真实音效及其公有领域/CC0 来源记录在 `assets/sfx/README.md`。新增音效时，要在那里写明来源和许可。

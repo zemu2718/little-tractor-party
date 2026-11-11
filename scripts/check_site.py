@@ -53,6 +53,8 @@ for name in FILES:
     elif p.suffix=='.js':
         r=subprocess.run(['node','--check',str(p)],capture_output=True,text=True)
         if r.returncode:errors.append(r.stderr)
+        # JS 字符串里引用的素材（如拍照背景）也必须在发布清单里，否则线上和离线包会缺图。
+        for link in sorted(set(re.findall(r"['\"`](assets/[^'\"`$]+\.(?:webp|png|jpg|mp3|js))['\"`]",p.read_text()))):check_link(name,link)
     elif p.suffix=='.webp':
         data=p.read_bytes()
         if data[:4]!=b'RIFF' or data[8:12]!=b'WEBP':errors.append(f'{name}: invalid WebP signature')
@@ -66,4 +68,4 @@ for folder in ['party','classic','play']:
 for p in (ROOT/'assets').rglob('*.svg'):errors.append(f'legacy SVG remains: {p.name}')
 if len([name for name in FILES if name.endswith('.html')])!=1:errors.append('expected a single HTML entry')
 if errors:raise SystemExit('\n'.join(errors))
-print(f'PASS: {len(FILES)} publish files, all local links, repository-relative paths, unique HTML IDs, generated WebP/PNG, no legacy variants/SVG, nickname and JS syntax')
+print(f'PASS: {len(FILES)} publish files, all local links (HTML/CSS/JS asset strings), repository-relative paths, unique HTML IDs, generated WebP/PNG, no legacy variants/SVG, nickname and JS syntax')

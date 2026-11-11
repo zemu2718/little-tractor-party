@@ -11,7 +11,9 @@ SFX=sorted('assets/sfx/'+p.name for p in (ROOT/'assets/sfx').glob('*') if p.is_f
 VOICE=['assets/voice/voice.js']+sorted('assets/voice/'+p.name for p in (ROOT/'assets/voice').glob('*.mp3') if p.is_file() and p.stat().st_size>0)
 # 毛毡装饰贴纸（scripts/make_felt_sprites.mjs 生成）。
 DECO=sorted('assets/deco/'+p.name for p in (ROOT/'assets/deco').glob('*.webp') if p.is_file())
-FILES=PAGES+['assets/'+name for name in ASSETS]+DECO+SFX+VOICE
+# 全屏拍照背景（scripts/make_photo_backgrounds.mjs 生成）：只发布 WebP，源 PNG 和动作抠图不发布。
+PHOTO_BG=sorted('assets/photo-backgrounds/'+p.name for p in (ROOT/'assets/photo-backgrounds').glob('*.webp') if p.is_file())
+FILES=PAGES+['assets/'+name for name in ASSETS]+DECO+PHOTO_BG+SFX+VOICE
 if __name__=='__main__':
  dist=ROOT/'dist'
  if dist.is_symlink():raise SystemExit('dist 不应是符号链接')

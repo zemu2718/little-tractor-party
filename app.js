@@ -26,48 +26,81 @@ function clearAmbient(){$('ambient').replaceChildren();}
 function frozen(){return paused||photoMode||document.hidden;}
 function showControls(visible){controls.hidden=!visible;document.body.classList.toggle('clean',!visible||photoMode);if(visible&&!photoBoothPanelHidden)setMenuRestore(false);else if(!visible&&!childMode&&!photoBoothPanelHidden)setMenuRestore(true);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
 // 独立的电视全屏拍照背景：不改变相册数据，也不上传用户图片。
+// 背景由 scripts/make_photo_backgrounds.mjs 生成，齐齐的每个动作只出现一次，轮播时不会看到重复的站姿。
 const PHOTO_BACKGROUNDS=[
- ['生日快乐·波普','assets/photo-backgrounds/fullbleed-happy-popart-v2.png'],
- ['齐齐两岁啦·工程乐园','assets/photo-backgrounds/cartoon-qiqi-construction-v2.png'],
- ['齐齐生日快乐·生日墙','assets/photo-backgrounds/cartoon-qiqi-banner-v2.png'],
- ['梦幻挖掘机夜景','assets/photo-backgrounds/cartoon-qiqi-night-v2.png'],
- ['生日快乐·梦幻拼贴','assets/photo-backgrounds/fullbleed-dreamscape.png'],
- ['挖掘机大厅·蓝图展厅','assets/photo-backgrounds/hall-blueprint.png'],
- ['挖掘机大厅·复古玩具展','assets/photo-backgrounds/hall-retro-toy.png'],
- ['挖掘机大厅·工业庆典','assets/photo-backgrounds/hall-industrial-orange.png'],
- ['挖掘机大厅·夜间灯光展','assets/photo-backgrounds/hall-night-exhibition.png']
+ ['草地派对·开挖掘机','assets/photo-backgrounds/meadow-ride.webp'],
+ ['生日快乐·波普','assets/photo-backgrounds/popart.webp'],
+ ['黄昏·捧蛋糕','assets/photo-backgrounds/sunset-cake.webp'],
+ ['挖掘机大厅·夜间灯光','assets/photo-backgrounds/hall-night.webp'],
+ ['星空·小挖掘机','assets/photo-backgrounds/starry-excavator.webp'],
+ ['生日快乐·梦幻拼贴','assets/photo-backgrounds/dreamscape.webp'],
+ ['一家人·安全帽','assets/photo-backgrounds/family-helmet.webp']
 ];
 let photoBoothItems=[],photoBoothIndex=0,photoBoothTimer=0,photoBoothPlaying=false,photoBoothPanelHidden=false,photoBoothMusicOn=false,photoBoothPreviousMusic=false;
+let photoBoothRun=0,photoBoothRemoved=[],photoBoothFullscreen=false;
 let menuRestoreTimer;
 const menuRestore=$('menu-restore');
+function boothOpen(){return !$('photo-booth').hidden;}
 function setMenuRestore(visible){menuRestore.hidden=!visible;}
 function showPhotoBoothPanel(visible=true){photoBoothPanelHidden=!visible;$('photo-booth').classList.toggle('menu-hidden',!visible);if(visible)showControls(false);setMenuRestore(!visible);}
-function setPhotoBoothBackground(src,label=''){const surface=$('photo-booth-surface');if(!surface)return;surface.classList.remove('photo-booth-fade');void surface.offsetWidth;surface.style.backgroundImage=`url("${src}")`;surface.dataset.label=label;surface.classList.add('photo-booth-fade');document.querySelectorAll('#photo-booth-presets button').forEach((b,i)=>b.classList.toggle('selected',i===photoBoothIndex));}
+function setPhotoBoothBackground(src,label=''){const surface=$('photo-booth-surface');if(!surface)return;surface.classList.remove('photo-booth-fade');void surface.offsetWidth;surface.style.backgroundImage=`url("${src}")`;surface.dataset.label=label;surface.classList.add('photo-booth-fade');Array.from($('photo-booth-presets').children||[]).forEach((b,i)=>b.classList.toggle('selected',i===photoBoothIndex));}
+function showPhotoBoothItem(i){if(!photoBoothItems.length)return;photoBoothIndex=(i+photoBoothItems.length)%photoBoothItems.length;const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);}
 function renderPhotoBoothItems(){
  const list=$('photo-booth-presets');list.replaceChildren();
- photoBoothItems.forEach((item,i)=>{const b=document.createElement('button');b.type='button';b.dataset.src=item.src;b.title=item.label;b.innerHTML=`<img src="${item.src}" alt=""><span>${item.label}</span>`;b.onclick=()=>{photoBoothIndex=i;setPhotoBoothBackground(item.src,item.label);};list.append(b);});
- if(photoBoothItems.length){photoBoothIndex=Math.min(photoBoothIndex,photoBoothItems.length-1);const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);}
- $('photo-booth-delete').disabled=photoBoothItems.length<2;
+ photoBoothItems.forEach((item,i)=>{const b=document.createElement('button'),img=document.createElement('img'),span=document.createElement('span');b.type='button';b.title=item.label;img.src=item.src;img.alt='';span.textContent=item.label;b.append(img);b.append(span);b.onclick=()=>{showPhotoBoothItem(i);schedulePhotoBoothCarousel();};list.append(b);});
+ if(photoBoothItems.length){photoBoothIndex=Math.min(photoBoothIndex,photoBoothItems.length-1);showPhotoBoothItem(photoBoothIndex);}
+ $('photo-booth-delete').disabled=photoBoothItems.length<2;$('photo-booth-reset').hidden=!photoBoothRemoved.length;
 }
-function savePhotoBoothCustom(){const files=photoBoothItems.filter(i=>i.custom&&i.file).map(i=>({file:i.file,label:i.label}));store?.put?.('photo-booth-backgrounds',files).catch?.(()=>{});}
-async function restorePhotoBoothCustom(){const saved=await store.get('photo-booth-backgrounds');if(!Array.isArray(saved))return;for(const item of saved){if(item?.file?.size)photoBoothItems.push({label:item.label||'自定义背景',src:URL.createObjectURL(item.file),file:item.file,custom:true});}renderPhotoBoothItems();}
-function stopPhotoBoothCarousel(){clearTimeout(photoBoothTimer);photoBoothPlaying=false;$('photo-booth-toggle').textContent='开始轮播';}
-function schedulePhotoBoothCarousel(){clearTimeout(photoBoothTimer);if(!photoBoothPlaying||photoBoothItems.length<2)return;photoBoothTimer=setTimeout(()=>{photoBoothIndex=(photoBoothIndex+1)%photoBoothItems.length;const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);schedulePhotoBoothCarousel();},8000);}
+function presetBackgrounds(){return PHOTO_BACKGROUNDS.filter(([,src])=>!photoBoothRemoved.includes(src)).map(([label,src])=>({label,src,custom:false}));}
+function savePhotoBooth(){const files=photoBoothItems.filter(i=>i.custom&&i.file).map(i=>({file:i.file,label:i.label}));store.put('photo-booth-backgrounds',files).catch(()=>{});store.put('photo-booth-removed',photoBoothRemoved).catch(()=>{});}
+// 恢复本机保存的背景；打开后又马上关闭时直接丢弃，避免给已关闭的界面创建 blob URL。
+async function restorePhotoBooth(run){
+ const [saved,removed]=await Promise.all([store.get('photo-booth-backgrounds'),store.get('photo-booth-removed')]);
+ if(run!==photoBoothRun||!boothOpen())return;
+ const current=photoBoothItems[photoBoothIndex]?.src;
+ photoBoothRemoved=Array.isArray(removed)?removed.filter(src=>PHOTO_BACKGROUNDS.some(([,s])=>s===src)):[];
+ photoBoothItems=[...presetBackgrounds(),...photoBoothItems.filter(i=>i.custom)];
+ if(Array.isArray(saved))for(const item of saved)if(item?.file?.size)photoBoothItems.push({label:item.label||'自定义背景',src:URL.createObjectURL(item.file),file:item.file,custom:true});
+ photoBoothIndex=Math.max(0,photoBoothItems.findIndex(i=>i.src===current));renderPhotoBoothItems();
+}
+function stopPhotoBoothCarousel(){clearTimeout(photoBoothTimer);photoBoothPlaying=false;$('photo-booth-toggle').textContent='开始轮播';$('photo-booth-toggle').setAttribute('aria-pressed','false');}
+function schedulePhotoBoothCarousel(){clearTimeout(photoBoothTimer);if(!photoBoothPlaying||photoBoothItems.length<2||!boothOpen()||document.hidden)return;photoBoothTimer=setTimeout(()=>{showPhotoBoothItem(photoBoothIndex+1);schedulePhotoBoothCarousel();},8000);}
+// 打开拍照背景时，后面的场景全部停下：提示、自动表演、唱歌、倒数、跳舞、视频都不再出声。
+function quietStage(){stopCeremony();clearHint();clearEffects();clearAmbient();cancelCountdown();clearFind();stopDance();stopSong();stopMic();stopRecord(true);voice.stop();clearTimeout(albumTimer);pauseVideo();}
 function openPhotoBooth(){
- photoBoothPreviousMusic=wantsMusic;photoBoothMusicOn=sound;$('photo-booth').hidden=false;document.body.classList.add('photo-booth-active');stopPhotoBoothCarousel();showPhotoBoothPanel(true);updatePhotoBoothMusic();syncMusic();
- photoBoothItems=PHOTO_BACKGROUNDS.map(([label,src])=>({label,src,custom:false}));photoBoothIndex=0;renderPhotoBoothItems();restorePhotoBoothCustom();
+ if(boothOpen())return;
+ const run=++photoBoothRun;photoBoothPreviousMusic=wantsMusic;photoBoothMusicOn=sound;photoBoothFullscreen=false;
+ $('photo-booth').hidden=false;document.body.classList.add('photo-booth-active');stage.classList.add('background-paused');quietStage();stopPhotoBoothCarousel();showPhotoBoothPanel(true);updatePhotoBoothMusic();updatePhotoBoothFullscreen();
+ photoBoothItems=presetBackgrounds();photoBoothIndex=0;renderPhotoBoothItems();syncMusic();restorePhotoBooth(run);
 }
 function closePhotoBooth(){
- stopPhotoBoothCarousel();photoBoothMusicOn=false;wantsMusic=photoBoothPreviousMusic;$('photo-booth').hidden=true;document.body.classList.remove('photo-booth-active');if(document.fullscreenElement)document.exitFullscreen?.().catch?.(()=>{});photoBoothItems.filter(i=>i.custom&&i.src.startsWith('blob:')).forEach(i=>URL.revokeObjectURL(i.src));showPhotoBoothPanel(true);showControls(true);syncMusic();
+ if(!boothOpen())return;
+ photoBoothRun++;stopPhotoBoothCarousel();photoBoothMusicOn=false;wantsMusic=photoBoothPreviousMusic;
+ const leaveFullscreen=photoBoothFullscreen&&fullscreenElement();photoBoothFullscreen=false;
+ $('photo-booth').hidden=true;document.body.classList.remove('photo-booth-active');stage.classList.toggle('background-paused',document.hidden);
+ photoBoothItems.filter(i=>i.custom&&i.src.startsWith('blob:')).forEach(i=>URL.revokeObjectURL(i.src));photoBoothItems=[];$('photo-booth-presets').replaceChildren();
+ showPhotoBoothPanel(true);showControls(true);syncMusic();schedulePhoto();resumeVideo();armIdle();
+ if(leaveFullscreen)exitFullscreen();
 }
+function updatePhotoBoothFullscreen(){const active=Boolean(fullscreenElement());$('photo-booth-fullscreen').textContent=active?'退出全屏':'进入全屏';$('photo-booth-fullscreen').setAttribute('aria-pressed',String(active));}
 $('photo-booth-open').onclick=openPhotoBooth;
 $('photo-booth-close').onclick=closePhotoBooth;
 $('photo-booth-hide').onclick=()=>showPhotoBoothPanel(false);
-$('photo-booth-music').onclick=async()=>{if(!sound&&!await enableSound(true))return;photoBoothMusicOn=!photoBoothMusicOn;updatePhotoBoothMusic();syncMusic();};
- $('photo-background-file').onchange=event=>{const files=[...event.target.files||[]];if(!files.length)return;for(const file of files)photoBoothItems.push({label:file.name,src:URL.createObjectURL(file),file,custom:true});photoBoothIndex=photoBoothItems.length-files.length;renderPhotoBoothItems();savePhotoBoothCustom();event.target.value='';};
-$('photo-booth-toggle').onclick=()=>{photoBoothPlaying=!photoBoothPlaying;$('photo-booth-toggle').textContent=photoBoothPlaying?'暂停轮播':'开始轮播';if(photoBoothPlaying)schedulePhotoBoothCarousel();else clearTimeout(photoBoothTimer);};
- $('photo-booth-delete').onclick=()=>{if(photoBoothItems.length<2)return;const [removed]=photoBoothItems.splice(photoBoothIndex,1);if(removed.custom&&removed.src.startsWith('blob:'))URL.revokeObjectURL(removed.src);photoBoothIndex%=photoBoothItems.length;renderPhotoBoothItems();savePhotoBoothCustom();};
-$('photo-booth-fullscreen').onclick=()=>{const el=$('photo-booth');(el.requestFullscreen||el.webkitRequestFullscreen)?.call(el).catch?.(()=>{});};
+$('photo-booth-music').onclick=async()=>{if(!sound&&!await enableSound(true))return;photoBoothMusicOn=!photoBoothMusicOn;updatePhotoBoothMusic();syncMusic();if(photoBoothMusicOn&&!musicURL&&!$('builtin-music').checked)tell('还没有背景音乐：请在设置里选择音乐，或勾选内置轻音乐。');};
+$('photo-background-file').onchange=event=>{const files=[...event.target.files||[]].filter(f=>!f.type||f.type.startsWith('image/'));event.target.value='';if(!files.length)return;for(const file of files)photoBoothItems.push({label:file.name.replace(/\.[^.]+$/,'')||'自定义背景',src:URL.createObjectURL(file),file,custom:true});photoBoothIndex=photoBoothItems.length-files.length;renderPhotoBoothItems();savePhotoBooth();};
+$('photo-booth-toggle').onclick=()=>{if(photoBoothPlaying){stopPhotoBoothCarousel();return;}photoBoothPlaying=true;$('photo-booth-toggle').textContent='暂停轮播';$('photo-booth-toggle').setAttribute('aria-pressed','true');schedulePhotoBoothCarousel();};
+$('photo-booth-delete').onclick=()=>{if(photoBoothItems.length<2)return;const [removed]=photoBoothItems.splice(photoBoothIndex,1);if(removed.custom){if(removed.src.startsWith('blob:'))URL.revokeObjectURL(removed.src);}else photoBoothRemoved.push(removed.src);photoBoothIndex%=photoBoothItems.length;renderPhotoBoothItems();savePhotoBooth();schedulePhotoBoothCarousel();};
+$('photo-booth-reset').onclick=()=>{const current=photoBoothItems[photoBoothIndex]?.src;photoBoothRemoved=[];photoBoothItems=[...presetBackgrounds(),...photoBoothItems.filter(i=>i.custom)];photoBoothIndex=Math.max(0,photoBoothItems.findIndex(i=>i.src===current));renderPhotoBoothItems();savePhotoBooth();};
+// 整页全屏而不是只让拍照层全屏：这样提示条和「长按恢复菜单」按钮在全屏里也看得到。
+$('photo-booth-fullscreen').onclick=async()=>{
+ try{
+  if(fullscreenElement()){photoBoothFullscreen=false;await exitFullscreen();return;}
+  const el=document.documentElement,enter=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(!enter){tell(/iPhone|iPod/.test(navigator.userAgent||'')?'iPhone 不支持网页全屏：请在 Safari 点「分享 → 添加到主屏幕」，从桌面图标打开即可隐藏工具栏。':'此浏览器不支持网页全屏。请横屏、收起浏览器工具栏，再使用系统屏幕镜像。');requestAwake();return;}
+  await enter.call(el);photoBoothFullscreen=true;requestAwake();
+ }catch{tell('暂时无法进入全屏，请横屏并使用手机屏幕镜像。');}
+ updatePhotoBoothFullscreen();
+};
 function stagePoint(x,y){const s=stage.getBoundingClientRect();return {x:(x??s.left+s.width/2)-s.left,y:(y??s.top+s.height/2)-s.top};}
 function restart(el,name){el.classList.remove(name);void el.offsetWidth;el.classList.add(name);}
 
@@ -206,7 +239,7 @@ function showHint(){
 function idleTouch(){if(showMode&&showUntil)showUntil=Math.max(showUntil,performance.now()+15000);if(mode==='game'){if(!findTarget&&!peeking)armIdle();}else armIdle();}
 function armIdle(){
  clearHint();
- if(frozen())return;
+ if(frozen()||boothOpen())return;
  if(showMode){armShow();return;}
  if(mode in HINTS)hintTimers.push(setTimeout(showHint,6000));
  else if(mode==='game'&&!danceOn)armFind();
@@ -284,15 +317,15 @@ function updatePhotoBoothMusic(){$('photo-booth-music').textContent=`背景音�
 function syncMusic(){
  const bgm=$('bgm'),run=++musicRun;
  const video=Boolean(photos[photoIndex]?.video);
- const quiet=singing||counting||frozen()||!sound;
- const booth=Boolean(!$('photo-booth').hidden);
- const showLoop=(booth&&photoBoothMusicOn||showMode)&&!musicURL&&$('builtin-music').checked&&!(mode==='album'&&video);
- const loop=!quiet&&(showLoop||(!musicURL&&$('builtin-music').checked&&mode==='album'&&photos.length>0&&albumPlaying&&!importing&&!video)||(danceOn&&mode==='game'));
+ // 拍照背景打开时，只听它自己的「背景音乐」开关，后面场景的音乐一律不响，也不受场景暂停影响。
+ const booth=boothOpen(),quiet=booth?document.hidden||!sound:singing||counting||frozen()||!sound,builtin=!musicURL&&$('builtin-music').checked;
+ const showLoop=showMode&&builtin&&!(mode==='album'&&video);
+ const loop=!quiet&&(booth?photoBoothMusicOn&&builtin:(showLoop||(builtin&&mode==='album'&&photos.length>0&&albumPlaying&&!importing&&!video)||(danceOn&&mode==='game')));
  if(loop)audio.startLoop().catch(()=>{});else audio.stopLoop();
- const music=()=>(booth&&photoBoothMusicOn&&musicURL||wantsMusic||showMode&&musicURL)&&sound&&(mode==='album'||showMode||booth)&&!video&&!quiet;
+ const music=()=>sound&&!quiet&&(booth?Boolean(photoBoothMusicOn&&musicURL):Boolean((wantsMusic||showMode&&musicURL)&&(mode==='album'||showMode)&&!video));
  if(music()){bgm.play().then(()=>{if(run!==musicRun)return;if(!music())bgm.pause();updateMusic();}).catch(()=>{if(run!==musicRun)return;wantsMusic=false;updateMusic();tell('音乐暂时无法播放，请点“播放音乐”重试或换一个音频文件。');});}else{bgm.pause();updateMusic();}
 }
-function schedulePhoto(){clearTimeout(albumTimer);if(mode==='album'&&albumPlaying&&!importing&&!frozen()&&photos.length>1&&!photos[photoIndex]?.video){albumTimer=setTimeout(()=>{if(showMode&&photoIndex===photos.length-1){nextShow();return;}photoIndex=(photoIndex+1)%photos.length;renderPhoto();},Number($('duration').value)*1000);}}
+function schedulePhoto(){clearTimeout(albumTimer);if(mode==='album'&&albumPlaying&&!importing&&!frozen()&&!boothOpen()&&photos.length>1&&!photos[photoIndex]?.video){albumTimer=setTimeout(()=>{if(showMode&&photoIndex===photos.length-1){nextShow();return;}photoIndex=(photoIndex+1)%photos.length;renderPhoto();},Number($('duration').value)*1000);}}
 function syncPause(){stage.classList.toggle('paused',paused||photoMode);$('pause').textContent=paused?'继续动画':'暂停动画';$('pause').setAttribute('aria-pressed',String(paused));$('photo').textContent=photoMode?'退出合影':'合影模式';$('photo').setAttribute('aria-pressed',String(photoMode));document.body.classList.toggle('clean',controls.hidden||photoMode);if(frozen()){stopCeremony();clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();stopSong();stopMic();pauseVideo();audio.suspend().catch(()=>{});}else{armIdle();resumeVideo();}schedulePhoto();syncMusic();}
 $('pause').onclick=()=>{if(photoMode){photoMode=false;paused=false;}else paused=!paused;syncPause();};
 $('photo').onclick=()=>{if(photoMode){photoMode=false;paused=pausedBeforePhoto;}else{pausedBeforePhoto=paused;photoMode=true;}syncPause();if(photoMode)showControls(false);};
@@ -325,13 +358,14 @@ document.addEventListener('click',e=>{
  if(performance.now()<suppressClick)return;const t=e.target;
  if(t.closest('button,a,input,select,summary,dialog,label,#controls'))return;
  if(t.closest('#photo-booth-surface')){if(photoBoothPanelHidden)showPhotoBoothPanel(true);return;}
+ if(boothOpen())return;
  if(t.closest('#photo-frame'))photoTap(e);
  else if(t.closest('#stage')){sparkle(e);idleTouch();}
  if(!childMode&&controls.hidden&&!photoBoothPanelHidden)showControls(true);
 });
 
 // 所有菜单都提供同一个长按恢复入口，避免隐藏后只能依赖键盘。
-function restoreMenus(){if(photoBoothPanelHidden)showPhotoBoothPanel(true);if(!childMode&&controls.hidden)showControls(true);setMenuRestore(false);}
+function restoreMenus(){if(photoBoothPanelHidden)showPhotoBoothPanel(true);if(!childMode&&controls.hidden&&!boothOpen())showControls(true);setMenuRestore(false);}
 menuRestore.onpointerdown=e=>{if(e.isPrimary===false||e.button>0)return;e.preventDefault();clearTimeout(menuRestoreTimer);menuRestore.classList.add('holding');menuRestoreTimer=setTimeout(restoreMenus,900);};
 for(const event of ['pointerup','pointercancel','pointerleave'])menuRestore.addEventListener(event,()=>{clearTimeout(menuRestoreTimer);menuRestore.classList.remove('holding');});
 menuRestore.onclick=e=>{if(e.detail===0)restoreMenus();};
@@ -451,7 +485,7 @@ async function renderPhoto(){
 function probeVideo(url){return new Promise((resolve,reject)=>{const v=document.createElement('video');const timer=setTimeout(()=>{v.removeAttribute('src');reject(Error('timeout'));},15000);v.preload='metadata';v.muted=true;v.onloadedmetadata=()=>{clearTimeout(timer);v.removeAttribute('src');v.load?.();resolve();};v.onerror=()=>{clearTimeout(timer);reject(Error('video'));};v.src=url;});}
 function stopVideo(){const v=$('photo-video');v.onended=null;v.pause?.();v.removeAttribute('src');v.load?.();v.hidden=true;}
 function pauseVideo(){$('photo-video').pause?.();}
-function resumeVideo(){const v=$('photo-video');if(mode==='album'&&!v.hidden&&v.paused&&!frozen())v.play?.().catch(()=>{});}
+function resumeVideo(){const v=$('photo-video');if(mode==='album'&&!v.hidden&&v.paused&&!frozen()&&!boothOpen())v.play?.().catch(()=>{});}
 function showVideo(p,run){
  const v=$('photo-video'),img=$('photo-img');img.hidden=true;$('photo-card').hidden=true;img.classList.remove('kb');
  v.onloadedmetadata=()=>{const ar=v.videoWidth/v.videoHeight||16/9;v.style.width=`min(70cqw,${(42*ar).toFixed(1)}cqw)`;};
@@ -632,7 +666,8 @@ recLabels();
 
 // 展示工具：全屏、屏幕常亮均有失败回退；进入全屏或亲子模式时自动尝试常亮。
 function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement;}
-function updateFullscreen(){const active=Boolean(fullscreenElement());$('fullscreen').textContent=active?'退出全屏':'全屏展示';$('fullscreen').setAttribute('aria-pressed',String(active));if(childMode){if(!active&&!showMode)exitChildMode();return;}showControls(!active);}
+function exitFullscreen(){try{const exit=document.fullscreenElement?document.exitFullscreen:document.webkitExitFullscreen;return Promise.resolve(exit?.call(document)).catch(()=>{});}catch{return Promise.resolve();}}
+function updateFullscreen(){const active=Boolean(fullscreenElement());$('fullscreen').textContent=active?'退出全屏':'全屏展示';$('fullscreen').setAttribute('aria-pressed',String(active));updatePhotoBoothFullscreen();if(!active)photoBoothFullscreen=false;if(boothOpen())return;if(childMode){if(!active&&!showMode)exitChildMode();return;}showControls(!active);}
 $('fullscreen').onclick=async()=>{
  try{
   if(fullscreenElement()){
@@ -653,8 +688,8 @@ function updateAwake(){ $('awake').textContent=wakeLock?'关闭屏幕常亮':wan
 async function acquireWake(show){if(!navigator.wakeLock||wakePending||wakeLock||!wantsAwake||document.hidden)return;wakePending=true;$('awake').disabled=true;try{const lock=await navigator.wakeLock.request('screen');if(!wantsAwake||document.hidden){await lock.release();return;}wakeLock=lock;lock.addEventListener('release',()=>{if(wakeLock===lock)wakeLock=null;updateAwake();});if(show)tell('屏幕常亮已开启，请保持网页在前台。');}catch{if(show)tell('暂时无法常亮，请在手机设置中延长自动锁屏时间。');}finally{wakePending=false;$('awake').disabled=false;updateAwake();}}
 function requestAwake(){if(!navigator.wakeLock)return;wantsAwake=true;acquireWake(false);}
 $('awake').onclick=async()=>{if(!navigator.wakeLock){tell('当前环境不支持常亮，请在手机设置中延长自动锁屏时间。');return;}if(wakeLock){wantsAwake=false;const lock=wakeLock;wakeLock=null;try{await lock.release();}catch{}updateAwake();}else{wantsAwake=true;await acquireWake(true);}};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){exitChildMode();return;}if(childMode)return;if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(/^[1-4]$/.test(e.key)){selectScene(modes[+e.key-1]);return;}if(e.key.toLowerCase()==='h'){restoreMenus();return;}if(mode==='album'){if(e.key==='ArrowRight')stepPhoto(1);if(e.key==='ArrowLeft')stepPhoto(-1);if(e.code==='Space'&&photos.length){e.preventDefault();$('album-toggle').click();}}if(mode==='cake'&&e.code==='Space'){e.preventDefault();blow();}});
-document.addEventListener('visibilitychange',()=>{stage.classList.toggle('background-paused',document.hidden);if(document.hidden){stopCeremony();musicRun++;clearTimeout(albumTimer);clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();pauseVideo();stopRecord(true);stopSong();stopMic();$('bgm').pause();audio.suspend().catch(()=>{});}else{schedulePhoto();syncMusic();acquireWake(false);armIdle();resumeVideo();}});
-window.addEventListener('pagehide',()=>{stopCeremony();musicRun++;importRun++;finishImport();clearTimeout(albumTimer);stopSong();stopMic();stopRecord(false);clearHint();stopDance();pauseVideo();clearEffects();clearAmbient();cancelCountdown();clearFind();$('bgm').pause();audio.suspend().catch(()=>{});const lock=wakeLock;wakeLock=null;if(lock)lock.release().catch(()=>{});});
+document.addEventListener('keydown',e=>{if(boothOpen()){if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(e.key==='Escape'||e.key.toLowerCase()==='h')restoreMenus();else if(e.key==='ArrowRight'||e.key==='ArrowLeft'){showPhotoBoothItem(photoBoothIndex+(e.key==='ArrowRight'?1:-1));schedulePhotoBoothCarousel();}return;}if(e.key==='Escape'){exitChildMode();return;}if(childMode)return;if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(/^[1-4]$/.test(e.key)){selectScene(modes[+e.key-1]);return;}if(e.key.toLowerCase()==='h'){restoreMenus();return;}if(mode==='album'){if(e.key==='ArrowRight')stepPhoto(1);if(e.key==='ArrowLeft')stepPhoto(-1);if(e.code==='Space'&&photos.length){e.preventDefault();$('album-toggle').click();}}if(mode==='cake'&&e.code==='Space'){e.preventDefault();blow();}});
+document.addEventListener('visibilitychange',()=>{stage.classList.toggle('background-paused',document.hidden||boothOpen());if(document.hidden){stopCeremony();musicRun++;clearTimeout(albumTimer);clearTimeout(photoBoothTimer);clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();pauseVideo();stopRecord(true);stopSong();stopMic();$('bgm').pause();audio.suspend().catch(()=>{});}else{schedulePhoto();schedulePhotoBoothCarousel();syncMusic();acquireWake(false);armIdle();resumeVideo();}});
+window.addEventListener('pagehide',()=>{stopCeremony();clearTimeout(photoBoothTimer);musicRun++;importRun++;finishImport();clearTimeout(albumTimer);stopSong();stopMic();stopRecord(false);clearHint();stopDance();pauseVideo();clearEffects();clearAmbient();cancelCountdown();clearFind();$('bgm').pause();audio.suspend().catch(()=>{});const lock=wakeLock;wakeLock=null;if(lock)lock.release().catch(()=>{});});
 window.addEventListener('pageshow',()=>{schedulePhoto();acquireWake(false);});window.addEventListener('resize',()=>{clearEffects();clearAmbient();});
 updateAlbum();updateCake();updateSound();updateMotion();armIdle();restoreSaved().catch(()=>{});

@@ -2,9 +2,11 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
 const source=fs.readFileSync(path.join(__dirname,'../app.js'),'utf8');
-function element(){const classes=new Set();return {hidden:false,disabled:false,checked:true,open:false,value:'8',textContent:'',clientHeight:900,offsetWidth:10,children:[],attrs:{},listeners:{},style:{setProperty(k,v){this[k]=v;}},classList:{contains:k=>classes.has(k),add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,force){const v=force??!classes.has(k);v?classes.add(k):classes.delete(k);return v;}},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this[k];},append(c){this.children.push(c);c.parentNode=this;},replaceChildren(){this.children=[];},get firstElementChild(){return this.children[0];},getBoundingClientRect(){return {left:20,top:30,width:200,height:300};},focus(){},closest(){return null;},addEventListener(k,f){this.listeners[k]=f;},click(){return this.onclick?.({target:this});},remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(x=>x!==this);},showModal(){this.open=true;},close(){this.open=false;}};}
+function element(){const classes=new Set();return {dataset:{},hidden:false,disabled:false,checked:true,open:false,value:'8',textContent:'',clientHeight:900,offsetWidth:10,children:[],attrs:{},listeners:{},style:{setProperty(k,v){this[k]=v;}},classList:{contains:k=>classes.has(k),add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,force){const v=force??!classes.has(k);v?classes.add(k):classes.delete(k);return v;}},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this[k];},append(c){this.children.push(c);c.parentNode=this;},replaceChildren(){this.children=[];},get firstElementChild(){return this.children[0];},getBoundingClientRect(){return {left:20,top:30,width:200,height:300};},focus(){},closest(){return null;},addEventListener(k,f){this.listeners[k]=f;},click(){return this.onclick?.({target:this});},remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(x=>x!==this);},showModal(){this.open=true;},close(){this.open=false;}};}
 function setup({reduce=false}={}){
  const els=Object.fromEntries([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>[m[1],element()]));
+ // 和真实页面一样：HTML 里带 hidden 属性的元素一开始就是隐藏的。
+ for(const m of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g))if(/\shidden(?=[\s>=])/.test(m[0]))els[m[1]].hidden=true;
  els['album-progress'].append(element());const bgm=els.bgm;bgm.paused=true;bgm.play=async()=>{bgm.paused=false;};bgm.pause=()=>{bgm.paused=true;};
  const tabs=['home','album','cake','game'].map(scene=>Object.assign(element(),{dataset:{scene}}));const friends=['mouse','dragon','rooster','excavator'].map(friend=>Object.assign(element(),{dataset:{friend}}));const friendParent=element();friends.forEach(f=>friendParent.append(f));
  const events={},windowEvents={},timers=new Map();let tid=0,uid=0;const objects=new Map(),revoked=[];
@@ -113,6 +115,29 @@ function setup({reduce=false}={}){
  await app.run("selectScene('cake')");await app.click('sing');assert.equal(app.read('singing'),true);await app.run('lastGreeting=0');
  app.read("hotTap('rooster',{clientX:10,clientY:10},null)");assert(!heard.some(t=>/喔/.test(t)));assert.equal(app.read('singing'),true);
  await app.run('stopSong()');await app.click('blow');assert(!heard.includes('哇！齐齐，生日快乐！'));[...app.timers.values()].find(t=>t.ms===1000&&String(t.f).includes('哇')).f();assert(heard.includes('哇！齐齐，生日快乐！'));
+ // 全屏拍照背景：预设图、后台场景静音、文件名只当文字、隐藏/恢复菜单、删除/恢复预设、轮播与切后台、方向键、整页全屏、关闭清理与竞态。
+ app=setup();{const e=app.els,list=e['photo-booth-presets'],key=k=>app.events.keydown({key:k,target:{closest:()=>null}}),carousel=()=>[...app.timers.values()].filter(t=>String(t.f).includes('showPhotoBoothItem'));
+  await app.run("selectScene('home');armIdle()");assert(app.read('hintTimers.length')>0);
+  await app.click('photo-booth-open');assert.equal(e['photo-booth'].hidden,false);assert(e.controls.hidden);assert.equal(app.read('hintTimers.length'),0);assert(e.stage.classList.contains('background-paused'));
+  await app.run('armIdle()');assert.equal(app.read('hintTimers.length'),0);
+  assert.equal(list.children.length,7);assert.match(e['photo-booth-surface'].style.backgroundImage,/meadow-ride\.webp/);assert.equal(list.children[0].children[1].textContent,'草地派对·开挖掘机');
+  e['photo-background-file'].onchange({target:Object.assign(e['photo-background-file'],{files:[{name:'<b>x</b>.jpg',size:3,type:'image/jpeg'},{name:'notes.txt',size:3,type:'text/plain'}]})});
+  assert.equal(list.children.length,8);assert.equal(list.children[7].children[1].textContent,'<b>x</b>');const blob=app.read('photoBoothItems[7].src');
+  await app.click('photo-booth-hide');assert(e['photo-booth'].classList.contains('menu-hidden'));assert.equal(e['menu-restore'].hidden,false);
+  key('1');assert.equal(app.read('mode'),'home');key('h');assert(!e['photo-booth'].classList.contains('menu-hidden'));assert.equal(e['menu-restore'].hidden,true);assert(e.controls.hidden);
+  await app.run('showPhotoBoothItem(0)');await app.click('photo-booth-delete');assert.equal(list.children.length,7);assert.deepEqual(JSON.parse(app.read('JSON.stringify(photoBoothRemoved)')),['assets/photo-backgrounds/meadow-ride.webp']);assert.equal(e['photo-booth-reset'].hidden,false);
+  await app.click('photo-booth-reset');assert.equal(list.children.length,8);assert.equal(e['photo-booth-reset'].hidden,true);
+  await app.click('photo-booth-toggle');assert.equal(e['photo-booth-toggle'].textContent,'暂停轮播');assert.equal(carousel().length,1);
+  app.document.hidden=true;app.events.visibilitychange();assert.equal(carousel().length,0);app.document.hidden=false;app.events.visibilitychange();assert.equal(carousel().length,1);
+  const before=app.read('photoBoothIndex');carousel()[0].f();assert.equal(app.read('photoBoothIndex'),before+1);key('ArrowLeft');assert.equal(app.read('photoBoothIndex'),before);
+  app.document.documentElement.requestFullscreen=async()=>{app.document.fullscreenElement={};app.events.fullscreenchange();};app.document.exitFullscreen=async()=>{app.document.fullscreenElement=null;app.events.fullscreenchange();};
+  await app.click('photo-booth-fullscreen');assert.equal(e['photo-booth-fullscreen'].textContent,'退出全屏');assert(e.controls.hidden);assert.equal(e['photo-booth'].hidden,false);
+  await app.click('photo-booth-close');await new Promise(setImmediate);assert.equal(e['photo-booth'].hidden,true);assert.equal(app.document.fullscreenElement,null);assert(!e.controls.hidden);assert(app.revoked.includes(blob));
+  assert.equal(carousel().length,0);assert(app.read('hintTimers.length')>0);assert(!e.stage.classList.contains('background-paused'));
+  await app.run('openPhotoBooth();closePhotoBooth()');assert.equal(app.read('photoBoothItems.length'),0);
+  delete app.document.documentElement.requestFullscreen;app.context.navigator.userAgent='iPhone';await app.click('photo-booth-open');await app.click('photo-booth-fullscreen');assert.match(e.notice.textContent,/添加到主屏幕/);
+ }
+ console.log('PASS: photo booth backgrounds, stage silenced, safe labels, hide/restore, delete/reset presets, carousel + background pause, arrow keys, page fullscreen, close cleanup + restore race');
  console.log('PASS: no speech over the song, cheer line waits for the countdown');
  console.log('PASS: party show carousel/auto perform/album round/exit, birthday ceremony (song → wish → voiced countdown → blow → resume)');
  console.log('PASS: rapid taps, peekaboo, dance party, back-button guard, album video, countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
