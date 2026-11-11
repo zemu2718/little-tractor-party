@@ -24,7 +24,7 @@ function tell(message){clearTimeout(noticeTimer);$('notice').textContent=message
 function clearEffects(){clearTimeout(confettiTimer);$('confetti').replaceChildren();$('bubbles').replaceChildren();$('finale').replaceChildren();}
 function clearAmbient(){$('ambient').replaceChildren();}
 function frozen(){return paused||photoMode||document.hidden;}
-function showControls(visible){controls.hidden=!visible;if(visible)armMenuIdle();else clearTimeout(menuIdleTimer);document.body.classList.toggle('clean',!visible||photoMode);if(visible&&!photoBoothPanelHidden)setMenuRestore(false);else if(!visible&&!childMode&&!photoBoothPanelHidden)setMenuRestore(true);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
+function showControls(visible){controls.hidden=!visible;if(visible)armMenuIdle();else clearTimeout(menuIdleTimer);document.body.classList.toggle('clean',!visible||photoMode);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
 // 独立的电视全屏拍照背景：不改变相册数据，也不上传用户图片。
 // 背景都是生图工具生成的完整插画，由 scripts/make_photo_backgrounds.mjs 转成 WebP 和缩略图；齐齐的每个动作只出现一次。
 const PHOTO_BACKGROUNDS=[
@@ -36,16 +36,12 @@ const PHOTO_BACKGROUNDS=[
 ].map(([label,name])=>[label,`assets/photo-backgrounds/${name}.webp`,`assets/photo-backgrounds/${name}.thumb.webp`]);
 let photoBoothItems=[],photoBoothIndex=0,photoBoothTimer=0,photoBoothPlaying=false,photoBoothPanelHidden=false,photoBoothMusicOn=false,photoBoothPreviousMusic=false;
 let photoBoothRun=0,photoBoothRemoved=[],photoBoothFullscreen=false;
-let menuRestoreTimer;
-const menuRestore=$('menu-restore');
 function boothOpen(){return !$('photo-booth').hidden;}
-// 「长按恢复」提示只出现一小会儿就自动消失：看过一次就知道怎么叫回菜单，电视上不再留着它。
-let menuHintTimer,menuIdleTimer;
-function setMenuRestore(visible){clearTimeout(menuHintTimer);menuRestore.hidden=!visible;if(visible)menuHintTimer=setTimeout(()=>{menuRestore.hidden=true;},4500);}
+let menuIdleTimer;
 // 菜单不操作 14 秒自动收起（打开「更多」、换背景抽屉、导入或录音时不收）；轻点画面空白处、H 或 Esc 叫回来。
 function armMenuIdle(){clearTimeout(menuIdleTimer);if(document.hidden)return;if(boothOpen()?!photoBoothPanelHidden:!controls.hidden&&!childMode)menuIdleTimer=setTimeout(autoHideMenus,14000);}
 function autoHideMenus(){if(boothOpen()){if(photoBoothPanelHidden)return;if($('photo-booth-drawer').hidden)showPhotoBoothPanel(false);else armMenuIdle();return;}if(controls.hidden||childMode)return;if($('settings').open||importing||recorder)armMenuIdle();else showControls(false);}
-function showPhotoBoothPanel(visible=true){photoBoothPanelHidden=!visible;$('photo-booth').classList.toggle('menu-hidden',!visible);if(visible)showControls(false);setMenuRestore(!visible);armMenuIdle();}
+function showPhotoBoothPanel(visible=true){photoBoothPanelHidden=!visible;$('photo-booth').classList.toggle('menu-hidden',!visible);if(visible)showControls(false);armMenuIdle();}
 function setPhotoBoothDrawer(open){$('photo-booth-drawer').hidden=!open;$('photo-booth-pick').setAttribute('aria-pressed',String(open));armMenuIdle();}
 function setPhotoBoothBackground(src,label=''){const surface=$('photo-booth-surface');if(!surface)return;surface.classList.remove('photo-booth-fade');void surface.offsetWidth;surface.style.backgroundImage=`url("${src}")`;surface.dataset.label=label;$('photo-booth-name').textContent=label;surface.classList.add('photo-booth-fade');Array.from($('photo-booth-presets').children||[]).forEach((b,i)=>b.classList.toggle('selected',i===photoBoothIndex));}
 function showPhotoBoothItem(i){if(!photoBoothItems.length)return;photoBoothIndex=(i+photoBoothItems.length)%photoBoothItems.length;const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);}
@@ -98,7 +94,7 @@ $('photo-background-file').onchange=event=>{const files=[...event.target.files||
 $('photo-booth-toggle').onclick=()=>{if(photoBoothPlaying){stopPhotoBoothCarousel();return;}photoBoothPlaying=true;$('photo-booth-toggle').textContent='暂停轮播';$('photo-booth-toggle').setAttribute('aria-pressed','true');schedulePhotoBoothCarousel();};
 $('photo-booth-delete').onclick=()=>{if(photoBoothItems.length<2)return;const [removed]=photoBoothItems.splice(photoBoothIndex,1);if(removed.custom){if(removed.src.startsWith('blob:'))URL.revokeObjectURL(removed.src);}else photoBoothRemoved.push(removed.src);photoBoothIndex%=photoBoothItems.length;renderPhotoBoothItems();savePhotoBooth();schedulePhotoBoothCarousel();};
 $('photo-booth-reset').onclick=()=>{const current=photoBoothItems[photoBoothIndex]?.src;photoBoothRemoved=[];photoBoothItems=[...presetBackgrounds(),...photoBoothItems.filter(i=>i.custom)];photoBoothIndex=Math.max(0,photoBoothItems.findIndex(i=>i.src===current));renderPhotoBoothItems();savePhotoBooth();};
-// 整页全屏而不是只让拍照层全屏：这样提示条和「长按恢复菜单」按钮在全屏里也看得到。
+// 整页全屏而不是只让拍照层全屏：这样提示条在全屏里也看得到。
 $('photo-booth-fullscreen').onclick=async()=>{
  try{
   if(fullscreenElement()){photoBoothFullscreen=false;await exitFullscreen();return;}
@@ -371,11 +367,8 @@ document.addEventListener('click',e=>{
  if(!childMode&&controls.hidden&&!photoBoothPanelHidden)showControls(true);
 });
 
-// 所有菜单都提供同一个长按恢复入口，避免隐藏后只能依赖键盘。
-function restoreMenus(){if(photoBoothPanelHidden)showPhotoBoothPanel(true);if(!childMode&&controls.hidden&&!boothOpen())showControls(true);setMenuRestore(false);}
-menuRestore.onpointerdown=e=>{if(e.isPrimary===false||e.button>0)return;e.preventDefault();clearTimeout(menuRestoreTimer);menuRestore.classList.add('holding');menuRestoreTimer=setTimeout(restoreMenus,900);};
-for(const event of ['pointerup','pointercancel','pointerleave'])menuRestore.addEventListener(event,()=>{clearTimeout(menuRestoreTimer);menuRestore.classList.remove('holding');});
-menuRestore.onclick=e=>{if(e.detail===0)restoreMenus();};
+// H / Esc 叫回菜单（轻点画面也会叫回，见上面的点击处理）。
+function restoreMenus(){if(photoBoothPanelHidden)showPhotoBoothPanel(true);if(!childMode&&controls.hidden&&!boothOpen())showControls(true);}
 
 // 场景切换：小挖掘机开过画面，把新场景“推”进来。
 function selectScene(next){

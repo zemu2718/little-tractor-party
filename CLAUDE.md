@@ -36,7 +36,7 @@ node scripts/make_photo_backgrounds.mjs   # 把拍照背景的 AI 原图转成 W
   - 新加的定时类功能必须接入这几处。
 - **派对展示与生日仪式。** `showMode` 时 `armIdle()` 改走 `armShow()`：在 `hintTimers` 里排角色自动表演（`perform`）和切场景（`nextShow`），所以 `clearHint()` 会一并清掉；相册放完最后一张由 `schedulePhoto`/视频 `onended` 调 `nextShow`。`ceremonyOn` 期间不排轮播，`stopCeremony()` 已接入 `selectScene`、`syncPause`、`visibilitychange`、`pagehide`、`exitChildMode`。
 - **本机保存。** `store`（IndexedDB `qiqi-party`）保存照片/视频 Blob、家人录音（`savedClips`）和背景音乐，启动时 `restoreSaved()` 恢复；`vm` 测试里没有 `indexedDB`，所有调用都必须吞掉失败。
-- **菜单。** 主菜单是底部一条 `.dock`，次要功能在 `#settings`（「更多」）向上弹出的 `.sheet` 里；拍照层是 `.booth-bar` 加按需拉出的缩略图抽屉。`armMenuIdle()` 让菜单 14 秒不操作自动收起（「更多」或抽屉开着时不收），`setMenuRestore()` 显示的「长按恢复」提示 4.5 秒后自动隐藏；轻点画面、H、Esc 都能叫回菜单。
+- **菜单。** 主菜单是底部一条 `.dock`，次要功能在 `#settings`（「更多」）向上弹出的 `.sheet` 里；拍照层是 `.booth-bar` 加按需拉出的缩略图抽屉。`armMenuIdle()` 让菜单 14 秒不操作自动收起（「更多」或抽屉开着时不收）；收起后没有任何提示按钮，轻点画面、H、Esc 都能叫回菜单。
 - **压低音乐。** `voice.onSpeaking(on)` → `audio.duck(on)` 与 `#bgm` 音量；`audio.setLoopLevel()` 控制展示模式下的循环音量。
 - **声音分层。**
   - **音效**：`audio.effect(kind)` 返回音效时长（秒）。`PARTY_SFX` 里登记了真实录音就播放录音：http(s) 下先 fetch 再解码；`file://` 下用 `<audio>` 加 `#t=start,end` 截取。没登记或加载失败时用合成音。清单条目支持 `start`、`end`、`gain`、`mix` 四个字段。
