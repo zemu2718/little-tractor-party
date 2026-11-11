@@ -65,6 +65,24 @@ for name in FILES:
         if p.name in ['birthday-title.png','little-dragon.png','little-mouse.png','little-rooster.png','red-tractor.png','candle-flame.png'] and data[25] not in [4,6]:errors.append(f'{name}: expected transparent PNG')
 for folder in ['party','classic','play']:
     if (ROOT/folder).exists():errors.append(f'legacy variant remains: {folder}')
+# 拍照背景的路径是在 app.js 里拼出来的，上面的字符串检查看不到：逐个确认大图和缩略图都已生成并发布，
+# 并且目录里生成的每张背景都登记进了菜单（不多发布用不到的图，也不漏掉生成好的图）。
+app=(ROOT/'app.js').read_text()
+block=re.search(r"const PHOTO_BACKGROUNDS=\[(.*?)\]\.map\(\(\[label,name\]\)=>\[label,`assets/photo-backgrounds/\$\{name\}\.webp`,`assets/photo-backgrounds/\$\{name\}\.thumb\.webp`\]\);",app,re.S)
+if not block:errors.append('app.js: PHOTO_BACKGROUNDS must map each name to <name>.webp and <name>.thumb.webp')
+else:
+    names=re.findall(r"\['[^']+','([\w-]+)'\]",block.group(1))
+    if len(names)!=len(set(names)):errors.append('app.js: duplicate photo backgrounds')
+    for n in names:
+        for f in [f'assets/photo-backgrounds/{n}.webp',f'assets/photo-backgrounds/{n}.thumb.webp']:
+            if f not in FILES or not (ROOT/f).is_file():errors.append(f'photo background not generated/published: {f}（运行 node scripts/make_photo_backgrounds.mjs）')
+    for p in (ROOT/'assets/photo-backgrounds').glob('*.webp'):
+        if p.name.removesuffix('.webp').removesuffix('.thumb') not in names:errors.append(f'photo background not in menu: {p.name}（在 app.js 的 PHOTO_BACKGROUNDS 登记）')
+# 界面文字和台词统一称呼：齐齐、妈妈、爸爸、挖掘机、数字二；旧叫法（小龙齐齐、鼠妈妈、公鸡爸爸）不能再出现。
+for name in ['index.html','app.js','assets/voice/voice.js','manifest.webmanifest']:
+    p=ROOT/name
+    if p.is_file():
+        for old in re.findall(r'小龙|鼠妈妈|老鼠妈妈|公鸡爸爸',p.read_text()):errors.append(f'{name}: 旧称呼「{old}」，请统一为 齐齐/妈妈/爸爸')
 for p in (ROOT/'assets').rglob('*.svg'):errors.append(f'legacy SVG remains: {p.name}')
 if len([name for name in FILES if name.endswith('.html')])!=1:errors.append('expected a single HTML entry')
 if errors:raise SystemExit('\n'.join(errors))

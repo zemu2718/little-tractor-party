@@ -28,11 +28,26 @@ function showControls(visible){controls.hidden=!visible;if(visible)armMenuIdle()
 // 独立的电视全屏拍照背景：不改变相册数据，也不上传用户图片。
 // 背景都是生图工具生成的完整插画，由 scripts/make_photo_backgrounds.mjs 转成 WebP 和缩略图；齐齐的每个动作只出现一次。
 const PHOTO_BACKGROUNDS=[
- ['生日快乐·波普','popart'],
+ ['漫画施工派对·齐齐','photo-booth-comic-v1'],
+ ['嘉年华生日会·齐齐','photo-booth-carnival-v1'],
+ ['霓虹音乐会·齐齐','photo-booth-neon-v1'],
+ ['太空探险·齐齐','photo-booth-space-v1'],
+ ['东方灯会·齐齐','photo-booth-lantern-v1'],
+ ['海底生日探险·齐齐','photo-booth-ocean-v1'],
+ ['挖掘机生日舞台·齐齐','photo-booth-excavator-stage-v1'],
+ ['挖掘机工程任务·齐齐','photo-booth-excavator-blueprint-v1'],
+ ['挖掘机大巡游·齐齐','photo-booth-excavator-parade-v1'],
+ ['生日派对·热闹施工主题','photo-booth-party-v2'],
  ['毛毡农场派对','felt-farm'],
  ['挖掘机大厅·夜间灯光','hall-night'],
  ['毛毡生日蛋糕','felt-cake'],
- ['梦幻拼贴','dreamscape']
+ ['梦幻拼贴','dreamscape'],
+ ['生日快乐·波普','popart'],
+ ['齐齐两岁啦·拼贴','fullbleed-qiqi-2yo-collage'],
+ ['齐齐生日照片墙','fullbleed-qiqi-birthday-wall'],
+ ['挖掘机大厅·蓝图','hall-blueprint'],
+ ['挖掘机大厅·工业橙','hall-industrial-orange'],
+ ['小小工程师·复古玩具','hall-retro-toy']
 ].map(([label,name])=>[label,`assets/photo-backgrounds/${name}.webp`,`assets/photo-backgrounds/${name}.thumb.webp`]);
 let photoBoothItems=[],photoBoothIndex=0,photoBoothTimer=0,photoBoothPlaying=false,photoBoothPanelHidden=false,photoBoothMusicOn=false,photoBoothPreviousMusic=false;
 let photoBoothRun=0,photoBoothRemoved=[],photoBoothFullscreen=false;
@@ -186,7 +201,7 @@ setInterval(ambientTick,2400);
 
 // 角色台词：每次点击轮换；动物先叫一声（喔喔喔、吱吱吱、嗷呜、轰隆隆），再说话。
 const lines={
- dragon:['嗷呜！齐齐，生日快乐！','我是小龙齐齐，两岁啦！','嗷呜，小龙来啦！','齐齐真棒，抱抱！'],
+ dragon:['嗷呜！齐齐，生日快乐！','我是齐齐，两岁啦！','嗷呜，齐齐来啦！','齐齐真棒，抱抱！'],
  mouse:['吱吱吱！齐齐，妈妈爱你！','吱吱，宝贝生日快乐！','妈妈抱抱齐齐！','吱吱吱，亲亲齐齐！'],
  rooster:['喔喔喔！齐齐，爸爸陪你玩！','喔喔喔，生日快乐！','爸爸给你举高高！','喔喔，齐齐真棒！'],
  excavator:['轰隆隆，嘟嘟嘟！','挖呀挖，挖呀挖！','嘟嘟，挖掘机来啦！'],

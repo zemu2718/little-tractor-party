@@ -420,7 +420,7 @@ to{transform:translateX(-50%) translateY(-10%) rotate(7deg) scale(.97,1.04)}}
 #photo-caption{margin-top:1.4cqw;border-radius:1.2cqw;padding:.5cqw 2.2cqw;box-shadow:0 .5cqw 1.2cqw #6b4a1a33;outline:.2cqw dashed #e0c58c;outline-offset:-.5cqw;color:#5a3d10}
 #photo-caption.stamp{animation:stamp .55s cubic-bezier(.3,1.6,.5,1) .9s both}
 @keyframes stamp{from{opacity:0;transform:scale(1.9) rotate(-7deg)}to{opacity:1;transform:none}}
-/* 每 5 张：公鸡爸爸和挖掘机从底下探头。 */
+/* 每 5 张：爸爸和挖掘机从底下探头。 */
 .album-peek{position:absolute;bottom:-1%;height:21cqw;width:auto;z-index:3;pointer-events:none;opacity:0;transform:translateY(105%);transform-origin:50% 100%;filter:drop-shadow(0 .6cqw 1cqw #0004)}
 .peek-rooster{left:17%}
 .peek-excavator{right:16%;height:13cqw}

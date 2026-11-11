@@ -117,7 +117,7 @@ window.PartyAudio = (() => {
   if(kind==='mouse'){for(let i=0;i<3;i++){tone(2300,t+i*.13,.08,.2,'sine',out,3300);tone(4600,t+i*.13,.06,.04,'sine',out,6200);}}
   // 公鸡“喔喔喔～”：锯齿波经带通滤波，四个音节由低到高再拖长下滑。
   else if(kind==='rooster'){crow(t,out);}
-  // 小龙“嗷呜～”：带颤音的可爱叫声，后接亮晶晶的铃声。
+  // 齐齐（dragon）“嗷呜～”：带颤音的可爱叫声，后接亮晶晶的铃声。
   else if(kind==='dragon'){roar(t,out);['C6','E6','G6'].forEach((n,i)=>bell(notes[n],t+.55+i*.1,.5,.12,out));}
   else if(kind==='excavator'||kind==='drive'){for(let i=0;i<8;i++)tone(92,t+i*.12,.11,.32,'triangle',out,70);noise(t,1,.12,out,'lowpass',400,150);honk(t+1,out);}
   else if(kind==='honk'){honk(t,out);}

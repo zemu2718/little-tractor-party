@@ -11,16 +11,36 @@ window.PartyVoice=(()=>{
  // 设备语音：优先普通话、增强版/高音质的离线中文语音。
  function localVoice(){const list=(synth?.getVoices()||[]).filter(v=>v.localService&&/^zh(?:[-_]|$)/i.test(v.lang));const score=v=>(/CN|Hans/i.test(v.lang)?2:0)+(/enhanced|premium|neural|增强|高品质|优化/i.test(v.name)?3:0);return list.sort((a,b)=>score(b)-score(a))[0];}
  const VOICE_BASE='assets/voice/';
- function prerecorded(kind,text){const map=window.PARTY_VOICE,file=map&&text?map[`${kind}|${text}`]:null;return typeof file==='string'&&/^[\w.-]+\.mp3$/.test(file)?VOICE_BASE+file:null;}
+ const okFile=file=>typeof file==='string'&&/^[\w.-]+\.mp3$/.test(file);
+ // 已预先下载好的配音：文件名 → 本地 blob URL，点击时不用再等网络。
+ const cached=new Map();let warming=false,unlocked=false;
+ function prerecorded(kind,text){const map=window.PARTY_VOICE,file=map&&text?map[`${kind}|${text}`]:null;return okFile(file)?cached.get(file)||VOICE_BASE+file:null;}
+ // http(s) 下一次性把配音（全部约 1 MB）取到内存，逐个下载，失败的保持按需加载；file:// 下本来就在本地，不需要。
+ async function warm(){
+  if(warming||!/^https?:$/.test(window.location?.protocol||'')||typeof window.fetch!=='function'||!URL.createObjectURL)return;warming=true;
+  for(const file of new Set(Object.values(window.PARTY_VOICE||{}).filter(okFile))){
+   if(cached.has(file))continue;
+   try{const r=await window.fetch(VOICE_BASE+file);if(!r.ok)continue;cached.set(file,URL.createObjectURL(await r.blob()));}catch{}
+  }
+ }
+ // 手机浏览器只允许在点击里第一次播放 <audio>；配音要等动物叫完才放，已不在点击里了。
+ // 所以开声音或第一次点击时，先静音播放一小段配音再停掉，之后延时播放就不会被拒。
+ function unlock(){
+  if(unlocked||!media||!enabled||media.getAttribute?.('src'))return;
+  const file=Object.values(window.PARTY_VOICE||{}).find(okFile);if(!file)return;
+  const token=run;media.muted=true;media.src=cached.get(file)||VOICE_BASE+file;
+  let p;try{p=media.play();}catch{media.muted=false;return;}
+  Promise.resolve(p).then(()=>{unlocked=true;if(token===run){media.pause();media.removeAttribute('src');media.load?.();}},()=>{}).finally(()=>{if(token===run)media.muted=false;});
+ }
  // 播放一段音频：返回 'ok'（含已被新的点击取代）或 'fail'。
  async function playUrl(url,current,max,onEnd){
-  media.src=url;media.volume=VOLUME;media.onended=()=>{if(current===run){clearTimeout(timer);talking(false);onEnd?.();}};
+  media.src=url;media.muted=false;media.volume=VOLUME;media.onended=()=>{if(current===run){clearTimeout(timer);talking(false);onEnd?.();}};
   try{await media.play();if(current!==run)return 'ok';if(!enabled||document.hidden){media.pause();return 'ok';}talking(true);timer=setTimeout(()=>{stop();onEnd?.();},max);return 'ok';}
   catch{return current===run?'fail':'ok';}
  }
- function stop(){run++;clearTimeout(timer);if(media){media.onended=null;media.pause();media.removeAttribute('src');media.load?.();}if(utterance&&synth)synth.cancel();utterance=null;talking(false);}
- function init(element,onNotice,onChange){media=element;notify=onNotice;changed=onChange;media.volume=VOLUME;media.onerror=()=>{const src=media.getAttribute?.('src')||'';if(src.includes(VOICE_BASE))return;stop();notify('这段录音无法播放，请换成 MP3 或 M4A。');};synth?.addEventListener?.('voiceschanged',changed);changed();}
- function setEnabled(value){enabled=value;if(!value)stop();}
+ function stop(){run++;clearTimeout(timer);if(media){media.muted=false;media.onended=null;media.pause();media.removeAttribute('src');media.load?.();}if(utterance&&synth)synth.cancel();utterance=null;talking(false);}
+ function init(element,onNotice,onChange){media=element;for(const type of ['pointerdown','keydown'])document.addEventListener?.(type,()=>unlock(),true);notify=onNotice;changed=onChange;media.volume=VOLUME;media.onerror=()=>{const src=media.getAttribute?.('src')||'';if(src.includes(VOICE_BASE))return;stop();notify('这段录音无法播放，请换成 MP3 或 M4A。');};synth?.addEventListener?.('voiceschanged',changed);changed();}
+ function setEnabled(value){enabled=value;if(!value)stop();else{unlock();warm();}}
  function setSpoken(value){spoken=value;if(!value)stop();}
  function release(kind){const old=clips.get(kind);if(old)old.urls.forEach(url=>URL.revokeObjectURL(url));clips.delete(kind);}
  // 选择文件：替换该角色的全部录音。生日歌录音可以更长。

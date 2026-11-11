@@ -25,9 +25,17 @@ const BACKGROUNDS = [
  ['photo-booth-comic-v1', 'assets/photo-backgrounds/photo-booth-comic-v1.png'],
  ['photo-booth-carnival-v1', 'assets/photo-backgrounds/photo-booth-carnival-v1.png'],
  ['photo-booth-neon-v1', 'assets/photo-backgrounds/photo-booth-neon-v1.png'],
+ ['photo-booth-excavator-stage-v1', 'assets/photo-backgrounds/photo-booth-excavator-stage-v1.png'],
+ ['photo-booth-excavator-blueprint-v1', 'assets/photo-backgrounds/photo-booth-excavator-blueprint-v1.png'],
+ ['photo-booth-excavator-parade-v1', 'assets/photo-backgrounds/photo-booth-excavator-parade-v1.png'],
  ['photo-booth-space-v1', 'assets/photo-backgrounds/photo-booth-space-v1.png'],
  ['photo-booth-lantern-v1', 'assets/photo-backgrounds/photo-booth-lantern-v1.png'],
  ['photo-booth-ocean-v1', 'assets/photo-backgrounds/photo-booth-ocean-v1.png'],
+ ['fullbleed-qiqi-2yo-collage', 'assets/photo-backgrounds/fullbleed-qiqi-2yo-collage.png'],
+ ['fullbleed-qiqi-birthday-wall', 'assets/photo-backgrounds/fullbleed-qiqi-birthday-wall.png'],
+ ['hall-blueprint', 'assets/photo-backgrounds/hall-blueprint.png'],
+ ['hall-industrial-orange', 'assets/photo-backgrounds/hall-industrial-orange.png'],
+ ['hall-retro-toy', 'assets/photo-backgrounds/hall-retro-toy.png'],
 ];
 const MAX_WIDTH = 2560;
 

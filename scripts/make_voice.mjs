@@ -16,7 +16,7 @@ const OUT = path.join(ROOT, 'assets/voice');
 const force = process.argv.includes('--force');
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null;
 
-// 角色音色：小龙齐齐用男童声，鼠妈妈温柔女声，公鸡爸爸活泼男声，旁白用可爱女声。
+// 角色音色：齐齐用男童声，妈妈温柔女声，爸爸活泼男声，旁白用可爱女声。
 // style 为 Azure 的情感风格（edge-tts 不支持，会忽略）。
 export const VOICES = {
   narrator: {voice: 'zh-CN-XiaoyiNeural', rate: '-8%', pitch: '+0Hz', style: 'cheerful'},
