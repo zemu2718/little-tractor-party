@@ -451,3 +451,18 @@ to{transform:translateX(-50%) translateY(-10%) rotate(7deg) scale(.97,1.04)}}
 .sheet{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);width:min(680px,calc(100vw - 20px));max-height:min(68vh,560px);max-height:min(68dvh,560px);overflow:auto;padding:8px;background:#fff9eef8;border:1px solid #45654328;border-radius:20px;box-shadow:0 12px 40px #31554833}
 .context-row{flex-wrap:nowrap;overflow-x:auto;max-width:calc(100vw - 32px)}.context-row button{min-height:36px;padding:7px 12px}
 @media(max-height:460px){.dock button,.dock summary{min-height:36px;padding:6px 9px;font-size:12px}.sheet{max-height:72dvh}}
+
+/* 派对展示时的家长浮层：长按「家长」弹出，不退出展示；以及生日仪式「准备好了吗」的开始按钮。 */
+.show-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:max(10px,env(safe-area-inset-bottom));z-index:31;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;width:max-content;max-width:calc(100vw - 20px);padding:5px;border-radius:26px;background:#fff9eef5;border:1px solid #45654328;box-shadow:0 10px 32px #31554840}
+.show-status{padding:0 10px;color:#416545;font-size:12px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.show-bar button{min-height:40px;padding:8px 13px;border:0;border-radius:999px;background:#e6efda;color:var(--ink);font-size:13px;font-weight:700;white-space:nowrap;cursor:pointer}
+.show-bar .primary{background:#f4ce76;color:#345b45;font-weight:800}
+@media(max-height:460px){.show-bar button{min-height:36px;padding:6px 10px;font-size:12px}.show-status{font-size:11px}}
+#ceremony-go{position:absolute;left:50%;bottom:13%;z-index:6;transform:translateX(-50%);border:.35cqw solid #fff;border-radius:999px;padding:1.1cqw 3.6cqw;background:#ff8f3a;color:#fff;font-size:3cqw;font-weight:900;letter-spacing:.1em;box-shadow:0 .6cqw 1.8cqw #0003;cursor:pointer;animation:go-pulse 1.6s ease-in-out infinite}
+@keyframes go-pulse{50%{transform:translateX(-50%) scale(1.06)}}
+.calm #ceremony-go{animation:none}
+/* 「更多」分成「派对中」和「派对前准备」两组；准备情况一眼看出还缺什么。 */
+.sheet-title{margin:8px 6px 3px;font-size:12px;font-weight:800;color:#5c7b5f;letter-spacing:.12em}
+.sheet-title:first-child{margin-top:2px}
+.prep-status{display:flex;flex-wrap:wrap;gap:3px 12px;margin:2px 6px 6px;font-size:11px;line-height:1.6}
+.prep-status .ok{color:#2f6d52}.prep-status .todo{color:#a46a2c}

@@ -5,11 +5,24 @@ function node(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){
 class Context{constructor(){context=this;this.state='running';this.currentTime=0;this.destination={};}createGain(){return node();}createOscillator(){oscillators++;return node();}async resume(){this.state='running';}async suspend(){this.state='suspended';}}
 const window={AudioContext:Context},document={hidden:false};const timers=new Set();vm.runInNewContext(code,{window,document,setTimeout:(f,ms)=>{const id={f,ms};timers.add(id);return id;},clearTimeout:id=>timers.delete(id)});const audio=window.PartyAudio;
 (async()=>{
- await audio.effect('dragon');assert.equal(oscillators,0);await audio.setEnabled(true);const song=await audio.song();assert.equal(song.lines.length,4);assert(song.total>10);assert(oscillators>0);audio.stopSong();await audio.setEnabled(false);const before=oscillators;await audio.effect('mouse');assert.equal(oscillators,before);
+ await audio.effect('dragon');assert.equal(oscillators,0);await audio.setEnabled(true);const song=await audio.song();assert.equal(song.lines.length,4);assert.equal(song.notes.length,25);assert.equal(JSON.stringify([0,6,12,19].map(i=>song.notes[i])),JSON.stringify([...song.lines]));assert(song.notes.every((t,i)=>!i||t>song.notes[i-1]));assert(song.total>10);assert(oscillators>0);audio.stopSong();await audio.setEnabled(false);const before=oscillators;await audio.effect('mouse');assert.equal(oscillators,before);
  await audio.setEnabled(true);await audio.suspend();let resume;context.resume=()=>new Promise(r=>resume=r);const pending=audio.song();audio.stopSong();resume();assert.equal(await pending,null);assert.equal(oscillators,before);
  context.state='running';await audio.setEnabled(true);const beforeLoop=oscillators;await audio.startLoop();assert(oscillators>beforeLoop);assert(timers.size>0);audio.stopLoop();const afterStop=oscillators;for(const t of [...timers])t.f();assert.equal(oscillators,afterStop);
- context.state='running';document.hidden=true;await audio.effect('rooster');assert.equal(oscillators,afterStop);assert.equal(await audio.song(),null);
- console.log('PASS: audio opt-in, song timing, mute, cancelled pending audio, hidden-page silence, built-in loop start/stop');
+ // 每首内置曲目都能完整播一轮且每个音都是有效频率；换曲会重启循环，未知名字退回八音盒；「每轮换一首」按顺序换。
+ const hz=[];const realOsc=Context.prototype.createOscillator;Context.prototype.createOscillator=function(){const o=realOsc.call(this);o.frequency.setValueAtTime=v=>hz.push(v);return o;};
+ assert.deepEqual([...audio.loopTracks],['musicbox','march','lullaby','birthday']);
+ for(const name of audio.loopTracks){audio.setLoopTrack(name);await audio.startLoop();assert.equal(audio.currentTrack(),name);hz.length=0;for(let k=0;k<25;k++){context.currentTime+=1;for(const t of [...timers].filter(t=>t.ms===200)){timers.delete(t);t.f();}}assert(hz.length>20,name);assert(hz.every(Number.isFinite),name+' plays only known notes');audio.stopLoop();}
+ await audio.startLoop();const restarts=oscillators;audio.setLoopTrack('march');await new Promise(setImmediate);assert.equal(audio.currentTrack(),'march');audio.setLoopTrack('nope');assert.equal(audio.currentTrack(),'musicbox');
+ // 换曲交叉淡化：旧曲淡出到 0 再断开，新曲从静音淡入。
+ {const ramps=[];const realGain=Context.prototype.createGain;Context.prototype.createGain=function(){const g=realGain.call(this);g.gain.linearRampToValueAtTime=(v,t)=>ramps.push({g,v,t});g.disconnect=function(){this.disconnected=true;};return g;};
+  audio.setLoopTrack('musicbox');await audio.startLoop();audio.setLoopTrack('lullaby');await new Promise(setImmediate);
+  assert(ramps.some(r=>r.v===0),'old track fades out');assert(ramps.some(r=>r.v>0),'new track fades in');
+  const out=ramps.find(r=>r.v===0).g;assert(!out.disconnected);[...timers].filter(t=>t.ms===1200).forEach(t=>{timers.delete(t);t.f();});assert(out.disconnected,'old track disconnected after the fade');
+  audio.stopLoop();Context.prototype.createGain=realGain;}
+ audio.setLoopTrack('rotate');const first=audio.currentTrack();audio.nextLoopTrack();assert.notEqual(audio.currentTrack(),first);audio.stopLoop();audio.setLoopTrack('musicbox');audio.nextLoopTrack();assert.equal(audio.currentTrack(),'musicbox');
+ Context.prototype.createOscillator=realOsc;const afterTracks=oscillators;
+ context.state='running';document.hidden=true;await audio.effect('rooster');assert.equal(oscillators,afterTracks);assert.equal(await audio.song(),null);
+ console.log('PASS: audio opt-in, song timing, mute, cancelled pending audio, hidden-page silence, built-in loop start/stop, four built-in tracks (valid notes, switch crossfades, fallback, rotate)');
  await samples();
 })().catch(e=>{console.error(e);process.exitCode=1;});
 

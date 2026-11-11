@@ -89,8 +89,9 @@ window.PartyAudio = (() => {
  async function setEnabled(value){enabled=value;if(value){await ready();if(enabled){bus.gain.setValueAtTime(MASTER,context.currentTime);preload();}}else{stopSong();stopEffects();stopLoop();if(bus)bus.gain.setValueAtTime(0,context.currentTime);}}
  async function song(){
   stopEffects();stopSong();stopLoop();const run=songId;await ready();if(run!==songId||!enabled||document.hidden)return null;
-  songBus=context.createGain();songBus.connect(bus);const start=context.currentTime+.12;let time=start,beat=0;const lines=[];
-  melody.forEach(([name,duration],i)=>{if([0,6,12,19].includes(i))lines.push(time-start+.12);bell(notes[name],time,Math.max(.65,duration*.8),.3,songBus);time+=duration*BEAT;beat+=duration;});
+  songBus=context.createGain();songBus.connect(bus);const start=context.currentTime+.12;let time=start,beat=0;const lines=[],noteTimes=[];
+  // 返回每个音符的开始时间（相对调用时刻，秒），字幕按它逐字高亮，和旋律对齐。
+  melody.forEach(([name,duration],i)=>{noteTimes.push(time-start+.12);if([0,6,12,19].includes(i))lines.push(time-start+.12);bell(notes[name],time,Math.max(.65,duration*.8),.3,songBus);time+=duration*BEAT;beat+=duration;});
   // 伴奏：低音“嘭”+ 两拍轻和弦“嚓嚓”+ 每拍沙锤。
   let chord='C';
   for(let b=1;b<beat;b++){
@@ -102,7 +103,7 @@ window.PartyAudio = (() => {
   }
   // 结尾和弦与欢呼小号角。
   const end=start+beat*BEAT;[...chords.C.triad,'C5'].forEach(n=>bell(notes[n],end-.6,1.8,.09,songBus));
-  return {lines,total:time-start+.8};
+  return {lines,notes:noteTimes,total:time-start+.8};
  }
  // 返回音效时长（秒），便于台词等叫声结束再开口；没有播放时返回 0。
  async function effect(kind){
@@ -134,13 +135,41 @@ window.PartyAudio = (() => {
   else if(kind==='found'){['G5','A5','B5','C6','E6'].forEach((n,i)=>bell(notes[n],t+i*.09,.5,.22,out));noise(t,.25,.12,out,'highpass',5000);}
   else {['C5','E5','G5'].forEach((n,i)=>bell(notes[n],t+i*.15,.8,.24,out));}
  }
- // 相册内置轻快八音盒循环：原创旋律，提前 0.6 秒排程。
+ // 内置背景音乐：几首原创/公有领域旋律，全部实时合成，提前 0.6 秒排程。每首是一个按“步”演奏的循环，
+ // play(步序号, 开始时间, 输出) 负责这一步要响的音；setLoopTrack 换曲，'rotate' 时由页面每轮调 nextLoopTrack 换下一首。
  const loopMelody=['C5','E5','G5','E5','A5','G5','E5','C5','D5','F5','A5','F5','G5','E5','D5',null,'E5','G5','C6','G5','A5','G5','E5','G5','F5','E5','D5','B4','C5',null,'G4',null];
- const loopBass=['C3','F3','C3','G2'],STEP=.27;
- async function startLoop(){
+ const loopBass=['C3','F3','C3','G2'];
+ const MARCH=['G4','C5','E5','C5','G4','C5','E5',null,'F4','A4','D5','A4','G4','B4','D5',null,'E5','D5','C5','E5','D5','C5','B4','A4','G4','B4','D5','B4','C5',null,'C5',null];
+ const MARCH_BASS=['C3','G2','F3','G2','C3','G2','G2','C3'];
+ const LULLABY=['E5',null,'G5','E5',null,'D5','C5',null,'D5','E5',null,null,'D5',null,'F5','D5',null,'B4','C5',null,null,'G4',null,null];
+ const LULLABY_BASS=['C3','C3','G2','C3'],LULLABY_CHORD=['G3','G3','B3','G3'];
+ // 生日歌变奏：用生日歌旋律（每拍 4 步）配轻快的圆舞曲伴奏；补 1 拍休止让循环正好落在三拍子上。
+ const BIRTHDAY=new Map();let birthdaySteps=0;for(const [name,duration] of melody){BIRTHDAY.set(birthdaySteps,[name,duration]);birthdaySteps+=Math.round(duration*4);}
+ const chordAt=b=>{let c='C';for(const [at,name] of chordChanges)if(at<=b)c=name;return c;};
+ const TRACKS={
+  musicbox:{step:.27,length:32,play(s,t,out){const n=loopMelody[s];if(n)bell(notes[n],t,.6,.12,out);if(s%8===0)tone(notes[loopBass[s/8|0]],t,1.6,.13,'triangle',out);if(s%2===0)noise(t,.04,.025,out,'highpass',7000);}},
+  march:{step:.2,length:32,play(s,t,out){const n=MARCH[s];if(n){tone(notes[n],t,.2,.07,'triangle',out);bell(notes[n],t,.3,.05,out);}if(s%4===0)tone(notes[MARCH_BASS[s/4|0]],t,.3,.16,'triangle',out);if(s%8===0)noise(t,.09,.05,out,'lowpass',180);if(s%8===4)noise(t,.07,.035,out,'bandpass',1800);if(s%2===1)noise(t,.03,.014,out,'highpass',8000);}},
+  lullaby:{step:.36,length:24,play(s,t,out){const n=LULLABY[s];if(n)bell(notes[n],t,1.3,.1,out);const bar=s/6|0;if(s%6===0)tone(notes[LULLABY_BASS[bar]],t,2,.1,'sine',out);else if(s%6===2||s%6===4)tone(notes[LULLABY_CHORD[bar]],t,.9,.035,'sine',out);}},
+  birthday:{step:.14,length:birthdaySteps+4,play(s,t,out){const hit=BIRTHDAY.get(s);if(hit)bell(notes[hit[0]],t,Math.max(.5,hit[1]*.55),.11,out);if(s%4)return;const b=s/4,c=chords[chordAt(b)];if(b<1||b*4>=birthdaySteps)return;if((b-1)%3===0)tone(notes[c.bass],t,.5,.15,'triangle',out);else c.triad.forEach(n=>tone(notes[n],t,.3,.025,'sine',out));noise(t,.04,.02,out,'highpass',7000);}}
+ };
+ const TRACK_ORDER=Object.keys(TRACKS);let trackMode='musicbox',rotateIndex=0,playingTrack='';
+ const currentTrack=()=>trackMode==='rotate'?TRACK_ORDER[rotateIndex%TRACK_ORDER.length]:TRACKS[trackMode]?trackMode:'musicbox';
+ // 换曲时交叉淡化：旧曲在 FADE 秒内淡出后断开，新曲从静音淡入，不再硬切。
+ const FADE=1;
+ function restartLoop(){
+  if(!loopBus)return;const old=loopBus,now=context.currentTime;loopBus=null;loopId++;clearTimeout(loopTimer);
+  try{old.gain.cancelScheduledValues?.(now);old.gain.setValueAtTime(old.gain.value??loopGain(),now);old.gain.linearRampToValueAtTime?.(0,now+FADE);}catch{}
+  setTimeout(()=>{try{old.disconnect();}catch{}},FADE*1000+200);
+  startLoop(true).catch(()=>{});
+ }
+ function setLoopTrack(name){trackMode=String(name||'musicbox');if(loopBus&&playingTrack!==currentTrack())restartLoop();}
+ function nextLoopTrack(){if(trackMode!=='rotate')return;rotateIndex++;if(loopBus&&playingTrack!==currentTrack())restartLoop();}
+ async function startLoop(fade=false){
   if(loopBus)return;const run=++loopId;await ready();if(run!==loopId||!enabled||document.hidden||loopBus)return;
+  playingTrack=currentTrack();const track=TRACKS[playingTrack];
   loopBus=context.createGain();loopBus.gain.value=loopGain();loopBus.connect(bus);let next=context.currentTime+.1,step=0;
-  const pump=()=>{if(run!==loopId)return;while(next<context.currentTime+.6){const n=loopMelody[step%loopMelody.length];if(n)bell(notes[n],next,.6,.12,loopBus);if(step%8===0)tone(notes[loopBass[(step/8|0)%loopBass.length]],next,1.6,.13,'triangle',loopBus);if(step%2===0)noise(next,.04,.025,loopBus,'highpass',7000);next+=STEP;step++;}loopTimer=setTimeout(pump,200);};
+  if(fade){const g=loopBus.gain,now=context.currentTime;try{g.setValueAtTime(.0001,now);g.linearRampToValueAtTime?.(loopGain(),now+FADE);}catch{}}
+  const pump=()=>{if(run!==loopId)return;while(next<context.currentTime+.6){track.play(step%track.length,next,loopBus);next+=track.step;step++;}loopTimer=setTimeout(pump,200);};
   pump();
  }
  // 背景循环音量：派对展示时更轻；角色说话时自动压低（ducking），说完再慢慢恢复。
@@ -149,5 +178,5 @@ window.PartyAudio = (() => {
  function setLoopLevel(value){loopLevel=value;applyLoop();}
  function duck(on){ducked=Boolean(on);applyLoop();}
  async function suspend(){stopEffects();stopLoop();if(context&&context.state==='running')await context.suspend();}
- return {setEnabled,song,stopSong,stopEffects,effect,startLoop,stopLoop,suspend,setLoopLevel,duck};
+ return {setEnabled,song,stopSong,stopEffects,effect,startLoop,stopLoop,suspend,setLoopLevel,duck,setLoopTrack,nextLoopTrack,loopTracks:TRACK_ORDER,currentTrack};
 })();

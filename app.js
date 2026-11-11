@@ -12,7 +12,8 @@ let micStream=null,micContext=null,micTimer,micRun=0,micPending=false;
 let leaveTimer,leaving=null,cheerTimer,countdownTimers=[],counting=false,findTimers=[],findTarget=null,findCount=0;
 let lastGreeting=0,lastSparkle=0,suppressClick=0,burstSeed=0,greetStyle=0;
 let danceOn=false,danceTimers=[],peeking=false;
-let showMode=false,ceremonyOn=false,ceremonyTimer,ceremonyWatch,performCount=0,showUntil=0;
+let showMode=false,ceremonyOn=false,ceremonyStage='',ceremonyTimers=[],performCount=0,showUntil=0;
+let albumCursor=0,albumRoundStart=0,albumRoundSize=0,showBarTimer,showBarTick;
 const audio=window.PartyAudio;
 const voice=window.PartyVoice;
 const PALETTE=['#ff5d73','#ffb703','#06d6a0','#4cc9f0','#f72585','#ffd60a','#8ac926','#ff8fab','#ffffff'];
@@ -104,7 +105,7 @@ $('photo-booth-hide').onclick=()=>showPhotoBoothPanel(false);
 $('photo-booth-prev').onclick=()=>{showPhotoBoothItem(photoBoothIndex-1);schedulePhotoBoothCarousel();};
 $('photo-booth-next').onclick=()=>{showPhotoBoothItem(photoBoothIndex+1);schedulePhotoBoothCarousel();};
 $('photo-booth-pick').onclick=()=>setPhotoBoothDrawer($('photo-booth-drawer').hidden);
-$('photo-booth-music').onclick=async()=>{if(!sound&&!await enableSound(true))return;photoBoothMusicOn=!photoBoothMusicOn;updatePhotoBoothMusic();syncMusic();if(photoBoothMusicOn&&!musicURL&&!$('builtin-music').checked)tell('还没有背景音乐：请在设置里选择音乐，或勾选内置轻音乐。');};
+$('photo-booth-music').onclick=async()=>{if(!sound&&!await enableSound(true))return;photoBoothMusicOn=!photoBoothMusicOn;updatePhotoBoothMusic();syncMusic();if(photoBoothMusicOn&&!musicURL&&!builtinOn())tell('还没有背景音乐：请在「更多」里选择音乐，或选一首内置音乐。');};
 $('photo-background-file').onchange=event=>{const files=[...event.target.files||[]].filter(f=>!f.type||f.type.startsWith('image/'));event.target.value='';if(!files.length)return;for(const file of files)photoBoothItems.push({label:file.name.replace(/\.[^.]+$/,'')||'自定义背景',src:URL.createObjectURL(file),file,custom:true});photoBoothIndex=photoBoothItems.length-files.length;renderPhotoBoothItems();savePhotoBooth();};
 $('photo-booth-toggle').onclick=()=>{if(photoBoothPlaying){stopPhotoBoothCarousel();return;}photoBoothPlaying=true;$('photo-booth-toggle').textContent='暂停轮播';$('photo-booth-toggle').setAttribute('aria-pressed','true');schedulePhotoBoothCarousel();};
 $('photo-booth-delete').onclick=()=>{if(photoBoothItems.length<2)return;const [removed]=photoBoothItems.splice(photoBoothIndex,1);if(removed.custom){if(removed.src.startsWith('blob:'))URL.revokeObjectURL(removed.src);}else photoBoothRemoved.push(removed.src);photoBoothIndex%=photoBoothItems.length;renderPhotoBoothItems();savePhotoBooth();schedulePhotoBoothCarousel();};
@@ -199,15 +200,14 @@ function ambientTick(){
 }
 setInterval(ambientTick,2400);
 
-// 角色台词：每次点击轮换；动物先叫一声（喔喔喔、吱吱吱、嗷呜、轰隆隆），再说话。
+// 角色台词：每次点击轮换；只说话，不带“吱吱吱、喔喔喔、嗷呜”这类拟声字（叫声由音效负责）。
 const lines={
- dragon:['嗷呜！齐齐，生日快乐！','我是齐齐，两岁啦！','嗷呜，齐齐来啦！','齐齐真棒，抱抱！'],
- mouse:['吱吱吱！齐齐，妈妈爱你！','吱吱，宝贝生日快乐！','妈妈抱抱齐齐！','吱吱吱，亲亲齐齐！'],
- rooster:['喔喔喔！齐齐，爸爸陪你玩！','喔喔喔，生日快乐！','爸爸给你举高高！','喔喔，齐齐真棒！'],
+ dragon:['齐齐，生日快乐！','我是齐齐，两岁啦！','齐齐来啦！','齐齐真棒，抱抱！'],
+ mouse:['齐齐，妈妈爱你！','宝贝，生日快乐！','妈妈抱抱齐齐！','妈妈亲亲齐齐！'],
+ rooster:['齐齐，爸爸陪你玩！','爸爸祝你生日快乐！','爸爸给你举高高！','齐齐真棒！'],
  excavator:['轰隆隆，嘟嘟嘟！','挖呀挖，挖呀挖！','嘟嘟，挖掘机来啦！'],
  two:['齐齐两岁啦！','一、二，两岁啦！']
 };
-const speakers={dragon:'齐齐说',mouse:'妈妈说',rooster:'爸爸说',excavator:'挖掘机说',two:'数字二说'};
 const ANIMALS=new Set(['dragon','mouse','rooster','excavator']);
 const lineIndex={};
 function nextLine(kind){const list=lines[kind];const i=lineIndex[kind]||0;lineIndex[kind]=i+1;return list[i%list.length];}
@@ -263,12 +263,22 @@ function armIdle(){
  else if(mode==='game'&&!danceOn)armFind();
 }
 
-// 派对展示：自动轮播「挖掘机乐园 → 成长相册（放完一轮）→ 一起玩 → 生日蛋糕」，角色每隔几秒自己出来表演，
+// 派对展示：自动轮播「挖掘机乐园 → 成长相册（一批照片）→ 一起玩 → 生日蛋糕」，角色每隔几秒自己出来表演，
 // 不再反复喊宝宝来点；宝宝点了照样有反应，点得多时会多停留一会儿。生日仪式由家长按一次按钮开始。
-const SHOW_ORDER=['home','album','game','cake'],SHOW_TIME={home:45000,game:36000,cake:30000},PERFORM_GAP=8000;
+const SHOW_ORDER=['home','album','game','cake'],SHOW_TIME={home:45000,game:36000,cake:30000},PERFORM_GAP=8000,ALBUM_ROUND=12;
+const SCENE_NAMES={home:'挖掘机乐园',album:'成长相册',game:'一起玩',cake:'生日蛋糕'};
 const PERFORM={home:['dragon','rooster','mouse','excavator','two'],cake:['dragon','mouse','rooster','cake']};
+// 相册每轮最多放 ALBUM_ROUND 张，下一轮从上次停下的地方接着放：照片再多也都能轮到，四个场景的节奏也均匀。
+function albumRound(){albumRoundStart=photos.length?albumCursor%photos.length:0;albumRoundSize=Math.min(ALBUM_ROUND,photos.length);photoIndex=albumRoundStart;}
+function roundPosition(){return photos.length?(photoIndex-albumRoundStart+photos.length)%photos.length:0;}
+function lastOfRound(){return showMode&&roundPosition()>=Math.min(albumRoundSize||photos.length,photos.length)-1;}
 // 每个场景有固定的结束时间（showUntil）：跳舞、躲猫猫结束后重排定时器不会把它往后推；宝宝点画面时最多延长到“点完后 15 秒”。
-function sceneLength(){if(mode!=='album')return SHOW_TIME[mode]||40000;if(!photos.length)return 800;const each=Number($('duration').value)*1000;return Math.min(photos.reduce((t,p)=>t+(p.video?90000:each),0)+4000,300000);}
+function sceneLength(){
+ if(mode!=='album')return SHOW_TIME[mode]||40000;if(!photos.length)return 800;
+ const each=Number($('duration').value)*1000,size=Math.min(albumRoundSize||photos.length,photos.length);let total=4000;
+ for(let k=0;k<size;k++)total+=photos[(albumRoundStart+k)%photos.length].video?90000:each;
+ return Math.min(total,300000);
+}
 function armShow(){
  if(ceremonyOn)return;const now=performance.now();if(!showUntil)showUntil=now+sceneLength();
  hintTimers.push(setTimeout(showPerform,mode==='game'&&!performCount?1200:5000));
@@ -294,30 +304,58 @@ function perform(){
 }
 function goShow(next){
  performCount=0;showUntil=0;
- if(next==='album'){photoIndex=0;albumPlaying=true;}
+ if(next==='album'){albumRound();albumPlaying=true;}
  if(next==='cake'&&blown){blown=false;updateCake();}
- selectScene(next);
+ selectScene(next);updateShowBar();
+}
+function nextShowScene(){
+ let i=SHOW_ORDER.indexOf(mode);
+ for(let k=0;k<SHOW_ORDER.length;k++){i=(i+1)%SHOW_ORDER.length;const next=SHOW_ORDER[i];if(next==='album'&&!photos.length)continue;if(next!==mode)return next;}
+ return null;
 }
 function nextShow(){
- if(!showMode||ceremonyOn||frozen())return;let i=SHOW_ORDER.indexOf(mode);
- for(let k=0;k<SHOW_ORDER.length;k++){i=(i+1)%SHOW_ORDER.length;const next=SHOW_ORDER[i];if(next==='album'&&!photos.length)continue;if(next!==mode){goShow(next);return;}}
+ if(!showMode||ceremonyOn||frozen())return;
+ // 离开相册时记下放到哪一张，下一轮接着放。
+ if(mode==='album'&&photos.length)albumCursor=(photoIndex+1)%photos.length;
+ const next=nextShowScene();if(next){if(next==='home')audio.nextLoopTrack?.();goShow(next);return;}
  armIdle();
 }
-function stopCeremony(){ceremonyOn=false;clearTimeout(ceremonyTimer);clearTimeout(ceremonyWatch);}
-// 生日仪式：一起唱生日歌 → 许愿 → 3·2·1 人声倒数 → 吹灭、撒花、欢呼鼓掌 → 回到轮播。
+function ceremonyLater(f,ms){ceremonyTimers.push(setTimeout(f,ms));}
+function stopCeremony(){
+ if(ceremonyStage==='ready'||ceremonyStage==='blow')setLyric(blown?'齐齐，生日快乐！':'许个愿吧');
+ ceremonyOn=false;ceremonyStage='';ceremonyTimers.forEach(clearTimeout);ceremonyTimers=[];$('ceremony-go').hidden=true;updateShowBar();
+}
+// 生日仪式：先停在「大家准备好了吗？」等家长点开始（关灯、端蛋糕、抱宝宝都来得及）→ 一起唱生日歌 → 许愿
+// → 3·2·1 人声倒数 → 等齐齐自己点蛋糕吹灭（10 秒没点就自动吹灭）→ 撒花、欢呼鼓掌 → 回到轮播。
+const CEREMONY_READY_MAX=300000,BLOW_WAIT=10000;
 function startCeremony(){
  if(mode!=='cake')selectScene('cake');stopCeremony();clearHint();cancelCountdown();stopSong();
  if(blown){blown=false;updateCake();restart($('birthday-cake'),'relit');}
-
- ceremonyOn=true;showUntil=0;ceremonyWatch=setTimeout(()=>{if(ceremonyOn){stopCeremony();armIdle();}},150000);
+ ceremonyOn=true;ceremonyStage='ready';showUntil=0;setLyric('大家准备好了吗？');$('ceremony-go').hidden=false;
+ // 一直没人点开始就放弃仪式、回到轮播，免得画面一直停在这里。
+ ceremonyLater(()=>{if(ceremonyOn&&ceremonyStage==='ready'){stopCeremony();armIdle();}},CEREMONY_READY_MAX);
+ audio.effect('twinkle').catch(()=>{});updateShowBar();
+}
+function beginCeremonySong(){
+ if(!ceremonyOn||ceremonyStage!=='ready'||mode!=='cake'||frozen())return;
+ ceremonyTimers.forEach(clearTimeout);ceremonyTimers=[];ceremonyStage='song';$('ceremony-go').hidden=true;
+ ceremonyLater(()=>{if(ceremonyOn){stopCeremony();armIdle();}},150000);
  setLyric('大家一起唱生日歌吧！');speakFor('narrator','大家一起唱生日歌吧！','twinkle');
- ceremonyTimer=setTimeout(()=>{if(ceremonyOn&&mode==='cake'&&!frozen()&&!counting&&!blown&&!singing)sing();},3200);
+ ceremonyLater(()=>{if(ceremonyOn&&mode==='cake'&&!frozen()&&!counting&&!blown&&!singing)sing();},3200);
+ updateShowBar();
+}
+function awaitBlow(){
+ if(!ceremonyOn||mode!=='cake'||blown)return;ceremonyStage='blow';setLyric('点蛋糕，吹蜡烛吧！');
+ const cake=hotButton('cake');if(cake)restart(cake,'hinting');
+ ceremonyLater(()=>{if(ceremonyStage==='blow'&&!frozen()){if(cake)restart(cake,'hinting');speakFor('narrator','点蛋糕，吹蜡烛吧！','twinkle');}},4500);
+ ceremonyLater(()=>{if(ceremonyStage==='blow'&&mode==='cake'&&!frozen())blow();},BLOW_WAIT);
+ updateShowBar();
 }
 function tryFullscreen(){try{const el=document.documentElement,enter=el.requestFullscreen||el.webkitRequestFullscreen;if(enter&&!fullscreenElement())Promise.resolve(enter.call(el)).catch(()=>{});}catch{}}
 async function startShow(ceremony=false){
  tryFullscreen();
  if(photoMode){photoMode=false;paused=pausedBeforePhoto;}paused=false;
- enterKid();showMode=true;document.body.classList.add('show');$('kid-nav').hidden=true;audio.setLoopLevel?.(.5);performCount=0;showUntil=0;
+ enterKid();showMode=true;document.body.classList.add('show');$('kid-nav').hidden=true;applyMusicLevel();performCount=0;showUntil=0;
  const on=enableSound(true);
  if(ceremony)startCeremony();else if(mode!=='home')goShow('home');
  syncPause();
@@ -330,21 +368,21 @@ function stopSong(){voice.stop();greetingRun++;songRun++;songTimers.forEach(clea
 function updateSound(){ $('sound').textContent=`声音：${sound?'开':'关'}`;$('sound').setAttribute('aria-pressed',String(sound));$('bgm').muted=!sound;$('photo-video').muted=!sound;voice.setEnabled(sound); }
 async function enableSound(value){const run=++soundRun;sound=value;updateSound();try{await audio.setEnabled(value);}catch{if(run!==soundRun)return sound;sound=false;updateSound();tell('此浏览器暂时无法播放声音，仍可继续玩。');}if(run!==soundRun)return sound;if(!sound){stopSong();wantsMusic=false;musicRun++;$('bgm').pause();updateMusic();}return sound;}
 $('sound').onclick=async()=>{await enableSound(!sound);syncMusic();};
-function updateMusic(){ $('music-toggle').textContent=$('bgm').paused?'播放音乐':'暂停音乐';$('music-toggle').disabled=!musicURL;$('clear-music').disabled=!musicURL; }
+function updateMusic(){ $('music-toggle').textContent=$('bgm').paused?'播放音乐':'暂停音乐';$('music-toggle').disabled=!musicURL;$('clear-music').disabled=!musicURL;updatePrep(); }
 function updatePhotoBoothMusic(){$('photo-booth-music').textContent=`音乐：${photoBoothMusicOn?'开':'关'}`;$('photo-booth-music').setAttribute('aria-pressed',String(photoBoothMusicOn));}
 function syncMusic(){
  const bgm=$('bgm'),run=++musicRun;
  const video=Boolean(photos[photoIndex]?.video);
  // 拍照背景打开时，只听它自己的「背景音乐」开关，后面场景的音乐一律不响，也不受场景暂停影响。
- const booth=boothOpen(),quiet=booth?document.hidden||!sound:singing||counting||frozen()||!sound,builtin=!musicURL&&$('builtin-music').checked;
+ const booth=boothOpen(),quiet=booth?document.hidden||!sound:singing||counting||frozen()||!sound,builtin=!musicURL&&builtinOn();
  const showLoop=showMode&&builtin&&!(mode==='album'&&video);
  const loop=!quiet&&(booth?photoBoothMusicOn&&builtin:(showLoop||(builtin&&mode==='album'&&photos.length>0&&albumPlaying&&!importing&&!video)||(danceOn&&mode==='game')));
  if(loop)audio.startLoop().catch(()=>{});else audio.stopLoop();
  const music=()=>sound&&!quiet&&(booth?Boolean(photoBoothMusicOn&&musicURL):Boolean((wantsMusic||showMode&&musicURL)&&(mode==='album'||showMode)&&!video));
  if(music()){bgm.play().then(()=>{if(run!==musicRun)return;if(!music())bgm.pause();updateMusic();}).catch(()=>{if(run!==musicRun)return;wantsMusic=false;updateMusic();tell('音乐暂时无法播放，请点“播放音乐”重试或换一个音频文件。');});}else{bgm.pause();updateMusic();}
 }
-function schedulePhoto(){clearTimeout(albumTimer);if(mode==='album'&&albumPlaying&&!importing&&!frozen()&&!boothOpen()&&photos.length>1&&!photos[photoIndex]?.video){albumTimer=setTimeout(()=>{if(showMode&&photoIndex===photos.length-1){nextShow();return;}photoIndex=(photoIndex+1)%photos.length;renderPhoto();},Number($('duration').value)*1000);}}
-function syncPause(){stage.classList.toggle('paused',paused||photoMode);$('pause').textContent=paused?'继续动画':'暂停动画';$('pause').setAttribute('aria-pressed',String(paused));$('photo').textContent=photoMode?'退出合影':'合影模式';$('photo').setAttribute('aria-pressed',String(photoMode));document.body.classList.toggle('clean',controls.hidden||photoMode);if(frozen()){stopCeremony();clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();stopSong();stopMic();pauseVideo();audio.suspend().catch(()=>{});}else{armIdle();resumeVideo();}schedulePhoto();syncMusic();}
+function schedulePhoto(){clearTimeout(albumTimer);if(mode==='album'&&albumPlaying&&!importing&&!frozen()&&!boothOpen()&&photos.length>1&&!photos[photoIndex]?.video){albumTimer=setTimeout(()=>{if(lastOfRound()){nextShow();return;}photoIndex=(photoIndex+1)%photos.length;renderPhoto();},Number($('duration').value)*1000);}}
+function syncPause(){stage.classList.toggle('paused',paused||photoMode);$('pause').textContent=paused?'继续动画':'暂停动画';$('pause').setAttribute('aria-pressed',String(paused));$('photo').textContent=photoMode?'退出定格':'定格画面';$('photo').setAttribute('aria-pressed',String(photoMode));document.body.classList.toggle('clean',controls.hidden||photoMode);if(frozen()){stopCeremony();clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();stopSong();stopMic();pauseVideo();audio.suspend().catch(()=>{});}else{armIdle();resumeVideo();}schedulePhoto();syncMusic();}
 $('pause').onclick=()=>{if(photoMode){photoMode=false;paused=false;}else paused=!paused;syncPause();};
 $('photo').onclick=()=>{if(photoMode){photoMode=false;paused=pausedBeforePhoto;}else{pausedBeforePhoto=paused;photoMode=true;}syncPause();if(photoMode)showControls(false);};
 $('hide').onclick=()=>showControls(false);
@@ -354,22 +392,49 @@ $('motion-note').hidden=!reduced.matches;
 
 // 亲子模式：自动开声音与常亮；底部大图标可换场景，长按右下角恢复家长操作。
 function exitChildMode(){
- const wasChild=childMode,wasShow=showMode;clearTimeout(parentTimer);childMode=false;showMode=false;stopCeremony();
+ const wasChild=childMode,wasShow=showMode;clearTimeout(parentTimer);closeShowBar();childMode=false;showMode=false;stopCeremony();
  if(wasChild&&window.history?.state?.kidGuard)window.history.back();
- document.body.classList.remove('kid');document.body.classList.remove('show');audio.setLoopLevel?.(.75);
+ document.body.classList.remove('kid');document.body.classList.remove('show');applyMusicLevel();
  $('parent-exit').hidden=true;$('kid-nav').hidden=true;$('parent-exit').classList.remove('holding');showControls(true);
  if(wasShow){armIdle();syncMusic();}
 }
 function enterKid(){if(!childMode)window.history?.pushState?.({kidGuard:true},'');childMode=true;document.body.classList.add('kid');$('parent-exit').hidden=false;showControls(false);requestAwake();}
-$('child-play').onclick=async()=>{if(showMode){showMode=false;stopCeremony();document.body.classList.remove('show');audio.setLoopLevel?.(.75);}selectScene('game');if(photoMode){photoMode=false;paused=pausedBeforePhoto;}paused=false;syncPause();enterKid();$('kid-nav').hidden=false;await enableSound(true);};
+$('child-play').onclick=async()=>{if(showMode){closeShowBar();showMode=false;stopCeremony();document.body.classList.remove('show');applyMusicLevel();}selectScene('game');if(photoMode){photoMode=false;paused=pausedBeforePhoto;}paused=false;syncPause();enterKid();$('kid-nav').hidden=false;await enableSound(true);};
+// 展示时的家长浮层：长按右下角「家长」弹出，不退出展示就能换下一个、开始仪式或结束；10 秒不操作自动收起。
+function parentHold(){if(showMode)openShowBar();else exitChildMode();}
+function showBarOpen(){return !$('show-bar').hidden;}
+function openShowBar(){$('show-bar').hidden=false;$('parent-exit').hidden=true;$('parent-exit').classList.remove('holding');suppressClick=performance.now()+450;updateShowBar();armShowBar();}
+function closeShowBar(){clearTimeout(showBarTimer);clearTimeout(showBarTick);if(!showBarOpen())return;$('show-bar').hidden=true;if(childMode)$('parent-exit').hidden=false;}
+function armShowBar(){clearTimeout(showBarTimer);showBarTimer=setTimeout(closeShowBar,10000);}
+const CEREMONY_STEPS={ready:'生日仪式：准备好就点「开始唱生日歌」',song:'生日仪式：一起唱生日歌',wish:'生日仪式：许愿、倒数',blow:'生日仪式：等齐齐点蛋糕吹蜡烛'};
+function updateShowBar(){
+ clearTimeout(showBarTick);if(!showBarOpen())return;let text;
+ if(ceremonyOn)text=CEREMONY_STEPS[ceremonyStage]||'生日仪式进行中';
+ else{
+  const next=nextShowScene(),left=showUntil?Math.max(0,Math.ceil((showUntil-performance.now())/1000)):0;
+  text=`现在：${SCENE_NAMES[mode]}`;
+  if(mode==='album'&&photos.length)text+=`（本轮 ${roundPosition()+1}/${Math.min(albumRoundSize||photos.length,photos.length)} 张）`;
+  if(next)text+=` · ${left?`约 ${left} 秒后`:'稍后'}换到${SCENE_NAMES[next]}`;
+ }
+ $('show-status').textContent=text;
+ $('show-next').textContent=ceremonyOn?'跳过仪式 →':'下一个 →';
+ $('show-ceremony').textContent=ceremonyStage==='ready'?'开始唱生日歌':ceremonyOn?'重新开始仪式':'生日仪式';
+ showBarTick=setTimeout(updateShowBar,1000);
+}
+$('show-next').onclick=()=>{armShowBar();if(!showMode)return;if(ceremonyOn){stopCeremony();cancelCountdown();stopSong();}nextShow();updateShowBar();};
+$('show-ceremony').onclick=()=>{armShowBar();if(!showMode)return;if(ceremonyStage==='ready')beginCeremonySong();else startCeremony();};
+$('show-exit').onclick=()=>exitChildMode();
+$('show-close').onclick=closeShowBar;
+$('show-bar').addEventListener('pointerdown',armShowBar);
+$('ceremony-go').onclick=beginCeremonySong;
 // 亲子模式防误退：浏览器“返回”（含边缘滑动）会被拦回本页；禁止双指缩放和长按菜单。
 window.addEventListener('popstate',()=>{if(childMode)window.history?.pushState?.({kidGuard:true},'');});
 document.addEventListener('gesturestart',e=>{if(childMode)e.preventDefault?.();});
 document.addEventListener('contextmenu',e=>{if(e.target.closest?.('#stage,#kid-nav'))e.preventDefault();});
 $('kid-nav').onclick=event=>{const b=event.target.closest?.('[data-kid]');if(b)selectScene(b.dataset.kid);};
-$('parent-exit').onpointerdown=event=>{if(event.isPrimary===false||event.button>0)return;event.preventDefault();clearTimeout(parentTimer);$('parent-exit').classList.add('holding');parentTimer=setTimeout(exitChildMode,1100);};
+$('parent-exit').onpointerdown=event=>{if(event.isPrimary===false||event.button>0)return;event.preventDefault();clearTimeout(parentTimer);$('parent-exit').classList.add('holding');parentTimer=setTimeout(parentHold,1100);};
 for(const event of ['pointerup','pointercancel','pointerleave'])$('parent-exit').addEventListener(event,()=>{clearTimeout(parentTimer);$('parent-exit').classList.remove('holding');});
-$('parent-exit').onclick=event=>{if(event.detail===0)exitChildMode();};
+$('parent-exit').onclick=event=>{if(event.detail===0)parentHold();};
 $('parent-exit').oncontextmenu=event=>event.preventDefault();
 // 点空白处：画面上冒出星星；家长模式下同时找回操作栏。
 document.addEventListener('click',e=>{
@@ -399,7 +464,7 @@ function selectScene(next){
   audio.effect('drive').catch(()=>{});
  }
  document.body.setAttribute('data-scene',mode);
- $('album-tools').hidden=mode!=='album';$('album-settings').hidden=mode!=='album';$('cake-tools').hidden=mode!=='cake';$('mic-tools').hidden=mode!=='cake';
+ $('album-tools').hidden=mode!=='album';$('cake-tools').hidden=mode!=='cake';$('mic-tools').hidden=mode!=='cake';
  stage.setAttribute('aria-label',({home:'齐齐的挖掘机乐园',album:'齐齐的成长相册',cake:'齐齐的生日蛋糕',game:'和爸爸妈妈一起玩'})[mode]);
  if(mode==='album')renderPhoto();if(mode==='cake')updateCake();armIdle();syncMusic();
 }
@@ -422,11 +487,40 @@ async function restoreSaved(){
  if(Array.isArray(items)&&!photos.length&&!importing){const ok=items.filter(i=>i?.blob?.size);if(ok.length){photos=ok.map(i=>({url:URL.createObjectURL(i.blob),cap:i.cap||'',video:Boolean(i.video),file:i.blob}));photoIndex=0;albumPlaying=true;restored+=ok.length;updateAlbum();if(mode==='album')renderPhoto();syncMusic();}}
  const clips=await store.get('clips');
  if(clips&&typeof clips==='object'&&!voice.status().count)for(const [kind,list] of Object.entries(clips))if(Array.isArray(list)){const good=list.filter(b=>b?.size);good.forEach(b=>voice.addClip(kind,b));if(good.length){savedClips[kind]=good;restored+=good.length;}}
+ const track=await store.get('music-track');
+ if(typeof track==='string'&&track in TRACK_NAMES){$('builtin-track').value=track;audio.setLoopTrack?.(track);updatePrep();syncMusic();}
+ const level=await store.get('music-level');
+ if(typeof level==='string'&&level in MUSIC_LEVELS){musicLevel=level;applyMusicLevel();}
  const music=await store.get('music');
- if(music?.size&&!musicURL){musicURL=URL.createObjectURL(music);$('bgm').src=musicURL;$('bgm').volume=.7;updateMusic();restored++;}
+ if(music?.size&&!musicURL){musicURL=URL.createObjectURL(music);$('bgm').src=musicURL;applyMusicLevel();updateMusic();restored++;}
  if(restored)tell('已恢复上次保存在这台手机里的照片和录音。');
 }
 
+// 「更多 → 派对前准备」顶部的准备情况：前一晚看一眼就知道还缺什么。
+// 内置背景音乐：几首合成曲目可选（audio.js 的 TRACKS），「每轮换一首」时派对展示每回到挖掘机乐园换下一首。
+const TRACK_NAMES={off:'关闭',musicbox:'八音盒',march:'欢快进行曲',lullaby:'轻柔摇篮曲',birthday:'生日歌变奏',rotate:'列表循环（每轮换一首）'};
+let previewTimer;
+// 音乐音量（小/中/大）：同时作用于内置音乐和自选音乐；展示时内置音乐本来就更轻，角色说话时再压低。
+const MUSIC_LEVELS={low:['小',.5],mid:['中',1],high:['大',1.4]},MUSIC_ORDER=['low','mid','high'];
+let musicLevel='mid',musicDucked=false;
+function applyMusicLevel(){
+ const k=MUSIC_LEVELS[musicLevel][1];audio.setLoopLevel?.((showMode?.5:.75)*k);
+ $('bgm').volume=Math.min(1,(musicDucked?.25:.7)*k);
+ $('music-level').textContent=`音乐音量：${MUSIC_LEVELS[musicLevel][0]}`;
+}
+$('music-level').onclick=()=>{musicLevel=MUSIC_ORDER[(MUSIC_ORDER.indexOf(musicLevel)+1)%MUSIC_ORDER.length];applyMusicLevel();store.put('music-level',musicLevel).catch(()=>{});tell(`音乐音量：${MUSIC_LEVELS[musicLevel][0]}`);};
+function builtinOn(){return $('builtin-track').value!=='off';}
+function updatePrep(){
+ const box=$('prep-status');if(!box)return;const state=voice.status(),clips=k=>state.clipsOf?.(k)??(state.has(k)?1:0);
+ const videos=photos.filter(p=>p.video).length,pics=photos.length-videos,music=musicURL?'自选音乐':builtinOn()?`内置·${TRACK_NAMES[$('builtin-track').value]||'八音盒'}`:'无';
+ const items=[
+  [photos.length>0,photos.length?`照片 ${pics} 张${videos?` · 视频 ${videos} 个`:''}`:'还没有照片'],
+  [clips('mouse')>0,`妈妈录音 ${clips('mouse')} 段`],[clips('rooster')>0,`爸爸录音 ${clips('rooster')} 段`],[clips('dragon')>0,`齐齐录音 ${clips('dragon')} 段`],
+  [true,clips('song')?'生日歌：家人录音':'生日歌：内置旋律'],[music!=='无',`背景音乐：${music}`],
+  [Boolean(navigator.wakeLock),navigator.wakeLock?'屏幕常亮：可用':'屏幕常亮：不可用，请延长手机自动锁屏'],
+ ];
+ box.replaceChildren(...items.map(([ok,text])=>{const s=document.createElement('span');s.className=ok?'ok':'todo';s.textContent=`${ok?'✓':'○'} ${text}`;return s;}));
+}
 // 相册：限定数量与体积，逐张实际解码；失败的文件不会打断已有相册。
 function captionOf(name){let s=name.replace(/\.[^.]+$/,'');if(/^(img|dsc|dscn|pxl|mvimg|mmexport|wx_camera|photo|screenshot|微信图片|image)/i.test(s)||/^[0-9a-f-]{8,}$/i.test(s))return '';return s.replace(/^[\d\s._\-()（）]+/,'').replace(/_/g,' ').trim().slice(0,90);}
 function decode(url){return new Promise((resolve,reject)=>{const img=new Image();const timer=setTimeout(()=>{img.src='';reject(Error('timeout'));},12000);img.onload=()=>{clearTimeout(timer);resolve(img);};img.onerror=()=>{clearTimeout(timer);reject(Error('decode'));};img.src=url;});}
@@ -451,12 +545,12 @@ async function importPhotos(list){
  if(run!==importRun){loaded.forEach(p=>URL.revokeObjectURL(p.url));return;}
  finishImport();
  if(!loaded.length){albumPlaying=importResume;updateAlbum();schedulePhoto();syncMusic();tell('这些照片或视频暂时无法显示，原相册已保留。请换成 JPG、PNG 或 MP4 后重试。');return;}
- photoRun++;const previous=photos;photos=loaded;photoIndex=0;albumPlaying=true;await renderPhoto();syncMusic();
+ photoRun++;const previous=photos;photos=loaded;photoIndex=0;albumCursor=0;albumPlaying=true;await renderPhoto();syncMusic();
  previous.forEach(p=>URL.revokeObjectURL(p.url));
  if(run===importRun)tell(`已准备 ${photos.length} 个照片/视频，保存在这台手机里（不上传），刷新也不会丢。${skipped?'无法显示、动态或超限文件已跳过。':''}`);
  savePhotos();
 }
-function updateAlbum(){const has=photos.length>0;$('scene-album').classList.toggle('has-photos',has);$('album-empty').hidden=has;$('photo-frame').hidden=!has;$('album-count').hidden=!has;$('album-progress').hidden=!has;for(const id of ['album-toggle','clear-photos'])$(id).disabled=!has;for(const id of ['previous','next'])$(id).disabled=photos.length<2;$('album-toggle').textContent=albumPlaying?'暂停相册':'播放相册';$('album-count').textContent=`${photoIndex+1} / ${photos.length}`;$('album-progress').firstElementChild.style.width=has?`${(photoIndex+1)/photos.length*100}%`:'0%';}
+function updateAlbum(){const has=photos.length>0;$('scene-album').classList.toggle('has-photos',has);$('album-empty').hidden=has;$('photo-frame').hidden=!has;$('album-count').hidden=!has;$('album-progress').hidden=!has;for(const id of ['album-toggle','clear-photos'])$(id).disabled=!has;for(const id of ['previous','next'])$(id).disabled=photos.length<2;$('album-toggle').textContent=albumPlaying?'暂停相册':'播放相册';$('album-count').textContent=`${photoIndex+1} / ${photos.length}`;$('album-progress').firstElementChild.style.width=has?`${(photoIndex+1)/photos.length*100}%`:'0%';updatePrep();}
 const IMAGE_RE=/\.(jpe?g|png|webp|avif|bmp|heic|heif)$/i,VIDEO_RE=/\.(mp4|mov|m4v|webm)$/i;
 // 相册运镜：照片在相框里慢慢推拉平移（每张换一种方向）；入场四种轮换；上一张被甩出画面；每 5 张一次小庆祝。
 const CAMERA=[['scale(1) translate(0,0)','scale(1.14) translate(-3%,-2%)'],['scale(1.14) translate(3%,2%)','scale(1.02) translate(0,0)'],['scale(1.1) translate(-3.5%,0)','scale(1.1) translate(3.5%,0)'],['scale(1.12) translate(0,3%)','scale(1.12) translate(0,-2.5%)'],['scale(1.02) translate(2%,-2%)','scale(1.15) translate(-2%,1.5%)']];
@@ -505,7 +599,7 @@ function showVideo(p,run){
  const v=$('photo-video'),img=$('photo-img');img.hidden=true;$('photo-card').hidden=true;img.classList.remove('kb');
  v.onloadedmetadata=()=>{const ar=v.videoWidth/v.videoHeight||16/9;v.style.width=`min(70cqw,${(42*ar).toFixed(1)}cqw)`;};
  v.hidden=false;v.src=p.url;v.muted=!sound;v.volume=1;v.loop=photos.length<2;
- v.onended=()=>{if(run!==photoRun)return;if(showMode&&photoIndex===photos.length-1){nextShow();return;}if(albumPlaying&&photos.length>1){photoIndex=(photoIndex+1)%photos.length;renderPhoto();}};
+ v.onended=()=>{if(run!==photoRun)return;if(lastOfRound()){nextShow();return;}if(albumPlaying&&photos.length>1){photoIndex=(photoIndex+1)%photos.length;renderPhoto();}};
  $('album-bg').style.setProperty('--photo','none');$('photo-caption').textContent=$('captions').checked?p.cap:'';
  if(!frozen()&&mode==='album')v.play?.().catch(()=>{v.muted=true;v.play?.().catch(()=>{});});
  syncMusic();
@@ -515,39 +609,46 @@ const PHOTO_TAP=['哇，齐齐好棒！','是齐齐呀！','齐齐真可爱！']
 function photoTap(event){if(frozen())return;const p=stagePoint(event.clientX,event.clientY);burst(p.x,p.y,12,true);audio.effect('twinkle').catch(()=>{});if(canTalk()&&!photos[photoIndex]?.video){const text=PHOTO_TAP[photoTapCount++%PHOTO_TAP.length];say(text,p.x,p.y-(stage.clientHeight||900)*.1);voice.speak('narrator',text);}}
 function stepPhoto(step){if(!photos.length)return;photoIndex=(photoIndex+step+photos.length)%photos.length;renderPhoto();}
 function pickPhotos(){ $('files').click(); }
-$('empty-pick').onclick=pickPhotos;$('pick').onclick=pickPhotos;$('pick-folder').onclick=()=>$('folder').click();
+$('empty-pick').onclick=pickPhotos;$('pick').onclick=pickPhotos;$('prep-pick').onclick=pickPhotos;$('pick-folder').onclick=()=>$('folder').click();
 for(const id of ['files','folder'])$(id).onchange=e=>{importPhotos(e.target.files);e.target.value='';};
-$('previous').onclick=()=>stepPhoto(-1);$('next').onclick=()=>stepPhoto(1);$('album-toggle').onclick=()=>{albumPlaying=!albumPlaying;updateAlbum();schedulePhoto();syncMusic();};$('duration').onchange=schedulePhoto;$('captions').onchange=renderPhoto;$('builtin-music').onchange=syncMusic;
-$('clear-photos').onclick=()=>{store.drop('photos');importRun++;finishImport();importResume=false;photoRun++;clearTimeout(albumTimer);photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];photoIndex=0;albumPlaying=false;stopVideo();$('photo-img').removeAttribute('src');$('photo-card').hidden=true;$('album-bg').style.setProperty('--photo','none');clearAmbient();updateAlbum();syncMusic();};
+$('previous').onclick=()=>stepPhoto(-1);$('next').onclick=()=>stepPhoto(1);$('album-toggle').onclick=()=>{albumPlaying=!albumPlaying;updateAlbum();schedulePhoto();syncMusic();};$('duration').onchange=schedulePhoto;$('captions').onchange=renderPhoto;$('builtin-track').onchange=async()=>{
+ const value=$('builtin-track').value;audio.setLoopTrack?.(value);store.put('music-track',value).catch(()=>{});updatePrep();syncMusic();clearTimeout(previewTimer);
+ if(value==='off')return;if(musicURL){tell('正在使用自选音乐；移除自选音乐后，才会播放内置音乐。');return;}
+ // 试听 8 秒：当前场景本来就在放音乐时直接换曲；不在放时临时播一下，到点交回 syncMusic 决定要不要继续。
+ if(!await enableSound(true)||$('builtin-track').value!==value)return;audio.startLoop().catch(()=>{});tell(`正在试听「${TRACK_NAMES[value]}」`);previewTimer=setTimeout(syncMusic,8000);
+};
+$('clear-photos').onclick=()=>{store.drop('photos');importRun++;finishImport();importResume=false;photoRun++;clearTimeout(albumTimer);photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];photoIndex=0;albumCursor=0;albumPlaying=false;stopVideo();$('photo-img').removeAttribute('src');$('photo-card').hidden=true;$('album-bg').style.setProperty('--photo','none');clearAmbient();updateAlbum();syncMusic();};
 $('clear-music').onclick=()=>{store.drop('music');musicRun++;wantsMusic=false;$('bgm').pause();$('bgm').removeAttribute('src');$('bgm').load?.();if(musicURL)URL.revokeObjectURL(musicURL);musicURL='';updateMusic();syncMusic();};
-$('pick-music').onclick=()=>$('music-file').click();$('music-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>100*1024*1024){tell('请选择小于 100 MB 的音乐文件。');return;}$('bgm').pause();if(musicURL)URL.revokeObjectURL(musicURL);musicURL=URL.createObjectURL(file);$('bgm').src=musicURL;$('bgm').volume=.7;wantsMusic=false;audio.stopLoop();updateMusic();store.put('music',file).catch(()=>{});tell('音乐已选择，点“播放音乐”开始；派对展示时会全程播放。');};
+$('pick-music').onclick=()=>$('music-file').click();$('music-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>100*1024*1024){tell('请选择小于 100 MB 的音乐文件。');return;}$('bgm').pause();if(musicURL)URL.revokeObjectURL(musicURL);musicURL=URL.createObjectURL(file);$('bgm').src=musicURL;applyMusicLevel();wantsMusic=false;audio.stopLoop();updateMusic();store.put('music',file).catch(()=>{});tell('音乐已选择，点“播放音乐”开始；派对展示时会全程播放。');};
 $('music-toggle').onclick=async()=>{if(!musicURL)return;if(wantsMusic){wantsMusic=false;}else{if(!await enableSound(true))return;wantsMusic=true;}syncMusic();};$('bgm').onerror=()=>{wantsMusic=false;updateMusic();tell('这段音乐无法播放，请尝试 MP3 或其他文件。');};
 window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer?.files.length)importPhotos(e.dataTransfer.files);});
 
 // 蛋糕：唱歌（家人录音优先）、3·2·1 倒数、吹灭动画、点蛋糕重新点亮再玩一次。
-function setLyric(text,duration){
+// delays：每个字相对这一句开头的高亮时间（秒），与旋律音符一一对应；不传就是静态字幕。
+function setLyric(text,delays){
  const el=$('lyric');
- if(!duration){el.classList.remove('karaoke');el.textContent=text;return;}
+ if(!delays){el.classList.remove('karaoke');el.textContent=text;return;}
  const chars=[...text];el.classList.add('karaoke');
- el.replaceChildren(...chars.map((c,i)=>{const s=document.createElement('span');s.textContent=c;s.style.animationDelay=`${(i*duration/chars.length).toFixed(2)}s`;return s;}));
+ el.replaceChildren(...chars.map((c,i)=>{const s=document.createElement('span');s.textContent=c;s.style.animationDelay=`${(delays[i]??0).toFixed(2)}s`;return s;}));
 }
 function updateCake(){const cake=$('birthday-cake');cake.classList.toggle('out',blown);$('cake-title').textContent=blown?'齐齐，生日快乐！蜡烛吹灭啦':'齐齐，生日快乐！';setLyric(blown?'齐齐，生日快乐！':'许个愿吧');$('blow').hidden=blown;$('countdown-blow').hidden=blown;$('relight').hidden=!blown;}
-const LYRICS=['祝你生日快乐','祝你生日快乐','祝齐齐生日快乐','祝你生日快乐'];
-function showLyrics(times,total,run){times.forEach((t,i)=>songTimers.push(setTimeout(()=>{if(run===songRun)setLyric(LYRICS[i],(times[i+1]??total-.8)-t);},t*1000)));}
+// 每句字数 = 这句的音符数（6/6/7/6），第 k 个字跟着第 k 个音符亮起。
+const LYRICS=['祝你生日快乐','祝你生日快乐','祝齐齐生日快乐','祝你生日快乐'],LYRIC_NOTE=[0,6,12,19];
+function showLyrics(song,run){song.lines.forEach((t,i)=>songTimers.push(setTimeout(()=>{if(run!==songRun)return;const notes=song.notes||[];setLyric(LYRICS[i],[...LYRICS[i]].map((_,k)=>Math.max(0,(notes[LYRIC_NOTE[i]+k]??t)-t)));},t*1000)));}
 function startCakeDance(beat,run){if(calm)return;const scene=$('scene-cake');scene.style.setProperty('--beat',`${beat}s`);scene.classList.add('dancing');songTimers.push(setInterval(()=>{if(run===songRun&&!frozen())spawnNote();},beat*1000));}
-function finishSong(run){if(run!==songRun)return;stopSong();setLyric(blown?'齐齐，生日快乐！':'许个愿，吹蜡烛吧！');if(blown)return;voice.speak('narrator','许个愿，吹蜡烛吧！');if(ceremonyOn){clearTimeout(ceremonyTimer);ceremonyTimer=setTimeout(()=>{if(ceremonyOn&&mode==='cake'&&!frozen())startCountdown();},3400);}}
+function finishSong(run){if(run!==songRun)return;stopSong();setLyric(blown?'齐齐，生日快乐！':'许个愿，吹蜡烛吧！');if(blown)return;voice.speak('narrator','许个愿，吹蜡烛吧！');if(ceremonyOn){ceremonyStage='wish';updateShowBar();ceremonyLater(()=>{if(ceremonyOn&&mode==='cake'&&!frozen())startCountdown();},3400);}}
 async function sing(){
- if(singing){stopSong();return;}if(frozen()){tell('先退出合影或继续动画，再一起唱歌吧。');return;}
+ if(singing){stopSong();return;}if(frozen()){tell('先退出定格画面或继续动画，再一起唱歌吧。');return;}
  cancelCountdown();stopMic();const run=++songRun;singing=true;$('sing').textContent='停止生日歌';syncMusic();
  if(!await enableSound(true)||run!==songRun||mode!=='cake'||frozen())return;
  try{
   if(voice.status().has('song')){
    const playing=await voice.speak('song','',{max:180000,onEnd:()=>finishSong(run)});
    if(run!==songRun)return;
-   if(playing){startCakeDance(.6,run);const d=voice.duration();if(d){const step=d/LYRICS.length;showLyrics(LYRICS.map((_,i)=>i*step),d+.8,run);}else setLyric('祝齐齐生日快乐');return;}
+   if(playing){startCakeDance(.6,run);setLyric('祝齐齐生日快乐');return;}// 家人录音的节奏未知，只显示一行静态字幕，不做逐字高亮
   }
   const song=await audio.song();if(run!==songRun||mode!=='cake')return;if(!song){stopSong();return;}
-  startCakeDance(.58,run);showLyrics(song.lines,song.total,run);songTimers.push(setTimeout(()=>finishSong(run),song.total*1000));
+  startCakeDance(.58,run);showLyrics(song,run);songTimers.push(setTimeout(()=>finishSong(run),song.total*1000));
  }catch{stopSong();tell('暂时无法播放生日歌，可以大家一起唱。');}
 }
 // 倒数用旁白喊出来（宝宝不认字，光看数字不够热闹）。
@@ -555,10 +656,10 @@ const COUNTDOWN=['三！','二！','一！','呼——吹蜡烛！'];
 const COUNT_STEP=1000;
 function cancelCountdown(){countdownTimers.forEach(clearTimeout);countdownTimers=[];counting=false;$('countdown').textContent='';$('countdown').classList.remove('show');}
 function startCountdown(){
- if(mode!=='cake'||blown||counting)return;if(frozen()){tell('请先退出合影或继续动画。');return;}
+ if(mode!=='cake'||blown||counting)return;if(frozen()){tell('请先退出定格画面或继续动画。');return;}
  stopSong();stopMic();counting=true;syncMusic();clearHint();const steps=['3','2','1','呼～'];
  steps.forEach((s,i)=>countdownTimers.push(setTimeout(()=>{$('countdown').textContent=s;restart($('countdown'),'show');audio.effect(i<3?'beep':'puff').catch(()=>{});voice.speak('narrator',COUNTDOWN[i]);},i*COUNT_STEP)));
- countdownTimers.push(setTimeout(()=>{cancelCountdown();blow();},steps.length*COUNT_STEP-150));
+ countdownTimers.push(setTimeout(()=>{cancelCountdown();if(ceremonyOn)awaitBlow();else blow();},steps.length*COUNT_STEP-150));
 }
 function blow(){
  if(mode!=='cake'||blown)return;cancelCountdown();stopSong();stopMic();blown=true;updateCake();
@@ -576,6 +677,8 @@ function finale(){
 function relight(){stopSong();stopMic();cancelCountdown();blown=false;clearEffects();updateCake();restart($('birthday-cake'),'relit');}
 function cakeTap(){
  if(counting)return;
+ // 仪式里只有「等齐齐吹蜡烛」这一步点蛋糕才吹灭；准备和唱歌时点蛋糕只冒星星，不会跳过生日歌。
+ if(ceremonyOn){if(ceremonyStage==='blow')blow();else{const p=stagePoint();burst(p.x,p.y*.7,10);audio.effect('twinkle').catch(()=>{});}return;}
  if(blown){relight();const p=stagePoint();burst(p.x,p.y*.7,10);say('蜡烛又亮啦，再吹一次！',p.x,p.y*.55);speakFor('narrator','蜡烛又亮啦，再吹一次！','twinkle');}
  else startCountdown();
 }
@@ -583,7 +686,7 @@ $('sing').onclick=sing;$('blow').onclick=blow;$('countdown-blow').onclick=startC
 
 // 麦克风仅通过明确按钮启用；校准环境音，连续响度超阈值触发，键盘/按钮始终可用。
 function stopMic(){micRun++;clearInterval(micTimer);micStream?.getTracks().forEach(t=>t.stop());micStream=null;if(micContext){micContext.close().catch(()=>{});micContext=null;}micPending=false;$('mic-toggle').disabled=false;$('mic-toggle').textContent='开启吹气感应';$('mic-toggle').setAttribute('aria-pressed','false');$('mic-status').textContent='';}
-async function startMic(){if(micStream||micPending){stopMic();return;}if(blown){tell('先重新点亮蜡烛吧。');return;}if(frozen()){tell('请先退出合影或继续动画。');return;}if(!navigator.mediaDevices?.getUserMedia){tell('当前环境不支持麦克风，请直接点“吹灭蜡烛”。');return;}stopSong();const run=++micRun;micPending=true;$('mic-toggle').disabled=true;
+async function startMic(){if(micStream||micPending){stopMic();return;}if(blown){tell('先重新点亮蜡烛吧。');return;}if(frozen()){tell('请先退出定格画面或继续动画。');return;}if(!navigator.mediaDevices?.getUserMedia){tell('当前环境不支持麦克风，请直接点“吹灭蜡烛”。');return;}stopSong();const run=++micRun;micPending=true;$('mic-toggle').disabled=true;
  try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});if(run!==micRun||mode!=='cake'||document.hidden){stream.getTracks().forEach(t=>t.stop());return;}micStream=stream;const AC=window.AudioContext||window.webkitAudioContext;micContext=new AC();await micContext.resume();if(run!==micRun)return;const analyser=micContext.createAnalyser();analyser.fftSize=1024;micContext.createMediaStreamSource(stream).connect(analyser);const samples=new Float32Array(analyser.fftSize);let count=0,ambient=0,over=0;const started=performance.now();$('mic-toggle').textContent='关闭吹气感应';$('mic-toggle').setAttribute('aria-pressed','true');$('mic-status').textContent='先安静一小会儿，正在准备…';
  micTimer=setInterval(()=>{analyser.getFloatTimeDomainData(samples);let sum=0;for(const n of samples)sum+=n*n;const rms=Math.sqrt(sum/samples.length);if(performance.now()-started<1500){ambient=(ambient*count+rms)/++count;return;}const threshold=Math.max(.07,ambient*4);$('mic-status').textContent='对着手机轻轻吹气，也可以点按钮';over=rms>threshold?over+50:Math.max(0,over-25);if(over>=400)blow();},50);
  }catch{if(run===micRun){stopMic();tell('无法使用麦克风，直接点“吹灭蜡烛”就好。');}}finally{if(run===micRun){micPending=false;$('mic-toggle').disabled=false;}}
@@ -594,7 +697,7 @@ $('mic-toggle').onclick=startMic;
 function updateVoices(){const state=voice.status();$('clear-voices').disabled=!state.count;for(const [id,kind,label] of [['pick-mom','mouse','妈妈录音'],['pick-dad','rooster','爸爸录音'],['pick-child','dragon','齐齐录音'],['pick-song','song','生日歌录音']])$(id).textContent=state.has(kind)?`更换${label}`:`选择${label}`;$('voice-status').textContent=state.count?`已准备 ${state.count} 段家人录音 · 只在本页使用`:state.voiced?'角色已配好童声配音，也可以录下家人的声音替换。':state.local?'可使用设备离线中文声音，也可以选择家人录音。':'设备暂无离线中文声音；可以选择家人录音，或使用轻柔音效。';}
 voice.init($('voice-audio'),tell,()=>{updateVoices();try{recLabels();}catch{}});
 // 角色说话时把背景音乐压低，说完再恢复。
-voice.onSpeaking?.(on=>{audio.duck?.(on);$('bgm').volume=on?.25:.7;});
+voice.onSpeaking?.(on=>{audio.duck?.(on);musicDucked=on;applyMusicLevel();});
 $('spoken').onchange=()=>voice.setSpoken($('spoken').checked);
 let voiceTarget='mouse';
 for(const [id,kind] of [['pick-mom','mouse'],['pick-dad','rooster'],['pick-child','dragon'],['pick-song','song']])$(id).onclick=()=>{voiceTarget=kind;$('voice-file').click();};
@@ -641,7 +744,7 @@ function greetFriend(button,{auto=false,talk=true}={}){
  if(auto&&!talk){audio.effect('twinkle').catch(()=>{});return;}
  if(found)lastGreeting=performance.now();else if(!canTalk()){audio.effect('twinkle').catch(()=>{});return;}
  const text=found?FIND[kind][1]:nextLine(kind);
- $('hello').textContent=found?text:`${speakers[kind]}：${text}`;
+ $('hello').textContent=text;
  if(found){clearFind();speakFor('narrator',text,'found');armFind();}
  else{speakFor(kind,text);if(!auto&&!findTarget&&!peeking)armFind();}
  clearTimeout(helloTimer);helloTimer=setTimeout(()=>$('hello').textContent=helloDefault(),4500);
@@ -660,7 +763,7 @@ $('dance-btn').onclick=startDance;
 // 页面内录音：点一下开始、再点结束；录好立即回放。不上传，刷新后需重录。
 const REC={mouse:['rec-mom','录妈妈'],rooster:['rec-dad','录爸爸'],dragon:['rec-child','录齐齐'],song:['rec-song','录全家唱生日歌']};
 let recorder=null,recStream=null,recTimer,recKind=null;
-function recLabels(){const state=voice.status();for(const [kind,[id,label]] of Object.entries(REC)){const n=state.clipsOf?.(kind)||0;$(id).textContent=n&&kind!=='song'?`${label}（已录 ${n} 段）`:n?`${label}（已录好）`:label;$(id).setAttribute('aria-pressed','false');}}
+function recLabels(){const state=voice.status();for(const [kind,[id,label]] of Object.entries(REC)){const n=state.clipsOf?.(kind)||0;$(id).textContent=n&&kind!=='song'?`${label}（已录 ${n} 段）`:n?`${label}（已录好）`:label;$(id).setAttribute('aria-pressed','false');}updatePrep();}
 function stopRecord(save=true){clearTimeout(recTimer);const r=recorder;recorder=null;recKind=null;if(r){if(!save)r.onstop=null;if(r.state!=='inactive')r.stop();}recStream?.getTracks().forEach(t=>t.stop());recStream=null;recLabels();}
 async function toggleRecord(kind){
  if(recorder){const same=recKind===kind;stopRecord(true);if(same)return;}
@@ -704,9 +807,9 @@ async function acquireWake(show){if(!navigator.wakeLock||wakePending||wakeLock||
 function requestAwake(){if(!navigator.wakeLock)return;wantsAwake=true;acquireWake(false);}
 $('awake').onclick=async()=>{if(!navigator.wakeLock){tell('当前环境不支持常亮，请在手机设置中延长自动锁屏时间。');return;}if(wakeLock){wantsAwake=false;const lock=wakeLock;wakeLock=null;try{await lock.release();}catch{}updateAwake();}else{wantsAwake=true;await acquireWake(true);}};
 document.addEventListener('pointerdown',()=>armMenuIdle(),true);
-$('settings').addEventListener('toggle',()=>armMenuIdle());
+$('settings').addEventListener('toggle',()=>{armMenuIdle();if($('settings').open)updatePrep();});
 document.addEventListener('keydown',e=>{armMenuIdle();if(boothOpen()){if(e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(e.key==='Escape'||e.key.toLowerCase()==='h')restoreMenus();else if(e.key==='ArrowRight'||e.key==='ArrowLeft'){showPhotoBoothItem(photoBoothIndex+(e.key==='ArrowRight'?1:-1));schedulePhotoBoothCarousel();}return;}if(e.key==='Escape'){exitChildMode();return;}if(childMode)return;if(e.ctrlKey||e.metaKey||e.altKey||e.repeat||e.target.closest('input,select,textarea,button,a,summary,dialog'))return;if(/^[1-4]$/.test(e.key)){selectScene(modes[+e.key-1]);return;}if(e.key.toLowerCase()==='h'){restoreMenus();return;}if(mode==='album'){if(e.key==='ArrowRight')stepPhoto(1);if(e.key==='ArrowLeft')stepPhoto(-1);if(e.code==='Space'&&photos.length){e.preventDefault();$('album-toggle').click();}}if(mode==='cake'&&e.code==='Space'){e.preventDefault();blow();}});
-document.addEventListener('visibilitychange',()=>{stage.classList.toggle('background-paused',document.hidden||boothOpen());if(document.hidden){stopCeremony();musicRun++;clearTimeout(albumTimer);clearTimeout(photoBoothTimer);clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();pauseVideo();stopRecord(true);stopSong();stopMic();$('bgm').pause();audio.suspend().catch(()=>{});}else{schedulePhoto();schedulePhotoBoothCarousel();syncMusic();acquireWake(false);armIdle();resumeVideo();}});
-window.addEventListener('pagehide',()=>{stopCeremony();clearTimeout(photoBoothTimer);musicRun++;importRun++;finishImport();clearTimeout(albumTimer);stopSong();stopMic();stopRecord(false);clearHint();stopDance();pauseVideo();clearEffects();clearAmbient();cancelCountdown();clearFind();$('bgm').pause();audio.suspend().catch(()=>{});const lock=wakeLock;wakeLock=null;if(lock)lock.release().catch(()=>{});});
+document.addEventListener('visibilitychange',()=>{stage.classList.toggle('background-paused',document.hidden||boothOpen());if(document.hidden){closeShowBar();stopCeremony();clearTimeout(previewTimer);musicRun++;clearTimeout(albumTimer);clearTimeout(photoBoothTimer);clearEffects();clearAmbient();cancelCountdown();clearFind();clearHint();stopDance();pauseVideo();stopRecord(true);stopSong();stopMic();$('bgm').pause();audio.suspend().catch(()=>{});}else{schedulePhoto();schedulePhotoBoothCarousel();syncMusic();acquireWake(false);armIdle();resumeVideo();}});
+window.addEventListener('pagehide',()=>{closeShowBar();stopCeremony();clearTimeout(previewTimer);clearTimeout(photoBoothTimer);musicRun++;importRun++;finishImport();clearTimeout(albumTimer);stopSong();stopMic();stopRecord(false);clearHint();stopDance();pauseVideo();clearEffects();clearAmbient();cancelCountdown();clearFind();$('bgm').pause();audio.suspend().catch(()=>{});const lock=wakeLock;wakeLock=null;if(lock)lock.release().catch(()=>{});});
 window.addEventListener('pageshow',()=>{schedulePhoto();acquireWake(false);});window.addEventListener('resize',()=>{clearEffects();clearAmbient();});
-updateAlbum();updateCake();updateSound();updateMotion();armIdle();restoreSaved().catch(()=>{});
+audio.setLoopTrack?.($('builtin-track').value);applyMusicLevel();updateAlbum();updateCake();updateSound();updateMotion();armIdle();restoreSaved().catch(()=>{});

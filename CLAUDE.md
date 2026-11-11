@@ -34,10 +34,10 @@ node scripts/make_photo_backgrounds.mjs   # 把拍照背景的 AI 原图转成 W
   - `app.js` 里的 `selectScene()` 是切换中枢。
   - `selectScene`、`syncPause`、`visibilitychange`、`pagehide` 都要负责清理当前场景的活动：提示、跳舞、视频、录音、生日歌和各种定时器。
   - 新加的定时类功能必须接入这几处。
-- **派对展示与生日仪式。** `showMode` 时 `armIdle()` 改走 `armShow()`：在 `hintTimers` 里排角色自动表演（`perform`）和切场景（`nextShow`），所以 `clearHint()` 会一并清掉；相册放完最后一张由 `schedulePhoto`/视频 `onended` 调 `nextShow`。`ceremonyOn` 期间不排轮播，`stopCeremony()` 已接入 `selectScene`、`syncPause`、`visibilitychange`、`pagehide`、`exitChildMode`。
+- **派对展示与生日仪式。** `showMode` 时 `armIdle()` 改走 `armShow()`：在 `hintTimers` 里排角色自动表演（`perform`）和切场景（`nextShow`），所以 `clearHint()` 会一并清掉；相册每轮最多 `ALBUM_ROUND` 张（`albumRound()`），本轮最后一张由 `schedulePhoto`/视频 `onended` 经 `lastOfRound()` 调 `nextShow`，`nextShow` 离开相册时记下 `albumCursor` 供下一轮接着放。`ceremonyOn` 期间不排轮播；仪式分 `ceremonyStage`：`ready`（等家长点 `#ceremony-go`）→ `song` → `wish` → `blow`（等宝宝点蛋糕，`BLOW_WAIT` 后自动吹灭），定时器都放在 `ceremonyTimers`。`stopCeremony()` 已接入 `selectScene`、`syncPause`、`visibilitychange`、`pagehide`、`exitChildMode`。展示中长按「家长」走 `parentHold()` → `openShowBar()`（`#show-bar` 家长浮层，`closeShowBar()` 已接入 `exitChildMode`、`visibilitychange`、`pagehide`），非展示的亲子模式仍直接 `exitChildMode()`。
 - **本机保存。** `store`（IndexedDB `qiqi-party`）保存照片/视频 Blob、家人录音（`savedClips`）和背景音乐，启动时 `restoreSaved()` 恢复；`vm` 测试里没有 `indexedDB`，所有调用都必须吞掉失败。
 - **菜单。** 主菜单是底部一条 `.dock`，次要功能在 `#settings`（「更多」）向上弹出的 `.sheet` 里；拍照层是 `.booth-bar` 加按需拉出的缩略图抽屉。`armMenuIdle()` 让菜单 14 秒不操作自动收起（「更多」或抽屉开着时不收）；收起后没有任何提示按钮，轻点画面、H、Esc 都能叫回菜单。
-- **压低音乐。** `voice.onSpeaking(on)` → `audio.duck(on)` 与 `#bgm` 音量；`audio.setLoopLevel()` 控制展示模式下的循环音量。
+- **压低音乐。** `voice.onSpeaking(on)` → `audio.duck(on)` 与 `#bgm` 音量；`audio.setLoopLevel()` 控制展示模式下的循环音量。内置背景音乐是 `audio.js` 的 `TRACKS`（按步合成的循环），`audio.setLoopTrack()` 换曲，`#builtin-track` 下拉选择并存进 IndexedDB（`music-track`）；`rotate` 时只在轮播 `nextShow` 回到 `home` 时调 `audio.nextLoopTrack()`（开场跳回乐园不换），换曲由 `restartLoop()` 交叉淡化。音乐音量统一走 `applyMusicLevel()`（`musicLevel` × 展示/平时基础音量，`musicDucked` 时压低 `#bgm`），不要再直接写 `setLoopLevel` 或 `#bgm.volume`。新增曲目要同时加进 `TRACKS` 和 `app.js` 的 `TRACK_NAMES`、`index.html` 的下拉。
 - **声音分层。**
   - **音效**：`audio.effect(kind)` 返回音效时长（秒）。`PARTY_SFX` 里登记了真实录音就播放录音：http(s) 下先 fetch 再解码；`file://` 下用 `<audio>` 加 `#t=start,end` 截取。没登记或加载失败时用合成音。清单条目支持 `start`、`end`、`gain`、`mix` 四个字段。
   - **叫声接台词**：`app.js` 的 `speakFor()` 先播放动物叫声，等叫声播完再调用 `voice.speak`。

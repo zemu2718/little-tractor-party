@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
 const source=fs.readFileSync(path.join(__dirname,'../app.js'),'utf8');
-function element(){const classes=new Set();return {dataset:{},hidden:false,disabled:false,checked:true,open:false,value:'8',textContent:'',clientHeight:900,offsetWidth:10,children:[],attrs:{},listeners:{},style:{setProperty(k,v){this[k]=v;}},classList:{contains:k=>classes.has(k),add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,force){const v=force??!classes.has(k);v?classes.add(k):classes.delete(k);return v;}},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this[k];},append(c){this.children.push(c);c.parentNode=this;},replaceChildren(){this.children=[];},get firstElementChild(){return this.children[0];},getBoundingClientRect(){return {left:20,top:30,width:200,height:300};},focus(){},closest(){return null;},addEventListener(k,f){this.listeners[k]=f;},click(){return this.onclick?.({target:this});},remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(x=>x!==this);},showModal(){this.open=true;},close(){this.open=false;}};}
+function element(){const classes=new Set();return {dataset:{},hidden:false,disabled:false,checked:true,open:false,value:'8',textContent:'',clientHeight:900,offsetWidth:10,children:[],attrs:{},listeners:{},style:{setProperty(k,v){this[k]=v;}},classList:{contains:k=>classes.has(k),add:k=>classes.add(k),remove:k=>classes.delete(k),toggle(k,force){const v=force??!classes.has(k);v?classes.add(k):classes.delete(k);return v;}},setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this[k];},append(c){this.children.push(c);c.parentNode=this;},replaceChildren(...c){this.children=c;},get firstElementChild(){return this.children[0];},getBoundingClientRect(){return {left:20,top:30,width:200,height:300};},focus(){},closest(){return null;},addEventListener(k,f){this.listeners[k]=f;},click(){return this.onclick?.({target:this});},remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(x=>x!==this);},showModal(){this.open=true;},close(){this.open=false;}};}
 function setup({reduce=false}={}){
  const els=Object.fromEntries([...html.matchAll(/\bid="([^"]+)"/g)].map(m=>[m[1],element()]));
  // 和真实页面一样：HTML 里带 hidden 属性的元素一开始就是隐藏的。
@@ -11,7 +11,7 @@ function setup({reduce=false}={}){
  const tabs=['home','album','cake','game'].map(scene=>Object.assign(element(),{dataset:{scene}}));const friends=['mouse','dragon','rooster','excavator'].map(friend=>Object.assign(element(),{dataset:{friend}}));const friendParent=element();friends.forEach(f=>friendParent.append(f));
  const events={},windowEvents={},timers=new Map();let tid=0,uid=0;const objects=new Map(),revoked=[];
  const document={hidden:false,documentElement:{},body:element(),getElementById:id=>els[id],querySelectorAll:selector=>selector==='[data-scene]'?tabs:friends,addEventListener:(k,f)=>events[k]=f,createElement:element};
- const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,10],total:14};},stopSong(){this.stopped++;},stopEffects(){},loops:0,async startLoop(){this.loops++;},stopLoop(){}};
+ const audio={enabled:false,songCount:0,stopped:0,async setEnabled(v){this.enabled=v;},async effect(){},async suspend(){},async song(){this.songCount++;return {lines:[0,3,6,9.5],notes:Array.from({length:25},(_,i)=>i/2),total:14};},stopSong(){this.stopped++;},stopEffects(){},loops:0,looping:false,async startLoop(){this.loops++;this.looping=true;},stopLoop(){this.looping=false;},tracks:[],rotations:0,setLoopTrack(t){this.tracks.push(t);},nextLoopTrack(){this.rotations++;},level:null,setLoopLevel(v){this.level=v;}};
  const voice={init(){},setEnabled(){},setSpoken(){},status(){return {count:0,has:()=>false,local:false};},stop(){},async speak(){return false;},setClip(){return true;},clearClips(){}};
  const window={PartyVoice:voice,PartyAudio:audio,addEventListener:(k,f)=>windowEvents[k]=f};
  class Image{set src(v){if(!v)return;const file=objects.get(v);queueMicrotask(()=>{if(file?.bad)this.onerror?.();else{this.naturalWidth=1200;this.naturalHeight=800;this.onload?.();}});}}
@@ -27,7 +27,9 @@ function setup({reduce=false}={}){
  await app.run("selectScene('home');selectScene('cake')");assert(els['birthday-cake'].classList.contains('out'));await app.click('relight');assert(!els['birthday-cake'].classList.contains('out'));assert.equal(els.confetti.children.length,0);
  await app.click('photo');assert(els.controls.hidden);assert(els.stage.classList.contains('paused'));await app.click('blow');assert.equal(els.confetti.children.length,0);await app.click('photo');assert(!els.stage.classList.contains('paused'));
  await app.click('pause');await app.click('photo');await app.click('photo');assert(els.stage.classList.contains('paused'));await app.click('pause');assert(!els.stage.classList.contains('paused'));
- await app.click('relight');await app.click('sing');assert.equal(app.read('singing'),true);assert.equal(app.audio.songCount,1);await app.run("selectScene('game')");assert.equal(app.read('singing'),false);assert.equal(app.read('songTimers.length'),0);
+ await app.click('relight');await app.click('sing');assert.equal(app.read('singing'),true);assert.equal(app.audio.songCount,1);
+ // 生日歌字幕逐字跟着音符亮：第二句从第 7 个音符开始，每个字的延时 = 该音符时间 − 句首时间。
+ [...app.timers.values()].find(t=>t.ms===3000).f();assert.deepEqual(app.els.lyric.children.map(c=>c.textContent).join(''),'祝你生日快乐');assert.deepEqual(app.els.lyric.children.map(c=>c.style.animationDelay),['0.00s','0.50s','1.00s','1.50s','2.00s','2.50s']);await app.run("selectScene('game')");assert.equal(app.read('singing'),false);assert.equal(app.read('songTimers.length'),0);
  await app.run("selectScene('cake')");await app.click('sing');await app.click('sound');assert.equal(app.read('singing'),false);assert.equal(app.read('sound'),false);
  await app.run("importPhotos([{name:'02-第一次坐挖掘机.jpg',size:12},{name:'01-刚出生.png',size:12},{name:'03-broken.jpg',size:12,bad:true},{name:'ignore.txt',size:4}])");
  assert.equal(app.read('photos.length'),2);assert.equal(app.read('photos[0].cap'),'刚出生');assert.equal(app.read('mode'),'album');assert.equal(els['photo-caption'].textContent,'刚出生');assert.equal(app.read('albumPlaying'),true);assert(app.revoked.length>=1);assert(!els['next'].disabled);
@@ -55,8 +57,8 @@ function setup({reduce=false}={}){
  app.document.documentElement.webkitRequestFullscreen=()=>{app.document.webkitFullscreenElement={};app.events.webkitfullscreenchange();};
  app.document.webkitExitFullscreen=()=>{app.document.webkitFullscreenElement=null;app.events.webkitfullscreenchange();};
  await app.click('fullscreen');assert(app.els.controls.hidden);await app.click('fullscreen');assert(!app.els.controls.hidden);
- await app.run("selectScene('game')");app.friends.find(f=>f.dataset.friend==='mouse').onclick();assert.match(app.els.hello.textContent,/妈妈说/);assert.equal(app.els.bubbles.children[0].style.left,'100px');assert.equal(app.els.bubbles.children[0].style.top,'75px');
- await app.run('lastGreeting=0');app.friends[2].onclick();assert.match(app.els.hello.textContent,/爸爸说/);
+ await app.run("selectScene('game')");app.friends.find(f=>f.dataset.friend==='mouse').onclick();assert.equal(app.els.hello.textContent,'齐齐，妈妈爱你！');assert.equal(app.els.bubbles.children[0].style.left,'100px');assert.equal(app.els.bubbles.children[0].style.top,'75px');
+ await app.run('lastGreeting=0');app.friends[2].onclick();assert.equal(app.els.hello.textContent,'齐齐，爸爸陪你玩！');assert(!/说：/.test(app.els.hello.textContent));
  await app.click('celebrate');assert(app.els.controls.hidden);assert(app.els.confetti.children.length>=100);
  // 亲子模式：空白点击不唤出菜单；长按及 Esc 可恢复。
  app=setup();await app.click('child-play');assert.equal(app.read('mode'),'game');assert.equal(app.read('childMode'),true);assert(app.els.controls.hidden);
@@ -93,21 +95,52 @@ function setup({reduce=false}={}){
  const perf=[...app.timers.values()].find(t=>t.ms===1200);assert(perf);perf.f();assert(app.read('danceOn'));
  await app.run('stopDance()');await app.run('performance.now=()=>21000');await app.run("armIdle()");const gameNext=[...app.timers.values()].find(t=>t.ms===16000);assert(gameNext,'game deadline must not restart after the dance');gameNext.f();assert.equal(app.read('mode'),'cake');await app.run('performance.now=()=>1000');
  assert(![...app.timers.values()].some(t=>t.ms===6000));
- app.els['parent-exit'].onpointerdown({preventDefault(){}});[...app.timers.values()].find(t=>t.ms===1100).f();assert.equal(app.read('showMode'),false);assert(!app.els.controls.hidden);
+ // 展示中长按「家长」弹出浮层而不是直接退出：能看进度、换下一个、结束展示；10 秒不操作自动收起。
+ app.els['parent-exit'].onpointerdown({preventDefault(){}});[...app.timers.values()].find(t=>t.ms===1100).f();assert.equal(app.read('showMode'),true);assert(!app.els['show-bar'].hidden);assert(app.els['parent-exit'].hidden);assert(app.els.controls.hidden);
+ assert.match(app.els['show-status'].textContent,/现在：生日蛋糕.*换到挖掘机乐园/);assert.equal(app.els['show-ceremony'].textContent,'生日仪式');
+ [...app.timers.values()].filter(t=>t.ms===10000).pop().f();assert(app.els['show-bar'].hidden);assert(!app.els['parent-exit'].hidden);
+ app.els['parent-exit'].onpointerdown({preventDefault(){}});[...app.timers.values()].filter(t=>t.ms===1100).pop().f();
+ await app.click('show-next');assert.equal(app.read('mode'),'home');assert.equal(app.read('showMode'),true);assert.match(app.els['show-status'].textContent,/现在：挖掘机乐园/);
+ await app.click('show-exit');assert.equal(app.read('showMode'),false);assert(app.els['show-bar'].hidden);assert(!app.els.controls.hidden);
  // 有照片时相册放完最后一张才切走。
  app=setup();await app.run("importPhotos([{name:'01-a.jpg',size:1},{name:'02-b.jpg',size:1}])");await app.run("selectScene('home')");await app.click('show-play');
  [...app.timers.values()].find(t=>t.ms===45000).f();await new Promise(setImmediate);assert.equal(app.read('mode'),'album');assert.equal(app.read('photoIndex'),0);
  [...app.timers.values()].find(t=>t.ms===8000).f();await new Promise(setImmediate);assert.equal(app.read('photoIndex'),1);assert.equal(app.read('mode'),'album');
  [...app.timers.values()].filter(t=>t.ms===8000).pop().f();assert.equal(app.read('mode'),'game');
- // 生日仪式：唱歌 → 许愿 → 人声倒数 → 吹灭欢呼 → 继续轮播。
+ // 相册照片很多时每轮只放 12 张，下一轮从停下的地方接着放；停留时长按这一轮计算。
+ app=setup();await app.run(`importPhotos(${JSON.stringify(Array.from({length:30},(_,i)=>({name:`${String(i+1).padStart(2,'0')}-p.jpg`,size:1})))})`);assert.equal(app.read('photos.length'),30);
+ await app.run("selectScene('home')");await app.click('show-play');[...app.timers.values()].find(t=>t.ms===45000).f();await new Promise(setImmediate);
+ assert.equal(app.read('mode'),'album');assert.equal(app.read('photoIndex'),0);assert([...app.timers.values()].some(t=>t.ms===12*8000+4000),'album round length covers 12 photos');
+ for(let k=0;k<11;k++){[...app.timers.values()].filter(t=>t.ms===8000).pop().f();await new Promise(setImmediate);}
+ assert.equal(app.read('photoIndex'),11);assert.equal(app.read('mode'),'album');[...app.timers.values()].filter(t=>t.ms===8000).pop().f();assert.equal(app.read('mode'),'game');
+ await app.run("goShow('album')");await new Promise(setImmediate);assert.equal(app.read('photoIndex'),12);
+ for(let k=0;k<11;k++){[...app.timers.values()].filter(t=>t.ms===8000).pop().f();await new Promise(setImmediate);}
+ [...app.timers.values()].filter(t=>t.ms===8000).pop().f();assert.equal(app.read('mode'),'game');await app.run("goShow('album')");await new Promise(setImmediate);
+ assert.equal(app.read('photoIndex'),24);assert([...app.timers.values()].some(t=>t.ms===12*8000+4000));
+ for(let k=0;k<5;k++){[...app.timers.values()].filter(t=>t.ms===8000).pop().f();await new Promise(setImmediate);}
+ assert.equal(app.read('photoIndex'),29);[...app.timers.values()].filter(t=>t.ms===8000).pop().f();await new Promise(setImmediate);assert.equal(app.read('photoIndex'),0,'round wraps to the first photo');assert.equal(app.read('mode'),'album');
+ // 生日仪式：先等「开始唱生日歌」→ 唱歌 → 许愿 → 人声倒数 → 等宝宝点蛋糕吹灭 → 欢呼 → 继续轮播。
  app=setup();const lines2=[];app.context.window.PartyVoice.speak=async(kind,text)=>{lines2.push(text);return true;};
  await app.click('ceremony');assert.equal(app.read('mode'),'cake');assert.equal(app.read('ceremonyOn'),true);assert.equal(app.read('showMode'),true);
+ assert.equal(app.read('ceremonyStage'),'ready');assert(!app.els['ceremony-go'].hidden);assert.equal(app.els.lyric.textContent,'大家准备好了吗？');assert(![...app.timers.values()].some(t=>t.ms===3200),'song waits for the parent');
+ await app.run('cakeTap()');assert.equal(app.read('counting'),false);assert.equal(app.read('blown'),false);assert.equal(app.read('singing'),false);
+ await app.click('ceremony-go');assert(app.els['ceremony-go'].hidden);assert.equal(app.read('ceremonyStage'),'song');
  [...app.timers.values()].find(t=>t.ms===3200).f();await new Promise(setImmediate);await new Promise(setImmediate);assert.equal(app.read('singing'),true);
  [...app.timers.values()].find(t=>t.ms===14000).f();assert.equal(app.read('singing'),false);assert(lines2.includes("许个愿，吹蜡烛吧！"));
  [...app.timers.values()].find(t=>t.ms===3400).f();assert.equal(app.read('counting'),true);
  for(const ms of [0,1000,2000,3000])[...app.timers.values()].find(t=>t.ms===ms&&String(t.f).includes('COUNTDOWN'))?.f();assert.deepEqual(lines2.filter(t=>/^[三二一呼]/.test(t)),['三！','二！','一！','呼——吹蜡烛！']);
- [...app.timers.values()].find(t=>t.ms===3850).f();assert.equal(app.read('blown'),true);assert.equal(app.read('ceremonyOn'),false);assert(app.els.confetti.children.length>=100);assert.equal(app.els.finale.children.length,5);
+ [...app.timers.values()].find(t=>t.ms===3850).f();assert.equal(app.read('blown'),false);assert.equal(app.read('ceremonyStage'),'blow');assert.equal(app.els.lyric.textContent,'点蛋糕，吹蜡烛吧！');
+ await app.run('cakeTap()');assert.equal(app.read('blown'),true);assert.equal(app.read('ceremonyOn'),false);assert(app.els.confetti.children.length>=100);assert.equal(app.els.finale.children.length,5);
+ assert(![...app.timers.values()].some(t=>t.ms===10000&&String(t.f).includes('blow')),'auto-blow cancelled after the tap');
  [...app.timers.values()].find(t=>t.ms===30000).f();assert.equal(app.read('mode'),'home');
+ // 宝宝一直没点：10 秒后自动吹灭；没人点开始：5 分钟后放弃仪式回到轮播；浮层上的按钮跟着步骤变。
+ app=setup();await app.click('ceremony');app.els['parent-exit'].onpointerdown({preventDefault(){}});[...app.timers.values()].find(t=>t.ms===1100).f();
+ assert.equal(app.els['show-ceremony'].textContent,'开始唱生日歌');assert.match(app.els['show-status'].textContent,/准备好/);
+ await app.click('show-ceremony');assert.equal(app.read('ceremonyStage'),'song');assert.equal(app.els['show-ceremony'].textContent,'重新开始仪式');
+ await app.run('awaitBlow()');[...app.timers.values()].find(t=>t.ms===10000&&String(t.f).includes('blow()')).f();assert.equal(app.read('blown'),true);assert.equal(app.read('ceremonyOn'),false);
+ await app.click('show-ceremony');assert.equal(app.read('ceremonyStage'),'ready');assert.equal(app.read('blown'),false);
+ [...app.timers.values()].find(t=>t.ms===300000).f();assert.equal(app.read('ceremonyOn'),false);assert(app.els['ceremony-go'].hidden);assert.equal(app.els.lyric.textContent,'许个愿吧');assert([...app.timers.values()].some(t=>t.ms===30000),'carousel resumes');
+ await app.click('ceremony');await app.click('show-next');assert.equal(app.read('ceremonyOn'),false);assert.equal(app.read('mode'),'home');
  // 再次轮播回到蛋糕时蜡烛重新点亮。
  await app.run("goShow('cake')");assert.equal(app.read('blown'),false);
  // 唱歌时宝宝点角色不会说话打断生日歌；吹灭后的欢呼台词等倒数最后一句说完再播。
@@ -144,6 +177,34 @@ function setup({reduce=false}={}){
   await app.run('openPhotoBooth();closePhotoBooth()');assert.equal(app.read('photoBoothItems.length'),0);
   delete app.document.documentElement.requestFullscreen;app.context.navigator.userAgent='iPhone';await app.click('photo-booth-open');await app.click('photo-booth-fullscreen');assert.match(e.notice.textContent,/添加到主屏幕/);
  }
+ // 「派对前准备」状态：照片数、录音、音乐、常亮；「定格画面」改名。
+ app=setup();{const e=app.els,texts=()=>e['prep-status'].children.map(c=>c.textContent).join('|');
+  assert.match(texts(),/○ 还没有照片/);assert.match(texts(),/○ 妈妈录音 0 段/);assert.match(texts(),/背景音乐：内置·八音盒/);assert.match(texts(),/屏幕常亮：不可用/);
+  await app.run("importPhotos([{name:'01-a.jpg',size:1},{name:'02-b.jpg',size:1}])");assert.match(texts(),/✓ 照片 2 张/);
+  await app.click('photo');assert.equal(e.photo.textContent,'退出定格');await app.click('photo');assert.equal(e.photo.textContent,'定格画面');
+ }
+ // 内置背景音乐：下拉选曲会换曲、试听 8 秒、记进本机；选「关闭」后展示和相册都不放内置音乐；「每轮换一首」在回到乐园时换曲。
+ app=setup();{const e=app.els,a=app.audio,sel=e['builtin-track'],pick=async v=>{sel.value=v;await sel.onchange();await new Promise(setImmediate);};
+  await pick('march');assert.equal(a.tracks.at(-1),'march');assert.equal(app.read('sound'),true);assert(a.looping,'preview starts the loop');assert.match(e.notice.textContent,/试听「欢快进行曲」/);
+  const preview=[...app.timers.values()].find(t=>t.ms===8000&&String(t.f).includes('syncMusic'));assert(preview);preview.f();assert(!a.looping,'preview ends on the home scene');
+  assert.match(e['prep-status'].children.map(c=>c.textContent).join('|'),/背景音乐：内置·欢快进行曲/);
+  await pick('off');assert.equal(a.tracks.at(-1),'off');assert(!a.looping);assert.match(e['prep-status'].children.map(c=>c.textContent).join('|'),/○ 背景音乐：无/);
+  await app.run("selectScene('cake')");await app.click('show-play');assert.equal(app.read('showMode'),true);assert(!a.looping,'show stays quiet when built-in music is off');
+  assert.equal(app.read('mode'),'home');assert.equal(a.rotations,0,'starting the show does not skip the first track');
+  await app.run("goShow('album')");assert.equal(a.rotations,0);await app.run("goShow('cake');nextShow()");assert.equal(app.read('mode'),'home');assert.equal(a.rotations,1,'next track when the carousel comes back to the park');
+  await pick('rotate');assert(a.looping,'show plays music again');
+  await app.run("musicURL='blob:x'");await pick('lullaby');assert.match(e.notice.textContent,/自选音乐/);
+ }
+ // 音乐音量：小/中/大循环，同时调内置音乐和自选音乐；展示时内置音乐更轻；说话时压低；选择记进本机。
+ app=setup();{const e=app.els,a=app.audio;
+  assert.equal(e['music-level'].textContent,'音乐音量：中');assert.equal(a.level,.75);assert.equal(e.bgm.volume,.7);
+  await app.click('music-level');assert.equal(e['music-level'].textContent,'音乐音量：大');assert(Math.abs(a.level-1.05)<1e-9);assert(Math.abs(e.bgm.volume-.98)<1e-9);
+  await app.click('show-play');assert(Math.abs(a.level-.7)<1e-9,'show keeps the quieter loop, scaled');
+  await app.click('music-level');assert.equal(e['music-level'].textContent,'音乐音量：小');assert(Math.abs(a.level-.25)<1e-9);assert(Math.abs(e.bgm.volume-.35)<1e-9);
+  await app.run('musicDucked=true;applyMusicLevel()');assert(Math.abs(e.bgm.volume-.125)<1e-9);
+  await app.run('exitChildMode()');assert(Math.abs(a.level-.375)<1e-9);
+  await app.click('music-level');assert.equal(e['music-level'].textContent,'音乐音量：中');
+ }
  // 主菜单：显示后 14 秒不操作自动收起；打开「更多」时不收。
  app=setup();{const e=app.els,idle=()=>[...app.timers.values()].filter(t=>t.ms===14000);
   await app.click('hide');assert(e.controls.hidden);app.document.hidden=false;app.read('showControls(true)');assert(!e.controls.hidden);assert(idle().length>=1);
@@ -151,6 +212,7 @@ function setup({reduce=false}={}){
  }
  console.log('PASS: photo booth backgrounds + thumbs, toolbar prev/next/drawer, auto-hide menus, stage silenced, safe labels, hide/restore, delete/reset presets, carousel + background pause, arrow keys, page fullscreen, close cleanup + restore race');
  console.log('PASS: no speech over the song, cheer line waits for the countdown');
- console.log('PASS: party show carousel/auto perform/album round/exit, birthday ceremony (song → wish → voiced countdown → blow → resume)');
+ console.log('PASS: party show carousel/auto perform/album round + resume cursor/parent show bar (progress, next, exit, auto-hide), birthday ceremony (ready → song → wish → voiced countdown → baby blows or auto-blow → resume, ready timeout, skip)');
+ console.log('PASS: prep status summary, renamed freeze button, built-in music picker (switch, 8 s preview, off, rotate only when the carousel returns to the park, custom music wins), music volume small/medium/large');
  console.log('PASS: rapid taps, peekaboo, dance party, back-button guard, album video, countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
 })().catch(e=>{console.error(e);process.exitCode=1;});
