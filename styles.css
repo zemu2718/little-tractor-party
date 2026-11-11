@@ -33,9 +33,12 @@
 .photo-booth-surface.photo-booth-fade{animation:photo-booth-fade .55s ease-out}
 @keyframes photo-booth-fade{from{opacity:.55}to{opacity:1}}
 .photo-booth-panel{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:min(94vw,920px);padding:12px 16px;border-radius:20px;background:#173b35dd;box-shadow:0 10px 40px #0005;backdrop-filter:blur(8px)}
+.photo-booth.menu-hidden .photo-booth-panel{display:none}
 .photo-booth-panel strong{font-size:clamp(18px,2.4cqw,34px)}.photo-booth-panel>span{font-size:clamp(11px,1.2cqw,17px);opacity:.88}
 .photo-booth-presets{display:flex;gap:7px;width:100%;overflow:auto;padding:3px 0}.photo-booth-presets button{position:relative;flex:0 0 clamp(86px,12cqw,150px);border:2px solid #fff8e588;border-radius:12px;background:#fff2d9;padding:0;overflow:hidden;color:#234f42}.photo-booth-presets button.selected{border-color:#f6ca60;box-shadow:0 0 0 3px #f6ca6044}.photo-booth-presets img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.photo-booth-presets span{display:block;padding:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.photo-booth-upload,.photo-booth-panel>button{min-height:40px;border:0;border-radius:12px;padding:9px 14px;background:#f3d27d;color:#315548;font-weight:700;cursor:pointer;font-size:13px}.photo-booth-panel>button:last-child{background:#e6efda}.photo-booth-active #photo-booth-panel{display:flex}
 #parent-exit{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:30;border:1px solid #c7d0ae;border-radius:24px;background:#fff8e5e8;color:#63745c;padding:12px 18px;min-height:44px;font-size:12px;touch-action:none;user-select:none;-webkit-user-select:none}
+#menu-restore{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:35;border:1px solid #c7d0ae;border-radius:24px;background:#fff8e5e8;color:#63745c;padding:12px 18px;min-height:44px;font-size:12px;touch-action:none;user-select:none;-webkit-user-select:none;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 14px #31554822}
+#menu-restore.holding{background:#dbe8c4;box-shadow:0 0 0 4px #a6c58a66}
 #parent-exit.holding{background:#dbe8c4;box-shadow:0 0 0 4px #a6c58a66}
 .friends button{touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .friends button img{-webkit-user-drag:none}
