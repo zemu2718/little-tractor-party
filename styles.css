@@ -27,6 +27,14 @@
 
 /* 两岁宝宝只需要大角色与直接反馈，家长设置可用长按恢复。 */
 #child-play{background:#e6efcd;font-weight:700}
+#photo-booth{position:fixed;inset:0;z-index:50;background:#142b3a;color:#fff9e9;display:grid;place-items:center}
+#photo-booth[hidden]{display:none}
+.photo-booth-surface{position:absolute;inset:0;background:center/cover no-repeat;transition:background-image .25s ease}
+.photo-booth-surface.photo-booth-fade{animation:photo-booth-fade .55s ease-out}
+@keyframes photo-booth-fade{from{opacity:.55}to{opacity:1}}
+.photo-booth-panel{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:min(94vw,920px);padding:12px 16px;border-radius:20px;background:#173b35dd;box-shadow:0 10px 40px #0005;backdrop-filter:blur(8px)}
+.photo-booth-panel strong{font-size:clamp(18px,2.4cqw,34px)}.photo-booth-panel>span{font-size:clamp(11px,1.2cqw,17px);opacity:.88}
+.photo-booth-presets{display:flex;gap:7px;width:100%;overflow:auto;padding:3px 0}.photo-booth-presets button{position:relative;flex:0 0 clamp(86px,12cqw,150px);border:2px solid #fff8e588;border-radius:12px;background:#fff2d9;padding:0;overflow:hidden;color:#234f42}.photo-booth-presets button.selected{border-color:#f6ca60;box-shadow:0 0 0 3px #f6ca6044}.photo-booth-presets img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.photo-booth-presets span{display:block;padding:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.photo-booth-upload,.photo-booth-panel>button{min-height:40px;border:0;border-radius:12px;padding:9px 14px;background:#f3d27d;color:#315548;font-weight:700;cursor:pointer;font-size:13px}.photo-booth-panel>button:last-child{background:#e6efda}.photo-booth-active #photo-booth-panel{display:flex}
 #parent-exit{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:30;border:1px solid #c7d0ae;border-radius:24px;background:#fff8e5e8;color:#63745c;padding:12px 18px;min-height:44px;font-size:12px;touch-action:none;user-select:none;-webkit-user-select:none}
 #parent-exit.holding{background:#dbe8c4;box-shadow:0 0 0 4px #a6c58a66}
 .friends button{touch-action:manipulation;user-select:none;-webkit-user-select:none}
@@ -320,6 +328,62 @@ to{transform:translateX(-50%) translateY(-10%) rotate(7deg) scale(.97,1.04)}}
 .finale-friend.wide{height:14cqw}
 /* 家长键的小锁：用 CSS 画，不用表情符号（各设备画风不一，也和毛毡风格不搭）。 */
 #parent-exit{display:inline-flex;align-items:center;gap:6px}
+
+/* 紧凑家长工具条：把大块面板收成一条轻量的底部浮层，画面留给插画。 */
+#controls{
+  width:min(760px,calc(100vw - 24px));
+  max-width:calc(100vw - 24px);
+  max-height:min(40dvh,360px);
+  padding:5px 7px;
+  border-radius:16px;
+  background:#fff9e9e8;
+  box-shadow:0 6px 24px #31554822;
+  backdrop-filter:blur(12px) saturate(1.08);
+}
+#controls .row{gap:3px;max-width:none}
+#controls .row button,#controls .row a{
+  min-height:34px;
+  padding:7px 10px;
+  border-radius:10px;
+  font-size:12px;
+  line-height:1.15;
+  white-space:nowrap;
+}
+#controls .tabs{
+  gap:2px;
+  padding:2px;
+  margin:0 0 4px;
+  border:0;
+  background:#e9efdfe6;
+  border-radius:11px;
+}
+#controls .tabs button{font-size:12px;font-weight:700;min-height:32px;padding:6px 11px}
+#controls .tabs button[aria-pressed=true]{background:#2f6d52;color:#fff9dc;box-shadow:0 2px 5px #31554822}
+#controls .show-row{gap:4px}
+#controls .show-row button.primary{min-height:35px;padding-inline:12px}
+#controls > .help{display:none}
+#controls #settings{margin-top:4px}
+#controls #settings > summary{min-height:30px;padding:6px 9px;font-size:11px}
+#controls #settings[open]{padding-top:3px}
+#controls .help{font-size:11px;line-height:1.55;margin:6px}
+#controls .album-settings{padding:5px;border-radius:9px}
+#controls .album-settings label{padding:4px;font-size:11px}
+#controls .album-settings select{padding:5px;border-radius:6px}
+#controls .voice-settings{margin-top:5px;padding:7px 5px;font-size:12px}
+#controls .voice-settings .help{font-size:11px}
+
+@media (max-width:560px){
+  #controls{bottom:max(6px,env(safe-area-inset-bottom));width:calc(100vw - 14px);max-width:calc(100vw - 14px);padding:4px 5px}
+  #controls .tabs{display:grid;grid-template-columns:repeat(4,1fr);width:100%}
+  #controls .tabs button{padding-inline:4px;overflow:hidden;text-overflow:ellipsis}
+  #controls .row button,#controls .row a{min-height:32px;padding:6px 8px;font-size:11px}
+}
+
+@media (max-height:460px){
+  #controls{max-height:46dvh}
+  #controls .row button,#controls .row a{min-height:30px;padding:5px 8px}
+  #controls .tabs button{min-height:29px}
+}
 #parent-exit .lock{position:relative;display:inline-block;width:12px;height:10px;margin-top:6px;border-radius:2px;background:currentColor}
 #parent-exit .lock::before{content:'';position:absolute;left:2px;bottom:8px;width:8px;height:7px;box-sizing:border-box;border:2px solid currentColor;border-bottom:0;border-radius:5px 5px 0 0}
 /* ===== 相册运镜版：相框卡片、镜头推拉平移、四种入场、离场、盖章字幕、探头角色、暖光与星点 ===== */

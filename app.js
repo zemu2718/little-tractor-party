@@ -25,6 +25,45 @@ function clearEffects(){clearTimeout(confettiTimer);$('confetti').replaceChildre
 function clearAmbient(){$('ambient').replaceChildren();}
 function frozen(){return paused||photoMode||document.hidden;}
 function showControls(visible){controls.hidden=!visible;document.body.classList.toggle('clean',!visible||photoMode);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
+// 独立的电视全屏拍照背景：不改变相册数据，也不上传用户图片。
+const PHOTO_BACKGROUNDS=[
+ ['生日快乐·波普','assets/photo-backgrounds/fullbleed-happy-popart-v2.png'],
+ ['齐齐两岁啦·工程乐园','assets/photo-backgrounds/cartoon-qiqi-construction-v2.png'],
+ ['齐齐生日快乐·生日墙','assets/photo-backgrounds/cartoon-qiqi-banner-v2.png'],
+ ['梦幻挖掘机夜景','assets/photo-backgrounds/cartoon-qiqi-night-v2.png'],
+ ['生日快乐·梦幻拼贴','assets/photo-backgrounds/fullbleed-dreamscape.png']
+];
+let photoBoothItems=[],photoBoothIndex=0,photoBoothTimer=0,photoBoothPlaying=false;
+function setPhotoBoothBackground(src,label=''){const surface=$('photo-booth-surface');if(!surface)return;surface.classList.remove('photo-booth-fade');void surface.offsetWidth;surface.style.backgroundImage=`url("${src}")`;surface.dataset.label=label;surface.classList.add('photo-booth-fade');document.querySelectorAll('#photo-booth-presets button').forEach((b,i)=>b.classList.toggle('selected',i===photoBoothIndex));}
+function renderPhotoBoothItems(){
+ const list=$('photo-booth-presets');list.replaceChildren();
+ photoBoothItems.forEach((item,i)=>{const b=document.createElement('button');b.type='button';b.dataset.src=item.src;b.title=item.label;b.innerHTML=`<img src="${item.src}" alt=""><span>${item.label}</span>`;b.onclick=()=>{photoBoothIndex=i;setPhotoBoothBackground(item.src,item.label);};list.append(b);});
+ if(photoBoothItems.length){photoBoothIndex=Math.min(photoBoothIndex,photoBoothItems.length-1);const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);}
+ $('photo-booth-delete').disabled=photoBoothItems.length<2;
+}
+function savePhotoBoothCustom(){const files=photoBoothItems.filter(i=>i.custom&&i.file).map(i=>({file:i.file,label:i.label}));store?.put?.('photo-booth-backgrounds',files).catch?.(()=>{});}
+async function restorePhotoBoothCustom(){const saved=await store.get('photo-booth-backgrounds');if(!Array.isArray(saved))return;for(const item of saved){if(item?.file?.size)photoBoothItems.push({label:item.label||'自定义背景',src:URL.createObjectURL(item.file),file:item.file,custom:true});}renderPhotoBoothItems();}
+function stopPhotoBoothCarousel(){clearTimeout(photoBoothTimer);photoBoothPlaying=false;$('photo-booth-toggle').textContent='开始轮播';}
+function schedulePhotoBoothCarousel(){clearTimeout(photoBoothTimer);if(!photoBoothPlaying||photoBoothItems.length<2)return;photoBoothTimer=setTimeout(()=>{photoBoothIndex=(photoBoothIndex+1)%photoBoothItems.length;const item=photoBoothItems[photoBoothIndex];setPhotoBoothBackground(item.src,item.label);schedulePhotoBoothCarousel();},8000);}
+function openPhotoBooth(){
+ $('photo-booth').hidden=false;document.body.classList.add('photo-booth-active');controls.hidden=true;stopPhotoBoothCarousel();
+ photoBoothItems=PHOTO_BACKGROUNDS.map(([label,src])=>({label,src,custom:false}));photoBoothIndex=0;renderPhotoBoothItems();restorePhotoBoothCustom();
+}
+function openPhotoBooth(){
+ $('photo-booth').hidden=false;document.body.classList.add('photo-booth-active');controls.hidden=true;
+ const list=$('photo-booth-presets');list.replaceChildren();
+ for(const [label,src] of PHOTO_BACKGROUNDS){const b=document.createElement('button');b.type='button';b.dataset.src=src;b.title=label;b.innerHTML=`<img src="${src}" alt=""><span>${label}</span>`;b.onclick=()=>setPhotoBoothBackground(src,label);list.append(b);}
+ setPhotoBoothBackground(PHOTO_BACKGROUNDS[0][1],PHOTO_BACKGROUNDS[0][0]);
+}
+function closePhotoBooth(){
+ stopPhotoBoothCarousel();$('photo-booth').hidden=true;document.body.classList.remove('photo-booth-active');if(document.fullscreenElement)document.exitFullscreen?.().catch?.(()=>{});photoBoothItems.filter(i=>i.custom&&i.src.startsWith('blob:')).forEach(i=>URL.revokeObjectURL(i.src));showControls(true);
+}
+$('photo-booth-open').onclick=openPhotoBooth;
+$('photo-booth-close').onclick=closePhotoBooth;
+ $('photo-background-file').onchange=event=>{const files=[...event.target.files||[]];if(!files.length)return;for(const file of files)photoBoothItems.push({label:file.name,src:URL.createObjectURL(file),file,custom:true});photoBoothIndex=photoBoothItems.length-files.length;renderPhotoBoothItems();savePhotoBoothCustom();event.target.value='';};
+$('photo-booth-toggle').onclick=()=>{photoBoothPlaying=!photoBoothPlaying;$('photo-booth-toggle').textContent=photoBoothPlaying?'暂停轮播':'开始轮播';if(photoBoothPlaying)schedulePhotoBoothCarousel();else clearTimeout(photoBoothTimer);};
+ $('photo-booth-delete').onclick=()=>{if(photoBoothItems.length<2)return;const [removed]=photoBoothItems.splice(photoBoothIndex,1);if(removed.custom&&removed.src.startsWith('blob:'))URL.revokeObjectURL(removed.src);photoBoothIndex%=photoBoothItems.length;renderPhotoBoothItems();savePhotoBoothCustom();};
+$('photo-booth-fullscreen').onclick=()=>{const el=$('photo-booth');(el.requestFullscreen||el.webkitRequestFullscreen)?.call(el).catch?.(()=>{});};
 function stagePoint(x,y){const s=stage.getBoundingClientRect();return {x:(x??s.left+s.width/2)-s.left,y:(y??s.top+s.height/2)-s.top};}
 function restart(el,name){el.classList.remove(name);void el.offsetWidth;el.classList.add(name);}
 
