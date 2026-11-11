@@ -22,6 +22,12 @@ const BACKGROUNDS = [
  ['felt-cake', 'assets/birthday-cake-4k.png'],
  ['dreamscape', 'assets/photo-backgrounds/fullbleed-dreamscape.png'],
  ['photo-booth-party-v2', 'assets/photo-backgrounds/photo-booth-party-v2.png'],
+ ['photo-booth-comic-v1', 'assets/photo-backgrounds/photo-booth-comic-v1.png'],
+ ['photo-booth-carnival-v1', 'assets/photo-backgrounds/photo-booth-carnival-v1.png'],
+ ['photo-booth-neon-v1', 'assets/photo-backgrounds/photo-booth-neon-v1.png'],
+ ['photo-booth-space-v1', 'assets/photo-backgrounds/photo-booth-space-v1.png'],
+ ['photo-booth-lantern-v1', 'assets/photo-backgrounds/photo-booth-lantern-v1.png'],
+ ['photo-booth-ocean-v1', 'assets/photo-backgrounds/photo-booth-ocean-v1.png'],
 ];
 const MAX_WIDTH = 2560;
 

@@ -28,12 +28,12 @@ function showControls(visible){controls.hidden=!visible;if(visible)armMenuIdle()
 // 独立的电视全屏拍照背景：不改变相册数据，也不上传用户图片。
 // 背景都是生图工具生成的完整插画，由 scripts/make_photo_backgrounds.mjs 转成 WebP 和缩略图；齐齐的每个动作只出现一次。
 const PHOTO_BACKGROUNDS=[
- ['生日派对·热闹施工主题','photo-booth-party-v2'],
+ ['生日快乐·波普','popart'],
  ['毛毡农场派对','felt-farm'],
  ['挖掘机大厅·夜间灯光','hall-night'],
  ['毛毡生日蛋糕','felt-cake'],
  ['梦幻拼贴','dreamscape']
-].map(([label,name])=>{const ext=name==='photo-booth-party-v2'?'png':'webp';return [label,`assets/photo-backgrounds/${name}.${ext}`,`assets/photo-backgrounds/${name}.${ext}`];});
+].map(([label,name])=>[label,`assets/photo-backgrounds/${name}.webp`,`assets/photo-backgrounds/${name}.thumb.webp`]);
 let photoBoothItems=[],photoBoothIndex=0,photoBoothTimer=0,photoBoothPlaying=false,photoBoothPanelHidden=false,photoBoothMusicOn=false,photoBoothPreviousMusic=false;
 let photoBoothRun=0,photoBoothRemoved=[],photoBoothFullscreen=false;
 function boothOpen(){return !$('photo-booth').hidden;}
