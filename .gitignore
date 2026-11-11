@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 /dist/
 /little-tractor-party-offline.zip
+.voice-asr.json
+.voice-asr.log

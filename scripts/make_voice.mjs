@@ -55,9 +55,11 @@ export function collectLines(source) {
   return [...items.values()];
 }
 
-// 后期处理：切掉首尾静音、轻压缩、统一峰值到 -1.5 dBFS，让所有台词一样响、倒数更干脆。
+// 后期处理：切掉首尾静音（门限放低、开头留 60 毫秒并淡入，避免切掉“呼”“轰”这类轻声起音）、轻压缩，
+// 再按平均响度统一到 -15 dB（而不是只对齐峰值），最后限幅到 -3 dBFS，给 MP3 编码留余量、电视上不破音。
 // 需要 ffmpeg（macOS：brew install ffmpeg）；没有时保留原始音频并提示。改动这里的参数要同时改 POLISH 以便重新生成。
-export const POLISH = 'trim-comp-peak1.5-v1';
+export const POLISH = 'trim55-fade-rms15-lim3-v2';
+const TARGET_RMS = -15;
 export const fileFor = ({kind, text}) => `${kind}-${createHash('sha1').update(`${kind}|${text}|${JSON.stringify(VOICES[kind] || VOICES.narrator)}|${POLISH}`).digest('hex').slice(0, 10)}.mp3`;
 const FFMPEG = process.env.FFMPEG || 'ffmpeg';
 function run(cmd, args) {
@@ -72,11 +74,11 @@ function run(cmd, args) {
 let polishWarned = false;
 async function polish(target) {
   const tmp = target + '.tmp.mp3';
-  const trim = 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.03,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.08,areverse,acompressor=threshold=-20dB:ratio=3:attack=5:release=120:makeup=2';
+  const trim = 'silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.06,areverse,silenceremove=start_periods=1:start_threshold=-55dB:start_silence=0.1,afade=t=in:d=0.04,areverse,afade=t=in:d=0.015,acompressor=threshold=-20dB:ratio=3:attack=5:release=120:makeup=2';
   try {
     const probe = await run(FFMPEG, ['-hide_banner', '-i', target, '-af', trim + ',volumedetect', '-f', 'null', '-']);
-    const peak = Number(/max_volume: (-?[\d.]+) dB/.exec(probe)?.[1] ?? 0);
-    await run(FFMPEG, ['-hide_banner', '-y', '-i', target, '-af', `${trim},volume=${(-1.5 - peak).toFixed(2)}dB,alimiter=limit=0.85`, '-ac', '1', '-ar', '24000', '-c:a', 'libmp3lame', '-b:a', '64k', tmp]);
+    const mean = Number(/mean_volume: (-?[\d.]+) dB/.exec(probe)?.[1] ?? TARGET_RMS);
+    await run(FFMPEG, ['-hide_banner', '-y', '-i', target, '-af', `${trim},volume=${(TARGET_RMS - mean).toFixed(2)}dB,alimiter=limit=0.7:level=false`, '-ac', '1', '-ar', '24000', '-c:a', 'libmp3lame', '-b:a', '64k', tmp]);
     writeFileSync(target, readFileSync(tmp)); unlinkSync(tmp);
   } catch (e) {
     try { unlinkSync(tmp); } catch {}

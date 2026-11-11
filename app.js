@@ -150,7 +150,7 @@ function hotTap(kind,event,button){
 for(const id of ['home-hots','cake-hots'])$(id).onclick=event=>{const b=event.target.closest?.('[data-hot]');if(b)hotTap(b.dataset.hot,event,b);};
 
 // 空闲提示：首页和蛋糕页过几秒，轮流在能点的地方闪光并出现小手，偶尔用语音邀请。
-const HINTS={home:[['excavator','齐齐，点点挖掘机！'],['dragon','点点小龙齐齐！'],['rooster','点点公鸡爸爸！'],['mouse','点点鼠妈妈！'],['two','点点数字二！']],cake:[['cake','齐齐，点点蛋糕，吹蜡烛！'],['dragon','点点小龙齐齐！'],['mouse','点点鼠妈妈！'],['rooster','点点公鸡爸爸！']]};
+const HINTS={home:[['excavator','齐齐，点点挖掘机！'],['dragon','点点小龙齐齐！'],['rooster','点点公鸡爸爸呀！'],['mouse','点点鼠妈妈！'],['two','点点数字二！']],cake:[['cake','齐齐，点点蛋糕，吹蜡烛！'],['dragon','点点小龙齐齐！'],['mouse','点点鼠妈妈！'],['rooster','点点公鸡爸爸呀！']]};
 let hintTimers=[],hintCount=0,idleRound=0;
 function clearHint(){hintTimers.forEach(clearTimeout);hintTimers=[];for(const id of ['home-hots','cake-hots'])for(const b of Array.from($(id).children||[]))b.classList.remove('hinting');}
 function showHint(){
