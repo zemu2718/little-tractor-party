@@ -21,6 +21,7 @@ const BACKGROUNDS = [
  ['hall-night', 'assets/photo-backgrounds/hall-night-exhibition.png'],
  ['felt-cake', 'assets/birthday-cake-4k.png'],
  ['dreamscape', 'assets/photo-backgrounds/fullbleed-dreamscape.png'],
+ ['photo-booth-party-v2', 'assets/photo-backgrounds/photo-booth-party-v2.png'],
 ];
 const MAX_WIDTH = 2560;
 
