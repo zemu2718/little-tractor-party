@@ -44,7 +44,7 @@ window.PartyVoice=(()=>{
   const selected=localVoice();
   if(!selected||!window.SpeechSynthesisUtterance)return false;
   // 稍高的音调与稍慢的语速，更像童声，也便于两岁宝宝听清。
-  try{utterance=new window.SpeechSynthesisUtterance(text);utterance.voice=selected;utterance.lang=selected.lang;utterance.rate=.85;utterance.pitch=1.35;utterance.volume=VOLUME;utterance.onend=()=>{if(current===run){clearTimeout(timer);utterance=null;talking(false);}};synth.speak(utterance);talking(true);timer=setTimeout(stop,10000);return true;}
+  try{utterance=new window.SpeechSynthesisUtterance(text);utterance.voice=selected;utterance.lang=selected.lang;utterance.rate=.85;utterance.pitch=1.35;utterance.volume=VOLUME;utterance.onend=()=>{if(current===run){clearTimeout(timer);utterance=null;talking(false);}};utterance.onerror=utterance.onend;synth.speak(utterance);talking(true);timer=setTimeout(stop,10000);return true;}
   catch{utterance=null;return false;}
  }
  function onSpeaking(fn){onSpeak=typeof fn==='function'?fn:()=>{};}

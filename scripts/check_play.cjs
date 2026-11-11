@@ -89,7 +89,7 @@ function setup({reduce=false}={}){
  assert(spoken.includes('派对开始啦！'));assert(app.audio.loops>0);
  const advance=[...app.timers.values()].find(t=>t.ms===45000);assert(advance);advance.f();assert.equal(app.read('mode'),'game');
  const perf=[...app.timers.values()].find(t=>t.ms===1200);assert(perf);perf.f();assert(app.read('danceOn'));
- await app.run('stopDance()');await app.run("armIdle()");const gameNext=[...app.timers.values()].find(t=>t.ms===36000);assert(gameNext);gameNext.f();assert.equal(app.read('mode'),'cake');
+ await app.run('stopDance()');await app.run('performance.now=()=>21000');await app.run("armIdle()");const gameNext=[...app.timers.values()].find(t=>t.ms===16000);assert(gameNext,'game deadline must not restart after the dance');gameNext.f();assert.equal(app.read('mode'),'cake');await app.run('performance.now=()=>1000');
  assert(![...app.timers.values()].some(t=>t.ms===6000));
  app.els['parent-exit'].onpointerdown({preventDefault(){}});[...app.timers.values()].find(t=>t.ms===1100).f();assert.equal(app.read('showMode'),false);assert(!app.els.controls.hidden);
  // 有照片时相册放完最后一张才切走。
@@ -100,14 +100,20 @@ function setup({reduce=false}={}){
  // 生日仪式：唱歌 → 许愿 → 人声倒数 → 吹灭欢呼 → 继续轮播。
  app=setup();const lines2=[];app.context.window.PartyVoice.speak=async(kind,text)=>{lines2.push(text);return true;};
  await app.click('ceremony');assert.equal(app.read('mode'),'cake');assert.equal(app.read('ceremonyOn'),true);assert.equal(app.read('showMode'),true);
- [...app.timers.values()].find(t=>t.ms===2600).f();await new Promise(setImmediate);await new Promise(setImmediate);assert.equal(app.read('singing'),true);
+ [...app.timers.values()].find(t=>t.ms===3200).f();await new Promise(setImmediate);await new Promise(setImmediate);assert.equal(app.read('singing'),true);
  [...app.timers.values()].find(t=>t.ms===14000).f();assert.equal(app.read('singing'),false);assert(lines2.includes("许个愿，吹蜡烛吧！"));
  [...app.timers.values()].find(t=>t.ms===3400).f();assert.equal(app.read('counting'),true);
  for(const ms of [0,1000,2000,3000])[...app.timers.values()].find(t=>t.ms===ms&&String(t.f).includes('COUNTDOWN'))?.f();assert.deepEqual(lines2.filter(t=>/^[三二一呼]/.test(t)),['三！','二！','一！','呼——吹蜡烛！']);
- [...app.timers.values()].find(t=>t.ms===3850).f();assert.equal(app.read('blown'),true);assert.equal(app.read('ceremonyOn'),false);assert(app.els.confetti.children.length>=100);
+ [...app.timers.values()].find(t=>t.ms===3850).f();assert.equal(app.read('blown'),true);assert.equal(app.read('ceremonyOn'),false);assert(app.els.confetti.children.length>=100);assert.equal(app.els.finale.children.length,5);
  [...app.timers.values()].find(t=>t.ms===30000).f();assert.equal(app.read('mode'),'home');
  // 再次轮播回到蛋糕时蜡烛重新点亮。
  await app.run("goShow('cake')");assert.equal(app.read('blown'),false);
+ // 唱歌时宝宝点角色不会说话打断生日歌；吹灭后的欢呼台词等倒数最后一句说完再播。
+ app=setup();const heard=[];app.context.window.PartyVoice.speak=async(kind,text)=>{heard.push(text);return true;};
+ await app.run("selectScene('cake')");await app.click('sing');assert.equal(app.read('singing'),true);await app.run('lastGreeting=0');
+ app.read("hotTap('rooster',{clientX:10,clientY:10},null)");assert(!heard.some(t=>/喔/.test(t)));assert.equal(app.read('singing'),true);
+ await app.run('stopSong()');await app.click('blow');assert(!heard.includes('哇！齐齐，生日快乐！'));[...app.timers.values()].find(t=>t.ms===1000&&String(t.f).includes('哇')).f();assert(heard.includes('哇！齐齐，生日快乐！'));
+ console.log('PASS: no speech over the song, cheer line waits for the countdown');
  console.log('PASS: party show carousel/auto perform/album round/exit, birthday ceremony (song → wish → voiced countdown → blow → resume)');
  console.log('PASS: rapid taps, peekaboo, dance party, back-button guard, album video, countdown/relight, child sound + kid nav, built-in album music, find game, play modes, candle persistence, song cancellation, sound, album decode/sort/loop/pause/failure/URL cleanup, photo mode, background timers, reduced motion, microphone cancellation, fullscreen fallback, wake lock race');
 })().catch(e=>{console.error(e);process.exitCode=1;});

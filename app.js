@@ -12,7 +12,7 @@ let micStream=null,micContext=null,micTimer,micRun=0,micPending=false;
 let leaveTimer,leaving=null,cheerTimer,countdownTimers=[],counting=false,findTimers=[],findTarget=null,findCount=0;
 let lastGreeting=0,lastSparkle=0,suppressClick=0,burstSeed=0,greetStyle=0;
 let danceOn=false,danceTimers=[],peeking=false;
-let showMode=false,ceremonyOn=false,ceremonyTimer,ceremonyWatch,performCount=0;
+let showMode=false,ceremonyOn=false,ceremonyTimer,ceremonyWatch,performCount=0,showUntil=0;
 const audio=window.PartyAudio;
 const voice=window.PartyVoice;
 const PALETTE=['#ff5d73','#ffb703','#06d6a0','#4cc9f0','#f72585','#ffd60a','#8ac926','#ff8fab','#ffffff'];
@@ -21,7 +21,7 @@ const CONFETTI=140,FIND_IDLE=9000;
 const DECO='assets/deco/',BITS=['star-yellow','heart-red','star-pink','star-mint','heart-pink'],BALLOONS=['orange','lime','cream','yellow','coral','sky','pink'];
 for(const name of [...BITS,...BALLOONS.map(b=>'balloon-'+b)]){const warm=new Image();warm.src=`${DECO}${name}.webp`;}
 function tell(message){clearTimeout(noticeTimer);$('notice').textContent=message;noticeTimer=setTimeout(()=>$('notice').textContent='',4800);}
-function clearEffects(){clearTimeout(confettiTimer);$('confetti').replaceChildren();$('bubbles').replaceChildren();}
+function clearEffects(){clearTimeout(confettiTimer);$('confetti').replaceChildren();$('bubbles').replaceChildren();$('finale').replaceChildren();}
 function clearAmbient(){$('ambient').replaceChildren();}
 function frozen(){return paused||photoMode||document.hidden;}
 function showControls(visible){controls.hidden=!visible;document.body.classList.toggle('clean',!visible||photoMode);if(!visible){$('settings').open=false;$('notice').textContent='';stage.focus({preventScroll:true});}}
@@ -74,8 +74,11 @@ function spawnFloater(className,x,size,dur){
 function spawnBalloon(){const side=mode==='cake'||Math.random()<.65,x=side?(Math.random()<.5?2+Math.random()*22:76+Math.random()*20):24+Math.random()*52;spawnFloater('balloon',x,6+Math.random()*3,10+Math.random()*5);}
 function spawnSoap(){spawnFloater('soap',4+Math.random()*90,6+Math.random()*4,12+Math.random()*6);}
 function spawnPetal(){
- const p=document.createElement('i'),dur=9+Math.random()*5;p.className='petal';
- const values={'--x':`${Math.random()*100}%`,'--color':PALETTE[Math.floor(Math.random()*PALETTE.length)],'--duration':`${dur}s`,'--sway':`${(Math.random()-.5)*12}cqw`};
+ const p=document.createElement('i'),dur=9+Math.random()*5,felt=Math.random()<.5;p.className=felt?'petal felt':'petal';
+ // 毛毡星星/爱心只从两侧飘落，不挡照片中间。
+ const x=felt?(Math.random()<.5?Math.random()*14:86+Math.random()*13):Math.random()*100;
+ if(felt)p.style.setProperty('--img',`url("${DECO}${BITS[Math.floor(Math.random()*BITS.length)]}.webp")`);
+ const values={'--x':`${x}%`,'--color':PALETTE[Math.floor(Math.random()*PALETTE.length)],'--duration':`${dur}s`,'--sway':`${(Math.random()-.5)*12}cqw`};
  for(const [k,v]of Object.entries(values))p.style.setProperty(k,v);
  $('ambient').append(p);setTimeout(()=>p.remove(),dur*1000+300);
 }
@@ -96,7 +99,9 @@ function ambientTick(){
  if(mode==='home'&&ambientCount%6===0&&!box.querySelector?.('.patrol'))spawnPatrol();
  else if((mode==='home'||mode==='cake')&&count<6)spawnBalloon();
  else if(mode==='game'&&count<4&&!danceOn)spawnSoap();
- else if(mode==='album'&&photos.length&&count<10)spawnPetal();
+ else if(mode==='album'&&photos.length&&ambientCount%9===0&&!box.querySelector?.('.patrol'))spawnPatrol();
+ else if(mode==='album'&&photos.length&&ambientCount%3===0&&count<12)spawnFloater('balloon',Math.random()<.5?1+Math.random()*10:88+Math.random()*10,5+Math.random()*2.5,11+Math.random()*4);
+ else if(mode==='album'&&photos.length&&count<12)spawnPetal();
 }
 setInterval(ambientTick,2400);
 
@@ -127,7 +132,8 @@ function canTalk(){const now=performance.now();if(now-lastGreeting<450)return fa
 const SPRITES={dragon:'assets/little-dragon.webp',mouse:'assets/little-mouse.webp',rooster:'assets/little-rooster.webp',excavator:'assets/little-excavator.webp'};
 function popOut(kind,x,y){
  if(frozen()||calm||!SPRITES[kind])return;const w=stage.clientWidth||1600,h=stage.clientHeight||900;
- const img=document.createElement('img');img.className=kind==='excavator'?'popout wide':'popout';img.src=SPRITES[kind];img.alt='';
+ $('bubbles').querySelector?.(`.popout[data-kind="${kind}"]`)?.remove();
+ const img=document.createElement('img');img.className=kind==='excavator'?'popout wide':'popout';img.src=SPRITES[kind];img.alt='';img.dataset&&(img.dataset.kind=kind);
  img.style.left=`${Math.min(w*.84,Math.max(w*.16,x))}px`;img.style.top=`${Math.min(h*.97,Math.max(h*.55,y))}px`;
  $('bubbles').append(img);setTimeout(()=>img.remove(),2000);
 }
@@ -137,7 +143,7 @@ function hotTap(kind,event,button){
  const p=stagePoint(event.clientX,event.clientY);burst(p.x,p.y,10);
  if(button&&SPRITES[kind]){const r=hotRect(button);popOut(kind,r.x,r.bottom);}
  if(kind==='excavator')restart(mode==='home'?$('home-art'):$('birthday-cake'),'rumble');
- if(!canTalk()){audio.effect('twinkle').catch(()=>{});return;}
+ if(singing||counting||ceremonyOn||!canTalk()){audio.effect('twinkle').catch(()=>{});return;}
  const text=nextLine(kind);say(text,p.x,p.y-(stage.clientHeight||900)*.12);
  speakFor(kind==='two'?'narrator':kind,text,kind==='two'?'found':null);
 }
@@ -155,7 +161,7 @@ function showHint(){
  if(round%2===0)speakFor('narrator',prompt,'twinkle');
  hintTimers.push(setTimeout(showHint,9000));
 }
-function idleTouch(){if(mode==='game'){if(!findTarget&&!peeking)armIdle();}else armIdle();}
+function idleTouch(){if(showMode&&showUntil)showUntil=Math.max(showUntil,performance.now()+15000);if(mode==='game'){if(!findTarget&&!peeking)armIdle();}else armIdle();}
 function armIdle(){
  clearHint();
  if(frozen())return;
@@ -168,11 +174,12 @@ function armIdle(){
 // 不再反复喊宝宝来点；宝宝点了照样有反应，点得多时会多停留一会儿。生日仪式由家长按一次按钮开始。
 const SHOW_ORDER=['home','album','game','cake'],SHOW_TIME={home:45000,game:36000,cake:30000},PERFORM_GAP=8000;
 const PERFORM={home:['dragon','rooster','mouse','excavator','two'],cake:['dragon','mouse','rooster','cake']};
+// 每个场景有固定的结束时间（showUntil）：跳舞、躲猫猫结束后重排定时器不会把它往后推；宝宝点画面时最多延长到“点完后 15 秒”。
+function sceneLength(){if(mode!=='album')return SHOW_TIME[mode]||40000;if(!photos.length)return 800;const each=Number($('duration').value)*1000;return Math.min(photos.reduce((t,p)=>t+(p.video?90000:each),0)+4000,300000);}
 function armShow(){
- if(ceremonyOn)return;
+ if(ceremonyOn)return;const now=performance.now();if(!showUntil)showUntil=now+sceneLength();
  hintTimers.push(setTimeout(showPerform,mode==='game'&&!performCount?1200:5000));
- if(mode==='album'){const n=photos.length;hintTimers.push(setTimeout(nextShow,n?Math.min(n*Number($('duration').value)*1000+4000,300000):800));}
- else hintTimers.push(setTimeout(nextShow,SHOW_TIME[mode]||40000));
+ hintTimers.push(setTimeout(nextShow,Math.max(showUntil-now,1500)));
 }
 function showPerform(){perform();hintTimers.push(setTimeout(showPerform,PERFORM_GAP));}
 function hotButton(kind){return Array.from($(mode==='home'?'home-hots':'cake-hots').children||[]).find(b=>b.dataset.hot===kind);}
@@ -193,7 +200,7 @@ function perform(){
  else audio.effect(kind==='two'?'found':'twinkle').catch(()=>{});
 }
 function goShow(next){
- performCount=0;
+ performCount=0;showUntil=0;
  if(next==='album'){photoIndex=0;albumPlaying=true;}
  if(next==='cake'&&blown){blown=false;updateCake();}
  selectScene(next);
@@ -208,15 +215,16 @@ function stopCeremony(){ceremonyOn=false;clearTimeout(ceremonyTimer);clearTimeou
 function startCeremony(){
  if(mode!=='cake')selectScene('cake');stopCeremony();clearHint();cancelCountdown();stopSong();
  if(blown){blown=false;updateCake();restart($('birthday-cake'),'relit');}
- ceremonyOn=true;ceremonyWatch=setTimeout(()=>{if(ceremonyOn){stopCeremony();armIdle();}},150000);
+
+ ceremonyOn=true;showUntil=0;ceremonyWatch=setTimeout(()=>{if(ceremonyOn){stopCeremony();armIdle();}},150000);
  setLyric('大家一起唱生日歌吧！');speakFor('narrator','大家一起唱生日歌吧！','twinkle');
- ceremonyTimer=setTimeout(()=>{if(ceremonyOn&&mode==='cake'&&!frozen())sing();},2600);
+ ceremonyTimer=setTimeout(()=>{if(ceremonyOn&&mode==='cake'&&!frozen()&&!counting&&!blown&&!singing)sing();},3200);
 }
 function tryFullscreen(){try{const el=document.documentElement,enter=el.requestFullscreen||el.webkitRequestFullscreen;if(enter&&!fullscreenElement())Promise.resolve(enter.call(el)).catch(()=>{});}catch{}}
 async function startShow(ceremony=false){
  tryFullscreen();
  if(photoMode){photoMode=false;paused=pausedBeforePhoto;}paused=false;
- enterKid();showMode=true;document.body.classList.add('show');$('kid-nav').hidden=true;audio.setLoopLevel?.(.5);performCount=0;
+ enterKid();showMode=true;document.body.classList.add('show');$('kid-nav').hidden=true;audio.setLoopLevel?.(.5);performCount=0;showUntil=0;
  const on=enableSound(true);
  if(ceremony)startCeremony();else if(mode!=='home')goShow('home');
  syncPause();
@@ -350,19 +358,40 @@ async function importPhotos(list){
 }
 function updateAlbum(){const has=photos.length>0;$('scene-album').classList.toggle('has-photos',has);$('album-empty').hidden=has;$('photo-frame').hidden=!has;$('album-count').hidden=!has;$('album-progress').hidden=!has;for(const id of ['album-toggle','clear-photos'])$(id).disabled=!has;for(const id of ['previous','next'])$(id).disabled=photos.length<2;$('album-toggle').textContent=albumPlaying?'暂停相册':'播放相册';$('album-count').textContent=`${photoIndex+1} / ${photos.length}`;$('album-progress').firstElementChild.style.width=has?`${(photoIndex+1)/photos.length*100}%`:'0%';}
 const IMAGE_RE=/\.(jpe?g|png|webp|avif|bmp|heic|heif)$/i,VIDEO_RE=/\.(mp4|mov|m4v|webm)$/i;
-const ORIGINS=['30% 30%','70% 35%','40% 70%','65% 65%','50% 50%'];
+// 相册运镜：照片在相框里慢慢推拉平移（每张换一种方向）；入场四种轮换；上一张被甩出画面；每 5 张一次小庆祝。
+const CAMERA=[['scale(1) translate(0,0)','scale(1.14) translate(-3%,-2%)'],['scale(1.14) translate(3%,2%)','scale(1.02) translate(0,0)'],['scale(1.1) translate(-3.5%,0)','scale(1.1) translate(3.5%,0)'],['scale(1.12) translate(0,3%)','scale(1.12) translate(0,-2.5%)'],['scale(1.02) translate(2%,-2%)','scale(1.15) translate(-2%,1.5%)']];
+const ENTRANCES=['enter-toss','enter-swing','enter-pop','enter-flip'],EXITS=['exit-toss','exit-shrink'];
+function ghostCard(card){
+ // 复制当前照片做离场动画：被甩出去或缩小飘走，新照片同时进场。
+ if(calm||frozen()||card.hidden||!card.cloneNode||!$('photo-img').getAttribute?.('src'))return;
+ const ghost=card.cloneNode(true);ghost.removeAttribute('id');ghost.querySelectorAll?.('[id]').forEach(el=>el.removeAttribute('id'));
+ Object.assign(ghost.style,{position:'absolute',left:`${card.offsetLeft}px`,top:`${card.offsetTop}px`,width:`${card.offsetWidth}px`,height:`${card.offsetHeight}px`,margin:'0'});
+ const gi=ghost.querySelector?.('img');if(gi){gi.classList.remove('kb');gi.style.transform=gi.style.getPropertyValue('--kb1');}
+ ghost.className=`photo-card photo-ghost ${EXITS[photoIndex%EXITS.length]}`;ghost.setAttribute('aria-hidden','true');
+ $('photo-frame').append(ghost);setTimeout(()=>ghost.remove(),1000);
+}
+function albumParty(){
+ // 每 5 张：公鸡爸爸和挖掘机从底下探头，相框四周爆出毛毡星星和爱心，配一声欢呼。
+ if(calm||frozen())return;const card=$('photo-card'),s=stage.getBoundingClientRect(),r=card.getBoundingClientRect();
+ for(const [fx,fy] of [[0,0],[1,0],[0,1],[1,1]])burst(r.left-s.left+r.width*fx,r.top-s.top+r.height*fy,10,true);
+ for(const id of ['peek-rooster','peek-excavator']){const el=$(id);restart(el,'up');setTimeout(()=>el.classList.remove('up'),3200);}
+ audio.effect('found').catch(()=>{});
+}
 async function renderPhoto(){
  clearTimeout(albumTimer);updateAlbum();if(!photos.length)return;const run=++photoRun,p=photos[photoIndex];
  try{
   if(p.video){showVideo(p,run);return;}
-  await decode(p.url);if(run!==photoRun)return;const img=$('photo-img');stopVideo();img.hidden=false;
-  img.classList.remove('photo-enter');img.src=p.url;img.alt=p.cap||`齐齐的成长照片，第 ${photoIndex+1} 张`;
-  img.style.setProperty('--dur',`${Number($('duration').value)+1}s`);img.style.setProperty('--origin',ORIGINS[photoIndex%ORIGINS.length]);
-  img.style.setProperty('--from',photoIndex%2?'6cqw':'-6cqw');img.style.setProperty('--tilt',photoIndex%2?'1deg':'-1deg');
-  if(!calm&&!frozen())document.querySelectorAll('.album-sticker').forEach((el,i)=>{if((photoIndex+i)%2===0)restart(el,'cheer');});
+  await decode(p.url);if(run!==photoRun)return;const img=$('photo-img'),card=$('photo-card'),cap=$('photo-caption');stopVideo();
+  const live=!calm&&!frozen();if(live)ghostCard(card);
+  card.hidden=false;img.hidden=false;
+  for(const name of [...ENTRANCES,'kb'])card.classList.remove(name);img.classList.remove('kb');cap.classList.remove('stamp');
+  img.src=p.url;img.alt=p.cap||`齐齐的成长照片，第 ${photoIndex+1} 张`;
+  const [from,to]=CAMERA[photoIndex%CAMERA.length];img.style.setProperty('--kb0',from);img.style.setProperty('--kb1',to);img.style.setProperty('--dur',`${Number($('duration').value)+1.5}s`);
+  card.style.setProperty('--tilt',['-1.5deg','1deg','-.6deg','1.4deg'][photoIndex%4]);card.style.setProperty('--side',photoIndex%2?'1':'-1');
+  if(live)document.querySelectorAll('.album-sticker').forEach((el,i)=>{if((photoIndex+i)%2===0){restart(el,'cheer');setTimeout(()=>el.classList.remove('cheer'),1000);}});
   $('album-bg').style.setProperty('--photo',`url("${p.url}")`);
-  $('photo-caption').textContent=$('captions').checked?p.cap:'';
-  if(!calm&&!frozen()){void img.offsetWidth;img.classList.add('photo-enter');}
+  cap.textContent=$('captions').checked?p.cap:'';
+  if(live){void card.offsetWidth;card.classList.add(ENTRANCES[photoIndex%ENTRANCES.length]);img.classList.add('kb');cap.classList.add('stamp');if(photoIndex%5===4)setTimeout(()=>{if(mode==='album'&&photos[photoIndex]===p)albumParty();},1100);}
   if(photoIndex%2===0&&mode==='album'&&!frozen())voice.speak('narrator',ALBUM_LINES[(photoIndex/2)%ALBUM_LINES.length]);
   schedulePhoto();
  }catch{if(run!==photoRun)return;albumPlaying=false;updateAlbum();tell('这张照片加载失败，可以切到下一张或重新选择照片。');}
@@ -373,7 +402,7 @@ function stopVideo(){const v=$('photo-video');v.onended=null;v.pause?.();v.remov
 function pauseVideo(){$('photo-video').pause?.();}
 function resumeVideo(){const v=$('photo-video');if(mode==='album'&&!v.hidden&&v.paused&&!frozen())v.play?.().catch(()=>{});}
 function showVideo(p,run){
- const v=$('photo-video'),img=$('photo-img');img.hidden=true;img.classList.remove('photo-enter');
+ const v=$('photo-video'),img=$('photo-img');img.hidden=true;$('photo-card').hidden=true;img.classList.remove('kb');
  v.onloadedmetadata=()=>{const ar=v.videoWidth/v.videoHeight||16/9;v.style.width=`min(70cqw,${(42*ar).toFixed(1)}cqw)`;};
  v.hidden=false;v.src=p.url;v.muted=!sound;v.volume=1;v.loop=photos.length<2;
  v.onended=()=>{if(run!==photoRun)return;if(showMode&&photoIndex===photos.length-1){nextShow();return;}if(albumPlaying&&photos.length>1){photoIndex=(photoIndex+1)%photos.length;renderPhoto();}};
@@ -389,7 +418,7 @@ function pickPhotos(){ $('files').click(); }
 $('empty-pick').onclick=pickPhotos;$('pick').onclick=pickPhotos;$('pick-folder').onclick=()=>$('folder').click();
 for(const id of ['files','folder'])$(id).onchange=e=>{importPhotos(e.target.files);e.target.value='';};
 $('previous').onclick=()=>stepPhoto(-1);$('next').onclick=()=>stepPhoto(1);$('album-toggle').onclick=()=>{albumPlaying=!albumPlaying;updateAlbum();schedulePhoto();syncMusic();};$('duration').onchange=schedulePhoto;$('captions').onchange=renderPhoto;$('builtin-music').onchange=syncMusic;
-$('clear-photos').onclick=()=>{store.drop('photos');importRun++;finishImport();importResume=false;photoRun++;clearTimeout(albumTimer);photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];photoIndex=0;albumPlaying=false;stopVideo();$('photo-img').removeAttribute('src');$('album-bg').style.setProperty('--photo','none');clearAmbient();updateAlbum();syncMusic();};
+$('clear-photos').onclick=()=>{store.drop('photos');importRun++;finishImport();importResume=false;photoRun++;clearTimeout(albumTimer);photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];photoIndex=0;albumPlaying=false;stopVideo();$('photo-img').removeAttribute('src');$('photo-card').hidden=true;$('album-bg').style.setProperty('--photo','none');clearAmbient();updateAlbum();syncMusic();};
 $('clear-music').onclick=()=>{store.drop('music');musicRun++;wantsMusic=false;$('bgm').pause();$('bgm').removeAttribute('src');$('bgm').load?.();if(musicURL)URL.revokeObjectURL(musicURL);musicURL='';updateMusic();syncMusic();};
 $('pick-music').onclick=()=>$('music-file').click();$('music-file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>100*1024*1024){tell('请选择小于 100 MB 的音乐文件。');return;}$('bgm').pause();if(musicURL)URL.revokeObjectURL(musicURL);musicURL=URL.createObjectURL(file);$('bgm').src=musicURL;$('bgm').volume=.7;wantsMusic=false;audio.stopLoop();updateMusic();store.put('music',file).catch(()=>{});tell('音乐已选择，点“播放音乐”开始；派对展示时会全程播放。');};
 $('music-toggle').onclick=async()=>{if(!musicURL)return;if(wantsMusic){wantsMusic=false;}else{if(!await enableSound(true))return;wantsMusic=true;}syncMusic();};$('bgm').onerror=()=>{wantsMusic=false;updateMusic();tell('这段音乐无法播放，请尝试 MP3 或其他文件。');};
@@ -434,8 +463,15 @@ function startCountdown(){
 function blow(){
  if(mode!=='cake'||blown)return;cancelCountdown();stopSong();stopMic();blown=true;updateCake();
  const cake=$('birthday-cake');cake.classList.remove('relit');restart(cake,'just-out');clearTimeout(cheerTimer);cheerTimer=setTimeout(()=>cake.classList.remove('just-out'),3400);
- celebrate();audio.effect('applause').catch(()=>{});if(!frozen())voice.speak('narrator','哇！齐齐，生日快乐！');if(!childMode)showControls(false);
+ celebrate();finale();audio.effect('applause').catch(()=>{});countdownTimers.push(setTimeout(()=>{if(!frozen()&&blown)voice.speak('narrator','哇！齐齐，生日快乐！');},1000));if(!childMode)showControls(false);
  if(ceremonyOn)stopCeremony();syncMusic();armIdle();
+}
+// 吹灭后的结尾：四个角色从底下一个个跳出来跟着节拍跳舞，中间升起金色毛毡大“2”；随彩纸一起约 8 秒后收起。
+const FINALE=[['mouse',11],['rooster',28],['dragon',72],['excavator',89]];
+function finale(){
+ if(frozen()||calm)return;const box=$('finale');box.replaceChildren();
+ const two=document.createElement('img');two.className='finale-two';two.src=`${DECO}number-2.webp`;two.alt='';box.append(two);
+ FINALE.forEach(([kind,x],i)=>{const img=document.createElement('img');img.className=`finale-friend${kind==='excavator'?' wide':''}`;img.src=SPRITES[kind];img.alt='';img.style.setProperty('--x',`${x}%`);img.style.setProperty('--i',String(i));box.append(img);});
 }
 function relight(){stopSong();stopMic();cancelCountdown();blown=false;clearEffects();updateCake();restart($('birthday-cake'),'relit');}
 function cakeTap(){

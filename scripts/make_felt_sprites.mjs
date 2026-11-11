@@ -102,6 +102,25 @@ const DRAW = String.raw`
   ctx.strokeStyle = 'rgba(255,235,190,.55)'; ctx.lineWidth = 2; ctx.setLineDash([6, 7]); ctx.stroke(); ctx.setLineDash([]);
   save('bunting', c);
  }
+ // 吹蜡烛结尾用的金色毛毡数字 2：奶油色描边 + 金色毛毡填充（用字形做遮罩）。放在最后，不改变前面贴纸的随机序列。
+ {
+  const W = 440, H = 560, font = '900 520px "Arial Rounded MT Bold", "Nunito", "PingFang SC", "DejaVu Sans", sans-serif';
+  const [c, ctx] = canvas(W, H), [m, mx] = canvas(W, H), [f, fx] = canvas(W, H);
+  for (const x of [ctx, mx]) { x.font = font; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.lineJoin = 'round'; }
+  ctx.strokeStyle = '#fff6df'; ctx.lineWidth = 46; ctx.shadowColor = 'rgba(90,55,0,.35)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 9; ctx.strokeText('2', W / 2, 490); ctx.shadowColor = 'transparent';
+  mx.fillText('2', W / 2, 490);
+  const box = new Path2D(); box.rect(0, 0, W, H);
+  felt(fx, box, {x: 30, y: 60, w: 380, h: 440}, {light: '#fff3a6', base: '#f2bf2c', dark: '#b07c0c'}, {stitch: false, hx: .34, hy: .22});
+  fx.globalCompositeOperation = 'destination-in'; fx.drawImage(m, 0, 0);
+  ctx.drawImage(f, 0, 0);
+  // 内侧缝线：沿字形描一圈细虚线，只保留字形里面的一半。
+  const [s, sx] = canvas(W, H); sx.font = font; sx.textAlign = 'center'; sx.lineJoin = 'round';
+  sx.strokeStyle = 'rgba(255,248,220,.95)'; sx.lineWidth = 22; sx.setLineDash([18, 14]); sx.strokeText('2', W / 2, 490);
+  sx.globalCompositeOperation = 'destination-out'; sx.lineWidth = 12; sx.setLineDash([]); sx.strokeText('2', W / 2, 490);
+  sx.globalCompositeOperation = 'destination-in'; sx.drawImage(m, 0, 0);
+  ctx.drawImage(s, 0, 0);
+  save('number-2', c);
+ }
  return out;
 })()`;
 
